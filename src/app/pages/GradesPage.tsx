@@ -27,17 +27,17 @@ const GRADE_STATS = [
 ];
 
 const GRADE_LOGS = [
-  { 
-    timestamp: "2026-02-18 14:32:15", 
+  {
+    timestamp: "2026-02-18 14:32:15",
     id: "AL-20260218-001",
-    modifiedBy: "Dr. Sarah Johnson", 
+    modifiedBy: "Dr. Sarah Johnson",
     instructorId: "INS-301",
-    student: "Alex Martinez", 
-    studentId: "STU-4521",
-    assignment: "React Hooks Assignment", 
+    student: "Dr. Klyne Smith",
+    studentId: "kxs180071",
+    assignment: "React Hooks Assignment",
     course: "CS 301: Web Development",
-    previous: 85, 
-    new: 92, 
+    previous: 85,
+    new: 92,
     change: +7,
     ip: "192.168.1.45"
   },
@@ -69,17 +69,17 @@ const GRADE_LOGS = [
     change: +88,
     ip: "10.0.2.18"
   },
-  { 
-    timestamp: "2026-02-17 13:20:45", 
+  {
+    timestamp: "2026-02-17 13:20:45",
     id: "AL-20260217-004",
-    modifiedBy: "Dr. Sarah Johnson", 
+    modifiedBy: "Dr. Sarah Johnson",
     instructorId: "INS-301",
-    student: "Alex Martinez", 
-    studentId: "STU-4521",
-    assignment: "Database Design Project", 
+    student: "Dr. Klyne Smith",
+    studentId: "kxs180071",
+    assignment: "Database Design Project",
     course: "CS 301: Web Development",
-    previous: 95, 
-    new: 90, 
+    previous: 95,
+    new: 90,
     change: -5,
     ip: "192.168.1.45"
   },

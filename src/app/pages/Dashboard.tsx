@@ -151,7 +151,7 @@ export function Dashboard() {
     <div className="p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500 dark:bg-slate-900">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Welcome back, Alex! 👋</h2>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Welcome back, Dr. Smith! 👋</h2>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">You have 3 assignments due this week. Stay focused!</p>
         </div>
         <div className="flex items-center gap-3">

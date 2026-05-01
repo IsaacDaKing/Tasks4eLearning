@@ -97,7 +97,7 @@ const WEEKLY_HOURS = [
 // FR-01: Courses with pin support
 const ALL_COURSES = [
   {
-    id: "cs-3354",
+    id: "cs3354",
     name: "Software Engineering",
     code: "CS 3354.012",
     progress: 75,
@@ -106,7 +106,7 @@ const ALL_COURSES = [
     color: "bg-blue-600",
   },
   {
-    id: "cs-4337",
+    id: "cs4337",
     name: "Programming Language Paradigms",
     code: "CS 4337.005",
     progress: 60,
@@ -115,7 +115,7 @@ const ALL_COURSES = [
     color: "bg-purple-600",
   },
   {
-    id: "cs-4341",
+    id: "cs4341",
     name: "Digital Logic and Computer Design",
     code: "CS 4341.003",
     progress: 45,
@@ -124,7 +124,7 @@ const ALL_COURSES = [
     color: "bg-emerald-600",
   },
   {
-    id: "cs-4347",
+    id: "cs4347",
     name: "Database Systems",
     code: "CS 4347.002",
     progress: 90,
@@ -133,7 +133,7 @@ const ALL_COURSES = [
     color: "bg-pink-600",
   },
   {
-    id: "cs-4390",
+    id: "cs4390",
     name: "Computer Networks",
     code: "CS 4390.0W1",
     progress: 82,
@@ -142,7 +142,7 @@ const ALL_COURSES = [
     color: "bg-orange-600",
   },
   {
-    id: "isns-2359",
+    id: "isns2359",
     name: "Earthquakes and Volcanoes",
     code: "ISNS 2359.0W1",
     progress: 65,
@@ -155,27 +155,27 @@ const ALL_COURSES = [
 // FR-01: Deadlines with links and countdown
 const DEADLINES = [
   {
-    title: "Project: Database Normalization",
+    title: "SQL Query Optimization",
     date: "Tomorrow, 11:59 PM",
     course: "CS 4347.002",
     color: "border-l-orange-500",
-    to: "/assignment",
+    to: "/courses/cs4347/assignments/4",
     daysLeft: 1,
   },
   {
-    title: "Quiz: Network Protocols",
+    title: "Network Protocol Analysis",
     date: "May 1, 10:00 AM",
     course: "CS 4390.0W1",
     color: "border-l-blue-500",
-    to: "/quiz",
+    to: "/courses/cs4390/assignments/5",
     daysLeft: 2,
   },
   {
-    title: "Software Engineering Final Submission",
+    title: "Volcanic Hazard Assessment",
     date: "May 3, 6:00 PM",
-    course: "CS 3354.012",
+    course: "ISNS 2359.0W1",
     color: "border-l-purple-500",
-    to: "/assignment",
+    to: "/courses/isns2359/assignments/9",
     daysLeft: 4,
   },
 ];
@@ -240,9 +240,11 @@ function CourseCard({
           />
         </button>
       </div>
-      <h4 className="font-bold text-slate-900 dark:text-white mb-1">
-        {course.name}
-      </h4>
+      <Link to={`/courses/${course.id}`} className="block">
+        <h4 className="font-bold text-slate-900 dark:text-white mb-1 hover:text-blue-600 transition-colors">
+          {course.name}
+        </h4>
+      </Link>
       <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
         {course.instructor}
       </p>
@@ -271,7 +273,7 @@ export function Dashboard() {
   // FR-01: pinned courses
   const [pinnedCourseIds, setPinnedCourseIds] = useState<
     string[]
-  >(["cs-301", "cs-401"]);
+  >(["cs3354", "cs4347"]);
 
   const togglePin = (id: number) => {
     setAnnouncements(

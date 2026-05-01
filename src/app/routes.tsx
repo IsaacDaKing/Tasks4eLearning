@@ -4,6 +4,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { CalendarPage } from "./pages/CalendarPage";
 import { GradesPage } from "./pages/GradesPage";
 import { CoursesPage } from "./pages/CoursesPage";
+import { CoursePage } from "./pages/CoursePage";
 import { GradeCalculator } from "./pages/GradeCalculator";
 import { AssignmentPage } from "./pages/AssignmentPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -14,17 +15,17 @@ import { useLocation } from "react-router";
 function Layout() {
   const location = useLocation();
   const getTitle = () => {
-    switch (location.pathname) {
-      case "/": return "Dashboard Overview";
-      case "/calendar": return "Academic Calendar";
-      case "/grades": return "Grade Audit Logs";
-      case "/courses": return "Your Enrolled Courses";
-      case "/grade-calculator": return "Grade Calculator";
-      case "/assignment": return "Assignment Submission";
-      case "/quiz": return "Quiz";
-      case "/settings": return "Account Settings";
-      default: return "LMS Dashboard";
-    }
+    if (location.pathname === "/") return "Dashboard Overview";
+    if (location.pathname === "/calendar") return "Academic Calendar";
+    if (location.pathname === "/grades") return "Grade Audit Logs";
+    if (location.pathname === "/courses") return "Your Enrolled Courses";
+    if (location.pathname.startsWith("/courses/") && location.pathname.includes("/assignments/")) return "Assignment Submission";
+    if (location.pathname.startsWith("/courses/")) return "Course Details";
+    if (location.pathname === "/grade-calculator") return "Grade Calculator";
+    if (location.pathname === "/assignment") return "Assignment Submission";
+    if (location.pathname === "/quiz") return "Quiz";
+    if (location.pathname === "/settings") return "Account Settings";
+    return "LMS Dashboard";
   };
 
   return (
@@ -62,6 +63,8 @@ export const router = createBrowserRouter([
       { path: "calendar", Component: CalendarPage },
       { path: "grades", Component: GradesPage },
       { path: "courses", Component: CoursesPage },
+      { path: "courses/:courseId", Component: CoursePage },
+      { path: "courses/:courseId/assignments/:assignmentId", Component: AssignmentPage },
       { path: "grade-calculator", Component: GradeCalculator },
       { path: "assignment", Component: AssignmentPage },
       { path: "quiz", Component: QuizPage },

@@ -10,6 +10,7 @@ import {
   BookOpen,
   LayoutDashboard
 } from "lucide-react";
+import { Link } from "react-router";
 import { 
   format, 
   startOfMonth, 
@@ -306,10 +307,19 @@ export function LMSCalendar() {
                   </p>
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <button className="flex-1 bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95">
-                    {selectedEvent.type === 'assignment' ? 'Submit Work' : 'Start Assessment'}
-                  </button>
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  {selectedEvent.type === 'assignment' ? (
+                    <Link
+                      to={`/courses/${selectedEvent.courseId}/assignments/${selectedEvent.id}`}
+                      className="flex-1 inline-flex items-center justify-center bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95"
+                    >
+                      Open Assignment
+                    </Link>
+                  ) : (
+                    <button className="flex-1 bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95">
+                      Start Assessment
+                    </button>
+                  )}
                   <button 
                     onClick={() => setSelectedEvent(null)}
                     className="px-6 py-3 border border-slate-200 text-slate-600 font-black rounded-xl hover:bg-slate-50 transition-all"

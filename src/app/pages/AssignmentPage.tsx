@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Link, useParams } from "react-router";
 import {
   Upload,
   File,
@@ -17,6 +18,7 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { motion } from "motion/react";
+import { getCourseById, getAssignmentById } from "../data/courses";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,16 +32,42 @@ export function AssignmentPage() {
   const [fileSizeError, setFileSizeError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Assignment metadata — FR-55, FR-56, FR-57, FR-61, FR-62
-  const assignment = {
-    courseCode: "ISNS 2359.0W1",
-    courseName: "Earthquakes and Volcanoes",
-    moduleTitle: "Module 3: Volcanic Activity",
-    assignmentTitle: "Volcanic Hazard Assessment Research Paper",
-    dueDate: "May 15, 2026 at 11:59 PM",
-    class: "ISNS 2359.0W1 (Online)",
-    type: "Assignment" as "Assignment" | "Quiz" | "Exam",
-    timeLimit: null as number | null, // minutes, null = no limit
+  const params = useParams();
+  const courseId = params.courseId ?? null;
+  const assignmentId = params.assignmentId ?? null;
+  const course = courseId ? getCourseById(courseId) : null;
+  const assignment = assignmentId && course ? getAssignmentById(course.id, assignmentId) : null;
+
+  if (!course || !assignment) {
+    return (
+      <div className="p-8 max-w-[900px] mx-auto h-full flex flex-col items-center justify-center text-center animate-in fade-in duration-500 dark:bg-slate-900">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-10">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-4">
+            Assignment not found
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 mb-6">
+            Select an assignment from the course page or calendar to open the correct submission workflow.
+          </p>
+          <Link
+            to="/courses"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all"
+          >
+            Browse Courses
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const assignmentExperience = {
+    courseCode: assignment.classSection,
+    courseName: course.title,
+    moduleTitle: assignment.moduleTitle,
+    assignmentTitle: assignment.title,
+    dueDate: assignment.dueDate,
+    className: assignment.classSection,
+    type: assignment.type,
+    timeLimit: null as number | null,
     attempts: 3,
   };
 
@@ -93,11 +121,11 @@ export function AssignmentPage() {
         <div className="flex items-center gap-2 text-sm font-bold mb-1 opacity-90">
           <FileText className="w-4 h-4" />
           {/* FR-55 */}
-          <span>{assignment.courseCode} — {assignment.courseName}</span>
+          <span>{assignmentExperience.courseCode} — {assignmentExperience.courseName}</span>
         </div>
         {/* FR-56: Module title as primary heading */}
-        <p className="text-white/70 text-sm font-semibold mb-2">{assignment.moduleTitle}</p>
-        <h1 className="text-4xl font-black mb-4">{assignment.assignmentTitle}</h1>
+        <p className="text-white/70 text-sm font-semibold mb-2">{assignmentExperience.moduleTitle}</p>
+        <h1 className="text-4xl font-black mb-4">{assignmentExperience.assignmentTitle}</h1>
 
         {/* FR-57: Due Date + Class in distinct header section */}
         <div className="flex flex-wrap items-center gap-6 text-sm bg-white/10 rounded-xl p-4 backdrop-blur-sm">
@@ -105,14 +133,14 @@ export function AssignmentPage() {
             <CalendarIcon className="w-4 h-4" />
             <div>
               <span className="text-white/60 text-xs uppercase tracking-wider font-bold block">Due Date</span>
-              <span className="font-bold">{assignment.dueDate}</span>
+              <span className="font-bold">{assignmentExperience.dueDate}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             <div>
               <span className="text-white/60 text-xs uppercase tracking-wider font-bold block">Class</span>
-              <span className="font-bold">{assignment.class}</span>
+              <span className="font-bold">{assignmentExperience.className}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -129,20 +157,20 @@ export function AssignmentPage() {
         <div className="mt-4 flex flex-wrap gap-3">
           <span className={cn(
             "px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest",
-            assignment.type === "Quiz" ? "bg-yellow-400 text-yellow-900" :
-            assignment.type === "Exam" ? "bg-red-400 text-red-900" :
+            assignmentExperience.type === "Quiz" ? "bg-yellow-400 text-yellow-900" :
+            assignmentExperience.type === "Exam" ? "bg-red-400 text-red-900" :
             "bg-white/20 text-white"
           )}>
-            {assignment.type}
+            {assignmentExperience.type}
           </span>
           {/* FR-62: Time limit and attempts */}
-          {assignment.timeLimit && (
+          {assignmentExperience.timeLimit && (
             <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-white/20">
-              <Timer className="w-3 h-3" /> {assignment.timeLimit} min limit
+              <Timer className="w-3 h-3" /> {assignmentExperience.timeLimit} min limit
             </span>
           )}
           <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-white/20">
-            <RotateCcw className="w-3 h-3" /> {assignment.attempts} attempt{assignment.attempts !== 1 ? "s" : ""} allowed
+            <RotateCcw className="w-3 h-3" /> {assignmentExperience.attempts} attempt{assignmentExperience.attempts !== 1 ? "s" : ""} allowed
           </span>
         </div>
       </div>
@@ -298,7 +326,7 @@ export function AssignmentPage() {
               {/* FR-62: Attempts shown */}
               <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
                 <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Attempts</span>
-                <span className="text-sm font-black text-slate-900 dark:text-white">0 of {assignment.attempts}</span>
+                <span className="text-sm font-black text-slate-900 dark:text-white">0 of {assignmentExperience.attempts}</span>
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
                 <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Grade</span>

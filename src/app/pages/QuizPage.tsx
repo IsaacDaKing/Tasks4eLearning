@@ -22,10 +22,10 @@ function cn(...inputs: ClassValue[]) {
 
 const QUIZ_METADATA = {
   type: "Quiz" as "Quiz" | "Exam",
-  title: "Algorithm Complexity Quiz",
-  courseCode: "CS 350",
-  courseName: "Algorithm Analysis",
-  moduleTitle: "Module 4: Big-O Notation",
+  title: "Network Protocols Quiz",
+  courseCode: "CS 4390.0W1",
+  courseName: "Computer Networks",
+  moduleTitle: "Module 2: TCP/IP Protocol Suite",
   timeLimitMinutes: 30,
   attempts: 2,
   attemptsUsed: 0,
@@ -34,27 +34,42 @@ const QUIZ_METADATA = {
 const QUESTIONS = [
   {
     id: 1,
-    text: "What is the time complexity of binary search on a sorted array of n elements?",
-    options: ["O(1)", "O(log n)", "O(n)", "O(n log n)"],
+    text: "Which layer of the OSI model is responsible for end-to-end communication and error recovery?",
+    options: [
+      "Network Layer",
+      "Transport Layer",
+      "Session Layer",
+      "Application Layer",
+    ],
     correct: 1,
   },
   {
     id: 2,
-    text: "Which sorting algorithm has the best average-case time complexity?",
-    options: ["Bubble Sort", "Insertion Sort", "Merge Sort", "Selection Sort"],
+    text: "What is the primary difference between TCP and UDP?",
+    options: [
+      "TCP is faster",
+      "UDP is connection-oriented",
+      "TCP provides reliable delivery",
+      "UDP uses checksums",
+    ],
     correct: 2,
   },
   {
     id: 3,
-    text: "What is the space complexity of a recursive Fibonacci implementation (without memoization)?",
-    options: ["O(1)", "O(log n)", "O(n)", "O(2^n)"],
-    correct: 2,
+    text: "Which protocol is used to translate domain names to IP addresses?",
+    options: ["DHCP", "DNS", "HTTP", "FTP"],
+    correct: 1,
   },
   {
     id: 4,
-    text: "Which data structure provides O(1) average-case lookup?",
-    options: ["Binary Search Tree", "Hash Table", "Sorted Array", "Linked List"],
-    correct: 1,
+    text: "What is the default subnet mask for a Class C network?",
+    options: [
+      "255.0.0.0",
+      "255.255.0.0",
+      "255.255.255.0",
+      "255.255.255.255",
+    ],
+    correct: 2,
   },
 ];
 
@@ -62,10 +77,16 @@ export function QuizPage() {
   const [focusMode, setFocusMode] = useState(true); // FR-09: active by default during quiz
   const [started, setStarted] = useState(false);
   const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(new Array(QUESTIONS.length).fill(null));
+  const [answers, setAnswers] = useState<(number | null)[]>(
+    new Array(QUESTIONS.length).fill(null),
+  );
   const [submitted, setSubmitted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(QUIZ_METADATA.timeLimitMinutes * 60);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [timeLeft, setTimeLeft] = useState(
+    QUIZ_METADATA.timeLimitMinutes * 60,
+  );
+  const timerRef = useRef<ReturnType<
+    typeof setInterval
+  > | null>(null);
 
   useEffect(() => {
     if (started && !submitted) {
@@ -80,7 +101,9 @@ export function QuizPage() {
         });
       }, 1000);
     }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [started, submitted]);
 
   const formatTime = (s: number) => {
@@ -89,7 +112,10 @@ export function QuizPage() {
     return `${m}:${sec.toString().padStart(2, "0")}`;
   };
 
-  const score = answers.reduce((acc, a, i) => acc + (a === QUESTIONS[i].correct ? 1 : 0), 0);
+  const score = answers.reduce(
+    (acc, a, i) => acc + (a === QUESTIONS[i].correct ? 1 : 0),
+    0,
+  );
   const percent = Math.round((score / QUESTIONS.length) * 100);
 
   if (!started) {
@@ -99,34 +125,52 @@ export function QuizPage() {
           <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 mb-3">
             <BookOpen className="w-4 h-4" />
             {/* FR-55 */}
-            {QUIZ_METADATA.courseCode} — {QUIZ_METADATA.courseName}
+            {QUIZ_METADATA.courseCode} —{" "}
+            {QUIZ_METADATA.courseName}
           </div>
           {/* FR-56: Module title as primary heading */}
-          <p className="text-slate-400 dark:text-slate-500 text-sm mb-1">{QUIZ_METADATA.moduleTitle}</p>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-6">{QUIZ_METADATA.title}</h1>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mb-1">
+            {QUIZ_METADATA.moduleTitle}
+          </p>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-6">
+            {QUIZ_METADATA.title}
+          </h1>
 
           <div className="space-y-3 mb-8">
             {/* FR-61: Assessment type label */}
             <div className="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
-              <span className="text-sm font-bold text-yellow-900 dark:text-yellow-300">Assessment Type</span>
+              <span className="text-sm font-bold text-yellow-900 dark:text-yellow-300">
+                Assessment Type
+              </span>
               <span className="px-3 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-black uppercase tracking-wider">
                 {QUIZ_METADATA.type}
               </span>
             </div>
             {/* FR-62: Time limit and attempts */}
             <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Time Limit</span>
-              <span className="text-sm font-black text-slate-900 dark:text-white">{QUIZ_METADATA.timeLimitMinutes} minutes</span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Attempts Allowed</span>
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
+                Time Limit
+              </span>
               <span className="text-sm font-black text-slate-900 dark:text-white">
-                {QUIZ_METADATA.attemptsUsed} of {QUIZ_METADATA.attempts} used
+                {QUIZ_METADATA.timeLimitMinutes} minutes
               </span>
             </div>
             <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Questions</span>
-              <span className="text-sm font-black text-slate-900 dark:text-white">{QUESTIONS.length} questions</span>
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
+                Attempts Allowed
+              </span>
+              <span className="text-sm font-black text-slate-900 dark:text-white">
+                {QUIZ_METADATA.attemptsUsed} of{" "}
+                {QUIZ_METADATA.attempts} used
+              </span>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
+                Questions
+              </span>
+              <span className="text-sm font-black text-slate-900 dark:text-white">
+                {QUESTIONS.length} questions
+              </span>
             </div>
           </div>
 
@@ -134,8 +178,14 @@ export function QuizPage() {
           <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl mb-6 text-sm">
             <Maximize2 className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-blue-900 dark:text-blue-300">Focus Mode enabled</p>
-              <p className="text-blue-800 dark:text-blue-400">Non-essential widgets and notifications will be hidden during the quiz. You can exit Focus Mode at any time.</p>
+              <p className="font-bold text-blue-900 dark:text-blue-300">
+                Focus Mode enabled
+              </p>
+              <p className="text-blue-800 dark:text-blue-400">
+                Non-essential widgets and notifications will be
+                hidden during the quiz. You can exit Focus Mode
+                at any time.
+              </p>
             </div>
           </div>
 
@@ -154,17 +204,34 @@ export function QuizPage() {
     return (
       <div className="p-8 max-w-2xl mx-auto animate-in fade-in duration-500">
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 text-center">
-          <div className={cn(
-            "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5",
-            percent >= 70 ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30"
-          )}>
-            <span className={cn("text-2xl font-black", percent >= 70 ? "text-green-600" : "text-red-600")}>{percent}%</span>
+          <div
+            className={cn(
+              "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5",
+              percent >= 70
+                ? "bg-green-100 dark:bg-green-900/30"
+                : "bg-red-100 dark:bg-red-900/30",
+            )}
+          >
+            <span
+              className={cn(
+                "text-2xl font-black",
+                percent >= 70
+                  ? "text-green-600"
+                  : "text-red-600",
+              )}
+            >
+              {percent}%
+            </span>
           </div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">
             {percent >= 70 ? "Great job!" : "Keep practicing!"}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">
-            You scored <strong>{score} out of {QUESTIONS.length}</strong> on {QUIZ_METADATA.title}
+            You scored{" "}
+            <strong>
+              {score} out of {QUESTIONS.length}
+            </strong>{" "}
+            on {QUIZ_METADATA.title}
           </p>
 
           <div className="space-y-3 text-left mb-8">
@@ -172,18 +239,25 @@ export function QuizPage() {
               const userAnswer = answers[i];
               const isCorrect = userAnswer === q.correct;
               return (
-                <div key={q.id} className={cn(
-                  "p-4 rounded-xl border",
-                  isCorrect
-                    ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                    : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-                )}>
+                <div
+                  key={q.id}
+                  className={cn(
+                    "p-4 rounded-xl border",
+                    isCorrect
+                      ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
+                      : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800",
+                  )}
+                >
                   <div className="flex items-start gap-3">
-                    {isCorrect
-                      ? <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                      : <X className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />}
+                    {isCorrect ? (
+                      <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <X className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                    )}
                     <div>
-                      <p className="text-sm font-bold text-slate-900 dark:text-white mb-1">{q.text}</p>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white mb-1">
+                        {q.text}
+                      </p>
                       {!isCorrect && (
                         <p className="text-xs text-green-700 dark:text-green-400">
                           Correct: {q.options[q.correct]}
@@ -197,7 +271,16 @@ export function QuizPage() {
           </div>
 
           <button
-            onClick={() => { setStarted(false); setSubmitted(false); setAnswers(new Array(QUESTIONS.length).fill(null)); setCurrentQ(0); setTimeLeft(QUIZ_METADATA.timeLimitMinutes * 60); setFocusMode(true); }}
+            onClick={() => {
+              setStarted(false);
+              setSubmitted(false);
+              setAnswers(
+                new Array(QUESTIONS.length).fill(null),
+              );
+              setCurrentQ(0);
+              setTimeLeft(QUIZ_METADATA.timeLimitMinutes * 60);
+              setFocusMode(true);
+            }}
             className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all mx-auto"
           >
             <RotateCcw className="w-4 h-4" /> Retake Quiz
@@ -209,7 +292,12 @@ export function QuizPage() {
 
   return (
     // FR-09: focusMode hides the surrounding layout widgets via a portal-style overlay approach
-    <div className={cn("p-8 max-w-3xl mx-auto animate-in fade-in duration-500", focusMode && "relative")}>
+    <div
+      className={cn(
+        "p-8 max-w-3xl mx-auto animate-in fade-in duration-500",
+        focusMode && "relative",
+      )}
+    >
       {/* FR-09: Focus Mode overlay banner */}
       <AnimatePresence>
         {focusMode && (
@@ -220,13 +308,15 @@ export function QuizPage() {
             className="mb-4 flex items-center justify-between px-4 py-2.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl text-sm"
           >
             <div className="flex items-center gap-2 font-bold">
-              <Maximize2 className="w-4 h-4" /> Focus Mode active — notifications and widgets hidden
+              <Maximize2 className="w-4 h-4" /> Focus Mode
+              active — notifications and widgets hidden
             </div>
             <button
               onClick={() => setFocusMode(false)}
               className="text-slate-400 hover:text-white flex items-center gap-1 font-bold text-xs transition-colors"
             >
-              <Minimize2 className="w-3.5 h-3.5" /> Exit Focus Mode
+              <Minimize2 className="w-3.5 h-3.5" /> Exit Focus
+              Mode
             </button>
           </motion.div>
         )}
@@ -236,16 +326,22 @@ export function QuizPage() {
         {/* Header bar */}
         <div className="flex items-center justify-between px-6 py-4 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-100 dark:border-slate-700">
           <div>
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{QUIZ_METADATA.courseCode} · {QUIZ_METADATA.type}</p>
-            <p className="text-sm font-bold text-slate-900 dark:text-white">{QUIZ_METADATA.title}</p>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+              {QUIZ_METADATA.courseCode} · {QUIZ_METADATA.type}
+            </p>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">
+              {QUIZ_METADATA.title}
+            </p>
           </div>
           {/* Timer */}
-          <div className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black",
-            timeLeft < 120
-              ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse"
-              : "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-          )}>
+          <div
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black",
+              timeLeft < 120
+                ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse"
+                : "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
+            )}
+          >
             <Timer className="w-4 h-4" />
             {formatTime(timeLeft)}
           </div>
@@ -255,7 +351,9 @@ export function QuizPage() {
         <div className="h-1.5 bg-slate-100 dark:bg-slate-700">
           <div
             className="h-full bg-blue-600 transition-all duration-300"
-            style={{ width: `${((currentQ + 1) / QUESTIONS.length) * 100}%` }}
+            style={{
+              width: `${((currentQ + 1) / QUESTIONS.length) * 100}%`,
+            }}
           />
         </div>
 
@@ -265,7 +363,9 @@ export function QuizPage() {
             <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center flex-shrink-0">
               {currentQ + 1}
             </span>
-            <p className="text-lg font-bold text-slate-900 dark:text-white">{QUESTIONS[currentQ].text}</p>
+            <p className="text-lg font-bold text-slate-900 dark:text-white">
+              {QUESTIONS[currentQ].text}
+            </p>
           </div>
 
           <div className="space-y-3">
@@ -283,13 +383,15 @@ export function QuizPage() {
                     "w-full text-left p-4 rounded-xl border-2 transition-all font-medium text-sm",
                     selected
                       ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-200"
-                      : "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 text-slate-700 dark:text-slate-300"
+                      : "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 text-slate-700 dark:text-slate-300",
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    {selected
-                      ? <CheckCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                      : <Circle className="w-4 h-4 text-slate-300 dark:text-slate-600 flex-shrink-0" />}
+                    {selected ? (
+                      <CheckCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-slate-300 dark:text-slate-600 flex-shrink-0" />
+                    )}
                     {option}
                   </div>
                 </button>
@@ -301,7 +403,9 @@ export function QuizPage() {
         {/* Navigation */}
         <div className="px-8 pb-6 flex items-center justify-between">
           <button
-            onClick={() => setCurrentQ(Math.max(0, currentQ - 1))}
+            onClick={() =>
+              setCurrentQ(Math.max(0, currentQ - 1))
+            }
             disabled={currentQ === 0}
             className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-400 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
           >
@@ -318,8 +422,8 @@ export function QuizPage() {
                   i === currentQ
                     ? "bg-blue-600 text-white"
                     : answers[i] !== null
-                    ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
-                    : "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
+                      : "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500",
                 )}
               >
                 {i + 1}
@@ -336,7 +440,11 @@ export function QuizPage() {
             </button>
           ) : (
             <button
-              onClick={() => { clearInterval(timerRef.current!); setSubmitted(true); setFocusMode(false); }}
+              onClick={() => {
+                clearInterval(timerRef.current!);
+                setSubmitted(true);
+                setFocusMode(false);
+              }}
               className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold transition-all"
             >
               <CheckCircle className="w-4 h-4" /> Submit Quiz

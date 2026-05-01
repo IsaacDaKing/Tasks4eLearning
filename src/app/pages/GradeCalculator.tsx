@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Plus, X, TrendingUp, Calculator, Save, Trash2, Edit2 } from "lucide-react";
+import {
+  Plus,
+  X,
+  TrendingUp,
+  Calculator,
+  Save,
+  Trash2,
+  Edit2,
+} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { motion } from "motion/react";
@@ -26,31 +34,68 @@ interface Course {
 
 const INITIAL_COURSES: Course[] = [
   {
-    id: "cs-301",
-    name: "React Development",
-    code: "CS 301",
-    credits: 4,
+    id: "cs-3354",
+    name: "Software Engineering",
+    code: "CS 3354.012",
+    credits: 3,
     assignments: [
-      { id: "a1", name: "Midterm Exam", weight: 30, currentScore: 88, projectedScore: null },
-      { id: "a2", name: "Final Project", weight: 40, currentScore: null, projectedScore: 90 },
-      { id: "a3", name: "Assignments", weight: 30, currentScore: 92, projectedScore: null },
+      {
+        id: "a1",
+        name: "Midterm Exam",
+        weight: 30,
+        currentScore: 88,
+        projectedScore: null,
+      },
+      {
+        id: "a2",
+        name: "Final Project",
+        weight: 40,
+        currentScore: null,
+        projectedScore: 90,
+      },
+      {
+        id: "a3",
+        name: "Assignments",
+        weight: 30,
+        currentScore: 92,
+        projectedScore: null,
+      },
     ],
   },
   {
-    id: "cs-401",
+    id: "cs-4347",
     name: "Database Systems",
-    code: "CS 401",
+    code: "CS 4347.002",
     credits: 3,
     assignments: [
-      { id: "a4", name: "Quizzes", weight: 20, currentScore: 85, projectedScore: null },
-      { id: "a5", name: "Final Exam", weight: 50, currentScore: null, projectedScore: 88 },
-      { id: "a6", name: "Lab Work", weight: 30, currentScore: 90, projectedScore: null },
+      {
+        id: "a4",
+        name: "Quizzes",
+        weight: 20,
+        currentScore: 85,
+        projectedScore: null,
+      },
+      {
+        id: "a5",
+        name: "Final Exam",
+        weight: 50,
+        currentScore: null,
+        projectedScore: 88,
+      },
+      {
+        id: "a6",
+        name: "Lab Work",
+        weight: 30,
+        currentScore: 90,
+        projectedScore: null,
+      },
     ],
   },
 ];
 
 export function GradeCalculator() {
-  const [courses, setCourses] = useState<Course[]>(INITIAL_COURSES);
+  const [courses, setCourses] =
+    useState<Course[]>(INITIAL_COURSES);
   const [simulationMode, setSimulationMode] = useState(true);
 
   const calculateCourseGrade = (course: Course): number => {
@@ -58,9 +103,10 @@ export function GradeCalculator() {
     let weightedScore = 0;
 
     course.assignments.forEach((assignment) => {
-      const score = simulationMode && assignment.projectedScore !== null
-        ? assignment.projectedScore
-        : assignment.currentScore;
+      const score =
+        simulationMode && assignment.projectedScore !== null
+          ? assignment.projectedScore
+          : assignment.currentScore;
 
       if (score !== null) {
         weightedScore += (score * assignment.weight) / 100;
@@ -68,7 +114,9 @@ export function GradeCalculator() {
       }
     });
 
-    return totalWeight > 0 ? (weightedScore / totalWeight) * 100 : 0;
+    return totalWeight > 0
+      ? (weightedScore / totalWeight) * 100
+      : 0;
   };
 
   const calculateGPA = (): number => {
@@ -112,50 +160,67 @@ export function GradeCalculator() {
     return "F";
   };
 
-  const updateAssignment = (courseId: string, assignmentId: string, field: keyof Assignment, value: any) => {
-    setCourses(courses.map(course =>
-      course.id === courseId
-        ? {
-            ...course,
-            assignments: course.assignments.map(assignment =>
-              assignment.id === assignmentId
-                ? { ...assignment, [field]: value }
-                : assignment
-            ),
-          }
-        : course
-    ));
+  const updateAssignment = (
+    courseId: string,
+    assignmentId: string,
+    field: keyof Assignment,
+    value: any,
+  ) => {
+    setCourses(
+      courses.map((course) =>
+        course.id === courseId
+          ? {
+              ...course,
+              assignments: course.assignments.map(
+                (assignment) =>
+                  assignment.id === assignmentId
+                    ? { ...assignment, [field]: value }
+                    : assignment,
+              ),
+            }
+          : course,
+      ),
+    );
   };
 
   const addAssignment = (courseId: string) => {
-    setCourses(courses.map(course =>
-      course.id === courseId
-        ? {
-            ...course,
-            assignments: [
-              ...course.assignments,
-              {
-                id: `a-${Date.now()}`,
-                name: "New Assignment",
-                weight: 0,
-                currentScore: null,
-                projectedScore: null,
-              },
-            ],
-          }
-        : course
-    ));
+    setCourses(
+      courses.map((course) =>
+        course.id === courseId
+          ? {
+              ...course,
+              assignments: [
+                ...course.assignments,
+                {
+                  id: `a-${Date.now()}`,
+                  name: "New Assignment",
+                  weight: 0,
+                  currentScore: null,
+                  projectedScore: null,
+                },
+              ],
+            }
+          : course,
+      ),
+    );
   };
 
-  const removeAssignment = (courseId: string, assignmentId: string) => {
-    setCourses(courses.map(course =>
-      course.id === courseId
-        ? {
-            ...course,
-            assignments: course.assignments.filter(a => a.id !== assignmentId),
-          }
-        : course
-    ));
+  const removeAssignment = (
+    courseId: string,
+    assignmentId: string,
+  ) => {
+    setCourses(
+      courses.map((course) =>
+        course.id === courseId
+          ? {
+              ...course,
+              assignments: course.assignments.filter(
+                (a) => a.id !== assignmentId,
+              ),
+            }
+          : course,
+      ),
+    );
   };
 
   return (
@@ -167,7 +232,8 @@ export function GradeCalculator() {
             Grade Calculator
           </h2>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
-            Calculate your current and projected course grades and GPA
+            Calculate your current and projected course grades
+            and GPA
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -177,10 +243,12 @@ export function GradeCalculator() {
               "px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm",
               simulationMode
                 ? "bg-blue-600 text-white shadow-blue-200"
-                : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300",
             )}
           >
-            {simulationMode ? "Simulation Mode: ON" : "Simulation Mode: OFF"}
+            {simulationMode
+              ? "Simulation Mode: ON"
+              : "Simulation Mode: OFF"}
           </button>
         </div>
       </div>
@@ -193,10 +261,17 @@ export function GradeCalculator() {
         >
           <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-5 h-5" />
-            <p className="text-sm font-bold opacity-90">Projected GPA</p>
+            <p className="text-sm font-bold opacity-90">
+              Projected GPA
+            </p>
           </div>
-          <h3 className="text-5xl font-black">{calculateGPA().toFixed(2)}</h3>
-          <p className="text-xs opacity-75 mt-2">Based on {simulationMode ? "projected" : "current"} scores</p>
+          <h3 className="text-5xl font-black">
+            {calculateGPA().toFixed(2)}
+          </h3>
+          <p className="text-xs opacity-75 mt-2">
+            Based on {simulationMode ? "projected" : "current"}{" "}
+            scores
+          </p>
         </motion.div>
 
         <motion.div
@@ -205,11 +280,18 @@ export function GradeCalculator() {
           transition={{ delay: 0.1 }}
           className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm"
         >
-          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">Total Credits</p>
+          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">
+            Total Credits
+          </p>
           <h3 className="text-4xl font-black text-slate-900 dark:text-white">
-            {courses.reduce((sum, course) => sum + course.credits, 0)}
+            {courses.reduce(
+              (sum, course) => sum + course.credits,
+              0,
+            )}
           </h3>
-          <p className="text-xs text-slate-400 mt-2">Across {courses.length} courses</p>
+          <p className="text-xs text-slate-400 mt-2">
+            Across {courses.length} courses
+          </p>
         </motion.div>
 
         <motion.div
@@ -218,11 +300,22 @@ export function GradeCalculator() {
           transition={{ delay: 0.2 }}
           className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm"
         >
-          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">Average Grade</p>
+          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">
+            Average Grade
+          </p>
           <h3 className="text-4xl font-black text-slate-900 dark:text-white">
-            {(courses.reduce((sum, course) => sum + calculateCourseGrade(course), 0) / courses.length).toFixed(1)}%
+            {(
+              courses.reduce(
+                (sum, course) =>
+                  sum + calculateCourseGrade(course),
+                0,
+              ) / courses.length
+            ).toFixed(1)}
+            %
           </h3>
-          <p className="text-xs text-slate-400 mt-2">Overall performance</p>
+          <p className="text-xs text-slate-400 mt-2">
+            Overall performance
+          </p>
         </motion.div>
       </div>
 
@@ -242,12 +335,20 @@ export function GradeCalculator() {
               <div className="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-black text-slate-900 dark:text-white">{course.name}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{course.code} • {course.credits} Credits</p>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                      {course.name}
+                    </h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                      {course.code} • {course.credits} Credits
+                    </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-4xl font-black text-blue-600">{letterGrade}</div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 font-bold">{courseGrade.toFixed(1)}%</div>
+                    <div className="text-4xl font-black text-blue-600">
+                      {letterGrade}
+                    </div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400 font-bold">
+                      {courseGrade.toFixed(1)}%
+                    </div>
                   </div>
                 </div>
               </div>
@@ -255,7 +356,9 @@ export function GradeCalculator() {
               <div className="p-6">
                 <div className="space-y-4">
                   <div className="grid grid-cols-12 gap-4 text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2">
-                    <div className="col-span-4">Assignment Name</div>
+                    <div className="col-span-4">
+                      Assignment Name
+                    </div>
                     <div className="col-span-2">Weight</div>
                     <div className="col-span-2">Current</div>
                     <div className="col-span-2">Projected</div>
@@ -263,12 +366,22 @@ export function GradeCalculator() {
                   </div>
 
                   {course.assignments.map((assignment) => (
-                    <div key={assignment.id} className="grid grid-cols-12 gap-4 items-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                    <div
+                      key={assignment.id}
+                      className="grid grid-cols-12 gap-4 items-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+                    >
                       <div className="col-span-4">
                         <input
                           type="text"
                           value={assignment.name}
-                          onChange={(e) => updateAssignment(course.id, assignment.id, 'name', e.target.value)}
+                          onChange={(e) =>
+                            updateAssignment(
+                              course.id,
+                              assignment.id,
+                              "name",
+                              e.target.value,
+                            )
+                          }
                           className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium dark:text-white"
                         />
                       </div>
@@ -276,15 +389,31 @@ export function GradeCalculator() {
                         <input
                           type="number"
                           value={assignment.weight}
-                          onChange={(e) => updateAssignment(course.id, assignment.id, 'weight', Number(e.target.value))}
+                          onChange={(e) =>
+                            updateAssignment(
+                              course.id,
+                              assignment.id,
+                              "weight",
+                              Number(e.target.value),
+                            )
+                          }
                           className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-center dark:text-white"
                         />
                       </div>
                       <div className="col-span-2">
                         <input
                           type="number"
-                          value={assignment.currentScore ?? ''}
-                          onChange={(e) => updateAssignment(course.id, assignment.id, 'currentScore', e.target.value ? Number(e.target.value) : null)}
+                          value={assignment.currentScore ?? ""}
+                          onChange={(e) =>
+                            updateAssignment(
+                              course.id,
+                              assignment.id,
+                              "currentScore",
+                              e.target.value
+                                ? Number(e.target.value)
+                                : null,
+                            )
+                          }
                           placeholder="-"
                           className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-center dark:text-white"
                         />
@@ -292,15 +421,31 @@ export function GradeCalculator() {
                       <div className="col-span-2">
                         <input
                           type="number"
-                          value={assignment.projectedScore ?? ''}
-                          onChange={(e) => updateAssignment(course.id, assignment.id, 'projectedScore', e.target.value ? Number(e.target.value) : null)}
+                          value={
+                            assignment.projectedScore ?? ""
+                          }
+                          onChange={(e) =>
+                            updateAssignment(
+                              course.id,
+                              assignment.id,
+                              "projectedScore",
+                              e.target.value
+                                ? Number(e.target.value)
+                                : null,
+                            )
+                          }
                           placeholder="-"
                           className="w-full px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg text-sm font-bold text-center text-blue-600 dark:text-blue-400"
                         />
                       </div>
                       <div className="col-span-2 flex gap-2">
                         <button
-                          onClick={() => removeAssignment(course.id, assignment.id)}
+                          onClick={() =>
+                            removeAssignment(
+                              course.id,
+                              assignment.id,
+                            )
+                          }
                           className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />

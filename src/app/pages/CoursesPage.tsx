@@ -1,14 +1,14 @@
-import { 
-  Search, 
-  Grid2X2, 
-  List, 
-  ChevronRight, 
-  Star, 
-  MoreVertical, 
-  BookOpen, 
-  Clock, 
+import {
+  Search,
+  Grid2X2,
+  List,
+  ChevronRight,
+  Star,
+  MoreVertical,
+  BookOpen,
+  Clock,
   Users,
-  GraduationCap
+  GraduationCap,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -19,77 +19,83 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const COURSES = [
-  { 
-    id: "cs-301", 
-    title: "React Hooks & Modern Frontend", 
-    code: "CS 301", 
-    instructor: "Dr. Sarah Johnson", 
-    progress: 75, 
-    lessons: 24, 
+  {
+    id: "cs-3354",
+    title: "Software Engineering",
+    code: "CS 3354.012",
+    instructor: "Klyne Smith",
+    progress: 75,
+    lessons: 24,
     students: 48,
     time: "2h 45m left",
-    image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=1000&auto=format&fit=crop",
-    color: "bg-blue-600"
+    image:
+      "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=1000&auto=format&fit=crop",
+    color: "bg-blue-600",
   },
-  { 
-    id: "cs-401", 
-    title: "Database Architecture & SQL", 
-    code: "CS 401", 
-    instructor: "Prof. Michael Chen", 
-    progress: 60, 
-    lessons: 32, 
+  {
+    id: "cs-4337",
+    title: "Programming Language Paradigms",
+    code: "CS 4337.005",
+    instructor: "Chris Davis",
+    progress: 60,
+    lessons: 32,
     students: 36,
     time: "4h 12m left",
-    image: "https://images.unsplash.com/photo-1544383021-6e6a3c00a92b?q=80&w=1000&auto=format&fit=crop",
-    color: "bg-purple-600"
+    image:
+      "https://images.unsplash.com/photo-1544383021-6e6a3c00a92b?q=80&w=1000&auto=format&fit=crop",
+    color: "bg-purple-600",
   },
-  { 
-    id: "cs-350", 
-    title: "Algorithms & Complexity", 
-    code: "CS 350", 
-    instructor: "Emily Wong (TA)", 
-    progress: 45, 
-    lessons: 18, 
+  {
+    id: "cs-4341",
+    title: "Digital Logic and Computer Design",
+    code: "CS 4341.003",
+    instructor: "Omar Hamdy",
+    progress: 45,
+    lessons: 18,
     students: 52,
     time: "6h 30m left",
-    image: "https://images.unsplash.com/photo-1516116216624-53e697fedbea?q=80&w=1000&auto=format&fit=crop",
-    color: "bg-emerald-600"
+    image:
+      "https://images.unsplash.com/photo-1516116216624-53e697fedbea?q=80&w=1000&auto=format&fit=crop",
+    color: "bg-emerald-600",
   },
-  { 
-    id: "cs-275", 
-    title: "Human-Computer Interaction", 
-    code: "CS 275", 
-    instructor: "Dr. Robert Lee", 
-    progress: 90, 
-    lessons: 15, 
+  {
+    id: "cs-4347",
+    title: "Database Systems",
+    code: "CS 4347.002",
+    instructor: "Wei Wu",
+    progress: 90,
+    lessons: 15,
     students: 42,
     time: "45m left",
-    image: "https://images.unsplash.com/photo-1586717791821-3f44a563eb4c?q=80&w=1000&auto=format&fit=crop",
-    color: "bg-pink-600"
+    image:
+      "https://images.unsplash.com/photo-1586717791821-3f44a563eb4c?q=80&w=1000&auto=format&fit=crop",
+    color: "bg-pink-600",
   },
-  { 
-    id: "cs-101", 
-    title: "Introduction to Computer Science", 
-    code: "CS 101", 
-    instructor: "Sarah Johnson", 
-    progress: 100, 
-    lessons: 40, 
-    students: 120,
-    time: "Completed",
-    image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1000&auto=format&fit=crop",
-    color: "bg-orange-600"
+  {
+    id: "cs-4390",
+    title: "Computer Networks",
+    code: "CS 4390.0W1",
+    instructor: "Ravi Prakash",
+    progress: 82,
+    lessons: 28,
+    students: 38,
+    time: "1h 30m left",
+    image:
+      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1000&auto=format&fit=crop",
+    color: "bg-orange-600",
   },
-  { 
-    id: "cs-500", 
-    title: "Advanced Machine Learning", 
-    code: "CS 500", 
-    instructor: "Dr. Alan Turing", 
-    progress: 15, 
-    lessons: 50, 
-    students: 28,
-    time: "12h 10m left",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1000&auto=format&fit=crop",
-    color: "bg-indigo-600"
+  {
+    id: "isns-2359",
+    title: "Earthquakes and Volcanoes",
+    code: "ISNS 2359.0W1",
+    instructor: "Ignacio Pujana",
+    progress: 65,
+    lessons: 20,
+    students: 85,
+    time: "3h 20m left",
+    image:
+      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1000&auto=format&fit=crop",
+    color: "bg-indigo-600",
   },
 ];
 
@@ -98,8 +104,12 @@ export function CoursesPage() {
     <div className="p-8 space-y-8 animate-in fade-in duration-500 dark:bg-slate-900">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Your Courses</h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Continue where you left off or start a new course.</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            Your Courses
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">
+            Continue where you left off or start a new course.
+          </p>
         </div>
         <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
           <button className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-blue-600 dark:text-blue-400 shadow-sm border border-slate-100 dark:border-slate-600">
@@ -142,63 +152,81 @@ export function CoursesPage() {
             className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-2xl hover:scale-[1.01] transition-all group overflow-hidden"
           >
             <div className="h-48 relative overflow-hidden">
-               <img 
-                 src={course.image} 
-                 alt={course.title} 
-                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-               />
-               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-               <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center text-white">
-                  <span className={cn("px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider", course.color)}>
-                    {course.code}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-xs font-bold bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg">
-                    <Clock className="w-3 h-3" /> {course.time}
-                  </div>
-               </div>
+              <img
+                src={course.image}
+                alt={course.title}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center text-white">
+                <span
+                  className={cn(
+                    "px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider",
+                    course.color,
+                  )}
+                >
+                  {course.code}
+                </span>
+                <div className="flex items-center gap-1.5 text-xs font-bold bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg">
+                  <Clock className="w-3 h-3" /> {course.time}
+                </div>
+              </div>
             </div>
-            
+
             <div className="p-6">
-               <div className="flex justify-between items-start mb-2">
-                 <h3 className="font-black text-slate-900 dark:text-white leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{course.title}</h3>
-                 <button className="p-1 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
-                   <MoreVertical className="w-5 h-5" />
-                 </button>
-               </div>
-               <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-2">
-                 <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-[10px] font-bold">
-                    {course.instructor.charAt(0)}
-                 </div>
-                 {course.instructor}
-               </div>
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="font-black text-slate-900 dark:text-white leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  {course.title}
+                </h3>
+                <button className="p-1 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg text-slate-300 dark:text-slate-600 hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
+                  <MoreVertical className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6 flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 flex items-center justify-center text-[10px] font-bold">
+                  {course.instructor.charAt(0)}
+                </div>
+                {course.instructor}
+              </div>
 
-               <div className="space-y-4">
-                 <div className="space-y-2">
-                   <div className="flex justify-between text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                     <span>Course Progress</span>
-                     <span>{course.progress}%</span>
-                   </div>
-                   <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                     <motion.div 
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${course.progress}%` }}
-                        transition={{ duration: 1, delay: 0.2 }}
-                        viewport={{ once: true }}
-                        className={cn("h-full rounded-full", course.color)}
-                     />
-                   </div>
-                 </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                    <span>Course Progress</span>
+                    <span>{course.progress}%</span>
+                  </div>
+                  <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{
+                        width: `${course.progress}%`,
+                      }}
+                      transition={{ duration: 1, delay: 0.2 }}
+                      viewport={{ once: true }}
+                      className={cn(
+                        "h-full rounded-full",
+                        course.color,
+                      )}
+                    />
+                  </div>
+                </div>
 
-                 <div className="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-700">
-                    <div className="flex items-center gap-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                       <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> {course.lessons} Lessons</span>
-                       <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> {course.students} Students</span>
-                    </div>
-                    <button className="flex items-center gap-1 px-4 py-2 bg-slate-900 dark:bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-slate-800 dark:hover:bg-blue-700 transition-all shadow-md active:scale-95">
-                       Resume <ChevronRight className="w-3 h-3" />
-                    </button>
-                 </div>
-               </div>
+                <div className="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-700">
+                  <div className="flex items-center gap-4 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                    <span className="flex items-center gap-1.5">
+                      <BookOpen className="w-3.5 h-3.5" />{" "}
+                      {course.lessons} Lessons
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5" />{" "}
+                      {course.students} Students
+                    </span>
+                  </div>
+                  <button className="flex items-center gap-1 px-4 py-2 bg-slate-900 dark:bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-slate-800 dark:hover:bg-blue-700 transition-all shadow-md active:scale-95">
+                    Resume <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
             </div>
           </motion.div>
         ))}

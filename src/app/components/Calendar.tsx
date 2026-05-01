@@ -47,15 +47,15 @@ interface CalendarEvent {
 }
 
 const SAMPLE_EVENTS: CalendarEvent[] = [
-  { id: "1", title: "React State Management Lab", type: "assignment", date: new Date(2026, 1, 19, 23, 59), course: "CS 301: Web Development", courseId: "cs301", time: "11:59 PM", color: "bg-amber-500" },
-  { id: "2", title: "Quiz: Hooks & State", type: "quiz", date: new Date(2026, 1, 19, 14, 0), course: "CS 301: Web Development", courseId: "cs301", time: "2:00 PM", color: "bg-orange-500" },
-  { id: "3", title: "Midterm: Database Design", type: "test", date: new Date(2026, 1, 21, 9, 0), course: "CS 401: Database Systems", courseId: "cs401", time: "9:00 AM", color: "bg-red-500" },
-  { id: "4", title: "SQL Query Optimization", type: "assignment", date: new Date(2026, 1, 16, 23, 59), course: "CS 401: Database Systems", courseId: "cs401", time: "11:59 PM", color: "bg-amber-500" },
-  { id: "5", title: "Algorithm Efficiency Report", type: "assignment", date: new Date(2026, 1, 17, 23, 59), course: "CS 350: Algorithms", courseId: "cs350", time: "11:59 PM", color: "bg-amber-500" },
-  { id: "6", title: "UX Principles Test", type: "test", date: new Date(2026, 1, 24, 15, 0), course: "CS 275: HCI Design", courseId: "cs275", time: "3:00 PM", color: "bg-red-500" },
-  { id: "7", title: "Git Basics Quiz", type: "quiz", date: new Date(2026, 1, 18, 10, 0), course: "CS 101: Intro to CS", courseId: "cs101", time: "10:00 AM", color: "bg-orange-500" },
-  { id: "8", title: "Final Project Pitch", type: "quiz", date: new Date(2026, 1, 26, 11, 0), course: "CS 301: Web Development", courseId: "cs301", time: "11:00 AM", color: "bg-orange-500" },
-  { id: "9", title: "HCI Case Study", type: "assignment", date: new Date(2026, 1, 20, 23, 59), course: "CS 275: HCI Design", courseId: "cs275", time: "11:59 PM", color: "bg-amber-500" },
+  { id: "1", title: "Software Design Patterns Lab", type: "assignment", date: new Date(2026, 1, 19, 23, 59), course: "CS 3354.012: Software Engineering", courseId: "cs3354", time: "11:59 PM", color: "bg-amber-500" },
+  { id: "2", title: "Quiz: Agile Methodologies", type: "quiz", date: new Date(2026, 1, 19, 14, 0), course: "CS 3354.012: Software Engineering", courseId: "cs3354", time: "2:00 PM", color: "bg-orange-500" },
+  { id: "3", title: "Midterm: Database Normalization", type: "test", date: new Date(2026, 1, 21, 9, 0), course: "CS 4347.002: Database Systems", courseId: "cs4347", time: "9:00 AM", color: "bg-red-500" },
+  { id: "4", title: "SQL Query Optimization", type: "assignment", date: new Date(2026, 1, 16, 23, 59), course: "CS 4347.002: Database Systems", courseId: "cs4347", time: "11:59 PM", color: "bg-amber-500" },
+  { id: "5", title: "Network Protocol Analysis", type: "assignment", date: new Date(2026, 1, 17, 23, 59), course: "CS 4390.0W1: Computer Networks", courseId: "cs4390", time: "11:59 PM", color: "bg-amber-500" },
+  { id: "6", title: "Logic Circuit Design Test", type: "test", date: new Date(2026, 1, 24, 15, 0), course: "CS 4341.003: Digital Logic", courseId: "cs4341", time: "3:00 PM", color: "bg-red-500" },
+  { id: "7", title: "Functional Programming Quiz", type: "quiz", date: new Date(2026, 1, 18, 10, 0), course: "CS 4337.005: Programming Languages", courseId: "cs4337", time: "10:00 AM", color: "bg-orange-500" },
+  { id: "8", title: "Final Project Pitch", type: "quiz", date: new Date(2026, 1, 26, 11, 0), course: "CS 3354.012: Software Engineering", courseId: "cs3354", time: "11:00 AM", color: "bg-orange-500" },
+  { id: "9", title: "Volcanic Hazard Assessment", type: "assignment", date: new Date(2026, 1, 20, 23, 59), course: "ISNS 2359.0W1: Earthquakes and Volcanoes", courseId: "isns2359", time: "11:59 PM", color: "bg-amber-500" },
 ];
 
 const EVENT_TYPE_CONFIG: Record<EventType, { label: string; color: string; ring: string }> = {

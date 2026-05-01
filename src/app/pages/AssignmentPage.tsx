@@ -32,12 +32,12 @@ export function AssignmentPage() {
 
   // Assignment metadata — FR-55, FR-56, FR-57, FR-61, FR-62
   const assignment = {
-    courseCode: "ENVI 301",
-    courseName: "Environmental Science",
-    moduleTitle: "Module 1: Ecosystems",
-    assignmentTitle: "Climate Change Research Paper",
+    courseCode: "ISNS 2359.0W1",
+    courseName: "Earthquakes and Volcanoes",
+    moduleTitle: "Module 3: Volcanic Activity",
+    assignmentTitle: "Volcanic Hazard Assessment Research Paper",
     dueDate: "May 15, 2026 at 11:59 PM",
-    class: "ENVI 301-001 (MWF 10:00 AM)",
+    class: "ISNS 2359.0W1 (Online)",
     type: "Assignment" as "Assignment" | "Quiz" | "Exam",
     timeLimit: null as number | null, // minutes, null = no limit
     attempts: 3,
@@ -154,9 +154,9 @@ export function AssignmentPage() {
 
             <div className="prose prose-slate dark:prose-invert max-w-none space-y-4">
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                In this assignment, you will analyze the impact of climate change on a specific ecosystem of your choice.
-                Your research paper should demonstrate a thorough understanding of environmental science principles and
-                their real-world applications.
+                In this assignment, you will conduct a comprehensive volcanic hazard assessment for a specific volcano of your choice.
+                Your research paper should demonstrate a thorough understanding of volcanic processes, risk assessment methodologies,
+                and their real-world applications in disaster preparedness.
               </p>
 
               {/* FR-59: Requirements subsection */}
@@ -180,19 +180,19 @@ export function AssignmentPage() {
               <ul className="space-y-2 text-slate-600 dark:text-slate-300">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span><strong>Introduction:</strong> Present your chosen ecosystem and research question</span>
+                  <span><strong>Introduction:</strong> Present your chosen volcano and research question</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span><strong>Literature Review:</strong> Summarize relevant research and findings</span>
+                  <span><strong>Literature Review:</strong> Summarize relevant volcanic research and historical eruptions</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span><strong>Analysis:</strong> Discuss climate impacts using data and evidence</span>
+                  <span><strong>Analysis:</strong> Assess volcanic hazards using data and risk models</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span><strong>Conclusion:</strong> Synthesize findings and propose future directions</span>
+                  <span><strong>Conclusion:</strong> Synthesize findings and propose mitigation strategies</span>
                 </li>
               </ul>
             </div>

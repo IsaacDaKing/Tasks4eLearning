@@ -187,8 +187,8 @@ export function Header({ title }: { title: string }) {
 
           <div className="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-700">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">Dr. Klyne Smith</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Student ID: kxs180071</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">Zabisaq Tasharmapandyasan</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Student ID: zxt221234</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden">
                <User className="w-6 h-6 text-slate-400" />

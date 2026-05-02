@@ -125,72 +125,56 @@ const GRADE_LOGS = [
 
 export function GradesPage() {
   return (
-    <div className="p-8 space-y-8 animate-in fade-in duration-500">
+    <div className="p-6 space-y-6 animate-in fade-in duration-500">
       <div>
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
           Grade Change Audit Logs
         </h2>
-        <p className="text-slate-500 font-medium">
-          Comprehensive tracking of all grade modifications for
-          academic integrity monitoring.
+        <p className="text-sm text-slate-600 mt-1">
+          Comprehensive tracking of all grade modifications for academic integrity monitoring.
         </p>
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-wrap items-center gap-4">
-        <div className="flex-1 min-w-[300px] relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-[280px] relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by student, instructor, course, or assignment..."
-            className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
+            placeholder="Search by student, instructor, course..."
+            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded text-sm outline-none focus:ring-1 focus:ring-slate-400 text-slate-900 placeholder-slate-500"
           />
         </div>
-        <button className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
+        <button className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
           <Filter className="w-4 h-4" /> Filters
         </button>
-        <button className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
+        <button className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
           <CalendarIcon className="w-4 h-4" /> Date Range
         </button>
-        <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95">
-          <Download className="w-4 h-4" /> Export CSV
+        <button className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 text-white rounded text-sm font-medium hover:bg-slate-900 transition-colors">
+          <Download className="w-4 h-4" /> Export
         </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {GRADE_STATS.map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm"
+            className="bg-white p-4 rounded border border-slate-200 shadow-sm"
           >
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
               {stat.label}
             </p>
             <div className="flex items-baseline gap-2 mt-2">
-              <h3
-                className={cn(
-                  "text-3xl font-black",
-                  stat.color,
-                )}
-              >
+              <h3 className={cn("text-2xl font-bold", stat.color)}>
                 {stat.value}
               </h3>
-              {stat.label === "Grade Increases" && (
-                <span className="text-xs font-bold text-slate-400">
-                  70% of changes
-                </span>
-              )}
-              {stat.label === "Grade Decreases" && (
-                <span className="text-xs font-bold text-slate-400">
-                  9% of changes
-                </span>
-              )}
             </div>
-            <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">
+            <p className="text-xs text-slate-500 mt-1">
               {stat.sub}
             </p>
           </motion.div>
@@ -198,34 +182,34 @@ export function GradesPage() {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                   Timestamp
                 </th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <th className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                   Modified By
                 </th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <th className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                   Student
                 </th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <th className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                   Assignment
                 </th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
+                <th className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide text-center">
                   Previous
                 </th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
+                <th className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide text-center">
                   New
                 </th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <th className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                   IP Address
                 </th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
-                  Actions
+                <th className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide text-right">
+                  View
                 </th>
               </tr>
             </thead>
@@ -233,75 +217,73 @@ export function GradesPage() {
               {GRADE_LOGS.map((log) => (
                 <tr
                   key={log.id}
-                  className="hover:bg-slate-50/50 transition-colors group"
+                  className="hover:bg-slate-50 transition-colors"
                 >
-                  <td className="px-6 py-5">
-                    <p className="text-xs font-bold text-slate-900">
-                      {log.timestamp}
+                  <td className="px-4 py-3">
+                    <p className="text-xs font-medium text-slate-900">
+                      {log.timestamp.split(' ')[0]}
                     </p>
-                    <p className="text-[10px] font-medium text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       {log.id}
                     </p>
                   </td>
-                  <td className="px-6 py-5">
-                    <p className="text-xs font-bold text-slate-900">
+                  <td className="px-4 py-3">
+                    <p className="text-xs font-medium text-slate-900">
                       {log.modifiedBy}
                     </p>
-                    <p className="text-[10px] font-medium text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       {log.instructorId}
                     </p>
                   </td>
-                  <td className="px-6 py-5">
-                    <p className="text-xs font-bold text-slate-900">
+                  <td className="px-4 py-3">
+                    <p className="text-xs font-medium text-slate-900 truncate">
                       {log.student}
                     </p>
-                    <p className="text-[10px] font-medium text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       {log.studentId}
                     </p>
                   </td>
-                  <td className="px-6 py-5">
-                    <p className="text-xs font-bold text-slate-900">
+                  <td className="px-4 py-3">
+                    <p className="text-xs font-medium text-slate-900 truncate max-w-xs">
                       {log.assignment}
                     </p>
-                    <p className="text-[10px] font-medium text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5 truncate max-w-xs">
                       {log.course}
                     </p>
                   </td>
-                  <td className="px-6 py-5 text-center">
-                    <span className="text-xs font-bold text-slate-900">
+                  <td className="px-4 py-3 text-center">
+                    <span className="text-xs font-medium text-slate-900">
                       {log.previous}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-center">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <span className="text-xs font-bold text-slate-900">
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <span className="text-xs font-medium text-slate-900">
                         {log.new}
                       </span>
                       {log.change !== 0 && (
                         <span
                           className={cn(
-                            "text-[10px] font-black px-1.5 py-0.5 rounded-full",
+                            "text-[10px] font-semibold px-1.5 py-0.5 rounded",
                             log.change > 0
-                              ? "text-emerald-600 bg-emerald-50"
-                              : "text-red-600 bg-red-50",
+                              ? "text-emerald-700 bg-emerald-50"
+                              : "text-red-700 bg-red-50",
                           )}
                         >
-                          (
                           {log.change > 0
                             ? `+${log.change}`
                             : log.change}
-                          )
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-5">
-                    <p className="text-xs font-medium text-slate-500 font-mono">
+                  <td className="px-4 py-3">
+                    <p className="text-xs text-slate-500 font-mono">
                       {log.ip}
                     </p>
                   </td>
-                  <td className="px-6 py-5 text-right">
-                    <button className="p-2 text-slate-300 hover:text-slate-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-100 shadow-none hover:shadow-sm transition-all">
+                  <td className="px-4 py-3 text-right">
+                    <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded transition-colors">
                       <Eye className="w-4 h-4" />
                     </button>
                   </td>
@@ -312,28 +294,28 @@ export function GradesPage() {
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-          <p className="text-xs font-bold text-slate-400">
+        <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-sm">
+          <p className="text-xs text-slate-600">
             Showing 1 to 5 of 127 entries
           </p>
-          <div className="flex items-center gap-1">
-            <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
+          <div className="flex items-center gap-0.5">
+            <button className="p-1.5 text-slate-500 hover:text-slate-700 transition-colors">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <button className="w-8 h-8 rounded-lg bg-blue-600 text-white text-xs font-bold">
+            <button className="w-7 h-7 rounded bg-slate-800 text-white text-xs font-semibold">
               1
             </button>
-            <button className="w-8 h-8 rounded-lg text-slate-500 hover:bg-white text-xs font-bold">
+            <button className="w-7 h-7 rounded text-slate-600 hover:bg-slate-100 text-xs font-semibold">
               2
             </button>
-            <button className="w-8 h-8 rounded-lg text-slate-500 hover:bg-white text-xs font-bold">
+            <button className="w-7 h-7 rounded text-slate-600 hover:bg-slate-100 text-xs font-semibold">
               3
             </button>
-            <span className="px-2 text-slate-300">...</span>
-            <button className="w-8 h-8 rounded-lg text-slate-500 hover:bg-white text-xs font-bold">
+            <span className="px-1.5 text-slate-400">...</span>
+            <button className="w-7 h-7 rounded text-slate-600 hover:bg-slate-100 text-xs font-semibold">
               12
             </button>
-            <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
+            <button className="p-1.5 text-slate-500 hover:text-slate-700 transition-colors">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

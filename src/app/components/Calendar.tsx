@@ -104,30 +104,30 @@ export function LMSCalendar() {
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-full bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
       {/* Calendar Header */}
-      <div className="p-4 border-b border-slate-100 space-y-3 bg-slate-50/30">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-black text-slate-900 min-w-[140px]">
+      <div className="p-3 border-b border-slate-200 space-y-2 bg-slate-50">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-bold text-slate-900 min-w-[130px]">
               {format(currentMonth, "MMMM yyyy")}
             </h2>
-            <div className="flex items-center bg-slate-100/80 p-1 rounded-lg">
+            <div className="flex items-center bg-slate-100 p-0.5 rounded">
               <button 
                 onClick={prevMonth}
-                className="p-1 hover:bg-white rounded-md transition-all text-slate-600 hover:text-slate-900"
+                className="p-1 hover:bg-white rounded transition-all text-slate-600 hover:text-slate-900"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button 
                 onClick={() => setCurrentMonth(startOfToday())}
-                className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-600 hover:bg-white rounded-md transition-all"
+                className="px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-slate-700 hover:bg-white rounded transition-all"
               >
                 Today
               </button>
               <button 
                 onClick={nextMonth}
-                className="p-1 hover:bg-white rounded-md transition-all text-slate-600 hover:text-slate-900"
+                className="p-1 hover:bg-white rounded transition-all text-slate-600 hover:text-slate-900"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -136,9 +136,9 @@ export function LMSCalendar() {
         </div>
 
         {/* Filter Controls - More Compact */}
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1 flex items-center gap-1">
+        <div className="flex flex-col gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-slate-600 flex items-center gap-1">
               <BookOpen className="w-3 h-3" /> Courses:
             </span>
             {UNIQUE_COURSES.map((course) => (
@@ -146,10 +146,10 @@ export function LMSCalendar() {
                 key={course.id}
                 onClick={() => toggleCourse(course.id)}
                 className={cn(
-                  "px-2 py-1 rounded-lg text-[10px] font-bold transition-all border",
+                  "px-2 py-1 rounded text-xs font-medium transition-all border",
                   selectedCourses.includes(course.id)
-                    ? "bg-blue-600 text-white border-transparent shadow-sm"
-                    : "bg-white text-slate-400 border-slate-200 hover:border-slate-300"
+                    ? "bg-slate-800 text-white border-slate-800"
+                    : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
                 )}
               >
                 {course.name.split(':')[0]}
@@ -157,8 +157,8 @@ export function LMSCalendar() {
             ))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1 flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-slate-600 flex items-center gap-1">
               <LayoutDashboard className="w-3 h-3" /> Types:
             </span>
             {(Object.entries(EVENT_TYPE_CONFIG) as [EventType, typeof EVENT_TYPE_CONFIG.assignment][]).map(([type, config]) => (
@@ -166,10 +166,10 @@ export function LMSCalendar() {
                 key={type}
                 onClick={() => toggleType(type)}
                 className={cn(
-                  "flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold transition-all border",
+                  "flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all border",
                   selectedTypes.includes(type) 
-                    ? `${config.color.replace('bg-', 'bg-').replace('500', '100')} ${config.color.replace('bg-', 'text-').replace('500', '700')} border-transparent ring-1 ${config.ring.replace('ring-', 'ring-offset-1 ring-')}`
-                    : "bg-white text-slate-400 border-slate-200"
+                    ? "bg-slate-800 text-white border-slate-800"
+                    : "bg-white text-slate-600 border-slate-200"
                 )}
               >
                 <div className={cn("w-1.5 h-1.5 rounded-full", config.color)} />
@@ -181,9 +181,9 @@ export function LMSCalendar() {
       </div>
 
       {/* Calendar Grid Header */}
-      <div className="grid grid-cols-7 border-b border-slate-100 bg-white">
+      <div className="grid grid-cols-7 border-b border-slate-200 bg-white">
         {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
-          <div key={`${day}-${idx}`} className="py-2 text-center text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-r border-slate-100 last:border-r-0">
+          <div key={`${day}-${idx}`} className="py-2 text-center text-xs font-semibold text-slate-600 uppercase border-r border-slate-100 last:border-r-0">
             {day}
           </div>
         ))}
@@ -201,43 +201,36 @@ export function LMSCalendar() {
               <div 
                 key={day.toString()} 
                 className={cn(
-                  "min-h-[100px] p-1.5 border-r border-b border-slate-100 last:border-r-0 transition-colors group hover:bg-slate-50/50",
-                  !isCurrentMonth && "bg-slate-50/50"
+                  "min-h-[80px] p-1.5 border-r border-b border-slate-100 last:border-r-0 transition-colors group hover:bg-slate-50",
+                  !isCurrentMonth && "bg-slate-50"
                 )}
               >
-                <div className="flex justify-between items-center mb-1.5">
+                <div className="flex justify-between items-center mb-1">
                   <span className={cn(
-                    "flex items-center justify-center w-6 h-6 text-[11px] font-black rounded-full transition-all",
-                    isDayToday ? "bg-blue-600 text-white shadow-sm" : isCurrentMonth ? "text-slate-900" : "text-slate-300"
+                    "flex items-center justify-center w-5 h-5 text-xs font-semibold rounded-full transition-all",
+                    isDayToday ? "bg-slate-800 text-white shadow-sm" : isCurrentMonth ? "text-slate-900" : "text-slate-400"
                   )}>
                     {format(day, "d")}
                   </span>
                   {dayEvents.length > 0 && (
-                    <span className="text-[8px] font-black text-slate-400 bg-slate-100 px-1 py-0.5 rounded-full uppercase">
+                    <span className="text-[7px] font-semibold text-slate-500 bg-slate-100 px-1 py-0.5 rounded">
                       {dayEvents.length}
                     </span>
                   )}
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {dayEvents.map((event) => (
                     <motion.button
                       layoutId={event.id}
                       key={event.id}
                       onClick={() => setSelectedEvent(event)}
                       className={cn(
-                        "w-full text-left p-1 rounded text-[9px] font-bold leading-tight truncate transition-all shadow-sm active:scale-95",
+                        "w-full text-left p-0.5 rounded text-[8px] font-semibold leading-tight truncate transition-all active:scale-95",
                         event.color,
                         "text-white"
                       )}
                     >
-                      <div className="flex items-center gap-0.5 mb-0.5 opacity-80 overflow-hidden">
-                        <span className="font-black uppercase text-[7px] tracking-wider whitespace-nowrap">
-                          {event.type.slice(0, 4)}
-                        </span>
-                        <span>•</span>
-                        <span className="whitespace-nowrap">{event.time}</span>
-                      </div>
                       <div className="truncate">{event.title}</div>
                     </motion.button>
                   ))}
@@ -256,45 +249,45 @@ export function LMSCalendar() {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+              className="bg-white rounded shadow-lg w-full max-w-md overflow-hidden"
             >
-              <div className={cn("h-32 p-6 flex items-end justify-between relative", selectedEvent.color)}>
+              <div className={cn("h-24 p-4 flex items-end justify-between relative", selectedEvent.color)}>
                 <button 
                   onClick={() => setSelectedEvent(null)}
-                  className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors"
+                  className="absolute top-2 right-2 p-1 bg-white/20 hover:bg-white/30 rounded text-white transition-colors"
                 >
-                  <ChevronDown className="w-5 h-5 rotate-180" />
+                  <ChevronDown className="w-4 h-4 rotate-180" />
                 </button>
                 <div className="text-white">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-white/20 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-md">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="bg-white/20 px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider">
                       {selectedEvent.type}
                     </span>
-                    <span className="text-white/80 text-sm font-bold">{selectedEvent.time}</span>
+                    <span className="text-white/80 text-xs font-medium">{selectedEvent.time}</span>
                   </div>
-                  <h3 className="text-2xl font-black leading-tight">{selectedEvent.title}</h3>
+                  <h3 className="text-lg font-bold leading-tight">{selectedEvent.title}</h3>
                 </div>
               </div>
               
-              <div className="p-6 space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-blue-50 rounded-xl">
-                    <BookOpen className="w-5 h-5 text-blue-600" />
+              <div className="p-4 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-slate-100 rounded">
+                    <BookOpen className="w-4 h-4 text-slate-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Course</p>
-                    <p className="text-slate-900 font-bold">{selectedEvent.course}</p>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Course</p>
+                    <p className="text-sm text-slate-900 font-medium">{selectedEvent.course}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-orange-50 rounded-xl">
-                    <CalendarIcon className="w-5 h-5 text-orange-600" />
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-slate-100 rounded">
+                    <CalendarIcon className="w-4 h-4 text-slate-600" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Schedule</p>
-                    <p className="text-slate-900 font-bold">{format(selectedEvent.date, "EEEE, MMMM do, yyyy")}</p>
-                    <p className="text-sm text-slate-500 font-medium">{selectedEvent.time}</p>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Schedule</p>
+                    <p className="text-sm text-slate-900 font-medium">{format(selectedEvent.date, "EEEE, MMMM do, yyyy")}</p>
+                    <p className="text-xs text-slate-500 font-medium">{selectedEvent.time}</p>
                   </div>
                 </div>
 
@@ -307,22 +300,22 @@ export function LMSCalendar() {
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
                   {selectedEvent.type === 'assignment' ? (
                     <Link
                       to={`/courses/${selectedEvent.courseId}/assignments/${selectedEvent.id}`}
-                      className="flex-1 inline-flex items-center justify-center bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95"
+                      className="flex-1 inline-flex items-center justify-center bg-slate-800 text-white font-medium py-2 rounded hover:bg-slate-900 transition-all active:scale-95 text-sm"
                     >
                       Open Assignment
                     </Link>
                   ) : (
-                    <button className="flex-1 bg-blue-600 text-white font-black py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95">
+                    <button className="flex-1 bg-slate-800 text-white font-medium py-2 rounded hover:bg-slate-900 transition-all active:scale-95 text-sm">
                       Start Assessment
                     </button>
                   )}
                   <button 
                     onClick={() => setSelectedEvent(null)}
-                    className="px-6 py-3 border border-slate-200 text-slate-600 font-black rounded-xl hover:bg-slate-50 transition-all"
+                    className="px-4 py-2 border border-slate-200 text-slate-700 font-medium rounded hover:bg-slate-50 transition-all text-sm"
                   >
                     Close
                   </button>

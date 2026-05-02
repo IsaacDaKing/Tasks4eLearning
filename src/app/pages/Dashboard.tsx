@@ -217,11 +217,11 @@ function CourseCard({
   onTogglePin: () => void;
 }) {
   return (
-    <div className="p-4 rounded-2xl border border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 hover:border-blue-100 dark:hover:border-blue-800 hover:shadow-lg transition-all group">
-      <div className="flex justify-between items-start mb-4">
+    <div className="p-3 rounded border border-slate-200 bg-white hover:shadow-md transition-all group flex flex-col">
+      <div className="flex justify-between items-start mb-2">
         <div
           className={cn(
-            "p-2 rounded-lg text-white font-bold text-[10px]",
+            "px-2 py-1 rounded text-white font-semibold text-[9px]",
             course.color,
           )}
         >
@@ -234,31 +234,31 @@ function CourseCard({
         >
           <Pin
             className={cn(
-              "w-4 h-4 text-slate-400 hover:text-blue-600 transition-colors",
-              isPinned && "fill-current text-blue-600",
+              "w-3 h-3 text-slate-400 hover:text-slate-600 transition-colors",
+              isPinned && "fill-current text-slate-700",
             )}
           />
         </button>
       </div>
-      <Link to={`/courses/${course.id}`} className="block">
-        <h4 className="font-bold text-slate-900 dark:text-white mb-1 hover:text-blue-600 transition-colors">
+      <Link to={`/courses/${course.id}`} className="block flex-1">
+        <h4 className="font-semibold text-xs text-slate-900 mb-1 hover:text-slate-700 transition-colors line-clamp-2">
           {course.name}
         </h4>
       </Link>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+      <p className="text-xs text-slate-500 mb-3">
         {course.instructor}
       </p>
-      <div className="space-y-2">
-        <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+      <div className="space-y-1 mt-auto">
+        <div className="flex justify-between text-[9px] font-semibold text-slate-600 uppercase">
           <span>Progress</span>
           <span>{course.progress}%</span>
         </div>
-        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-slate-100 rounded overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${course.progress}%` }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className={cn("h-full rounded-full", course.color)}
+            className={cn("h-full rounded", course.color)}
           />
         </div>
       </div>
@@ -310,70 +310,66 @@ export function Dashboard() {
   );
 
   return (
-    <div className="p-8 space-y-8 max-w-[1600px] mx-auto animate-in fade-in duration-500 dark:bg-slate-900">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="p-6 space-y-6 max-w-full animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            Welcome back, Zabisaq Tasharmapandyasan! 👋
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Dashboard
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
-            You have 3 assignments due this week. Stay focused!
+          <p className="text-sm text-slate-600 mt-1">
+            Welcome back! You have 3 assignments due this week.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all shadow-sm">
+        <div className="flex items-center gap-2">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
             <CalendarIcon className="w-4 h-4" /> Schedule
           </button>
-          <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 dark:shadow-blue-900/50 active:scale-95">
-            <Zap className="w-4 h-4" /> Start Learning
+          <button className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-800 text-white rounded text-sm font-medium hover:bg-slate-900 transition-colors">
+            <Zap className="w-4 h-4" /> Learn
           </button>
         </div>
       </div>
 
       {pinnedAnnouncements.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400">
-            <Pin className="w-4 h-4" />
-            <span>Pinned Announcements</span>
+        <div className="space-y-2">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
+            <Megaphone className="w-3 h-3" />
+            <span>Announcements</span>
           </div>
           {pinnedAnnouncements.map((announcement) => (
             <motion.div
               key={announcement.id}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-2xl shadow-xl text-white relative group"
+              className="bg-blue-50 border border-blue-200 p-3 rounded flex items-start gap-3"
             >
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Megaphone className="w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-black text-lg mb-1">
-                    {announcement.title}
-                  </h3>
-                  <p className="text-white/90 text-sm leading-relaxed">
-                    {announcement.message}
-                  </p>
-                  <p className="text-white/60 text-xs mt-2">
-                    {announcement.date}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => togglePin(announcement.id)}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                  >
-                    <Pin className="w-4 h-4 fill-current" />
-                  </button>
-                  <button
-                    onClick={() =>
-                      removeAnnouncement(announcement.id)
-                    }
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+              <div className="w-4 h-4 bg-blue-600 rounded flex-shrink-0 mt-0.5"></div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm text-slate-900">
+                  {announcement.title}
+                </h3>
+                <p className="text-xs text-slate-700 mt-0.5 leading-relaxed">
+                  {announcement.message}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {announcement.date}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={() => togglePin(announcement.id)}
+                  className="p-1 hover:bg-white rounded transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <Pin className="w-3 h-3 text-slate-400" />
+                </button>
+                <button
+                  onClick={() =>
+                    removeAnnouncement(announcement.id)
+                  }
+                  className="p-1 hover:bg-white rounded transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <X className="w-3 h-3 text-slate-400" />
+                </button>
               </div>
             </motion.div>
           ))}
@@ -381,35 +377,33 @@ export function Dashboard() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {DASHBOARD_STATS.map((stat, i) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all group"
+            className="bg-white p-4 rounded border border-slate-200 shadow-sm hover:shadow-md transition-all"
           >
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex justify-between items-start mb-3">
               <div
                 className={cn(
-                  "p-3 rounded-xl transition-transform group-hover:scale-110",
+                  "p-2 rounded",
                   stat.color,
-                  stat.shadow,
                 )}
               >
-                <stat.icon className="w-6 h-6 text-white" />
+                <stat.icon className="w-4 h-4 text-white" />
               </div>
-              <MoreVertical className="w-5 h-5 text-slate-300 dark:text-slate-600 cursor-pointer" />
             </div>
-            <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
               {stat.label}
             </p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <h3 className="text-3xl font-black text-slate-900 dark:text-white">
+            <div className="flex items-baseline gap-2 mt-2">
+              <h3 className="text-2xl font-bold text-slate-900">
                 {stat.value}
               </h3>
-              <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full">
+              <span className="text-xs text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded">
                 {stat.change}
               </span>
             </div>
@@ -417,26 +411,25 @@ export function Dashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Charts Area */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white p-4 rounded border border-slate-200 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-blue-600" />{" "}
-                  Academic Performance
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" /> Academic Performance
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Score trends across all enrolled courses
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Score trends across all courses
                 </p>
               </div>
-              <select className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold rounded-lg px-3 py-2 outline-none dark:text-white">
+              <select className="bg-slate-50 border border-slate-200 text-xs font-medium rounded px-2 py-1 outline-none text-slate-700">
                 <option>Last 6 Months</option>
                 <option>Last Year</option>
               </select>
             </div>
-            <div className="h-[300px] w-full">
+            <div className="h-[200px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={PERFORMANCE_DATA}>
                   <defs>
@@ -449,8 +442,8 @@ export function Dashboard() {
                     >
                       <stop
                         offset="5%"
-                        stopColor="#2563eb"
-                        stopOpacity={0.1}
+                        stopColor="#1e293b"
+                        stopOpacity={0.05}
                       />
                       <stop
                         offset="95%"
@@ -498,8 +491,8 @@ export function Dashboard() {
                   <Area
                     type="monotone"
                     dataKey="score"
-                    stroke="#2563eb"
-                    strokeWidth={4}
+                    stroke="#1e293b"
+                    strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorScore)"
                   />
@@ -509,15 +502,14 @@ export function Dashboard() {
           </div>
 
           {/* Current Courses */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                <LayoutDashboard className="w-5 h-5 text-purple-600" />{" "}
-                Enrolled Courses
+          <div className="bg-white p-4 rounded border border-slate-200 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4" /> Enrolled Courses
               </h3>
               <Link
                 to="/courses"
-                className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                className="text-xs font-semibold text-slate-600 hover:text-slate-900"
               >
                 View All
               </Link>
@@ -526,10 +518,10 @@ export function Dashboard() {
             {/* FR-01: Pinned courses section */}
             {pinnedCourses.length > 0 && (
               <div className="mb-4">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">
+                <div className="flex items-center gap-1 text-xs font-semibold text-slate-600 uppercase mb-3">
                   <Pin className="w-3 h-3" /> Pinned
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {pinnedCourses.map((course) => (
                     <CourseCard
                       key={course.id}
@@ -547,11 +539,11 @@ export function Dashboard() {
             {unpinnedCourses.length > 0 && (
               <div>
                 {pinnedCourses.length > 0 && (
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3 mt-4">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-slate-600 uppercase mb-3 mt-3 pt-3 border-t border-slate-100">
                     Other Courses
                   </div>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {unpinnedCourses.map((course) => (
                     <CourseCard
                       key={course.id}
@@ -569,20 +561,19 @@ export function Dashboard() {
         </div>
 
         {/* Sidebar Widgets */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Study Hours */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-6 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-orange-600" />{" "}
-              Weekly Activity
+          <div className="bg-white p-4 rounded border border-slate-200 shadow-sm">
+            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4" /> Weekly Activity
             </h3>
-            <div className="h-[200px] w-full">
+            <div className="h-[150px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={WEEKLY_HOURS}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     vertical={false}
-                    stroke="#f1f5f9"
+                    stroke="#f0f0f0"
                   />
                   <XAxis
                     dataKey="day"
@@ -591,7 +582,7 @@ export function Dashboard() {
                     tick={{
                       fontSize: 10,
                       fill: "#94a3b8",
-                      fontWeight: 600,
+                      fontWeight: 500,
                     }}
                     dy={5}
                   />
@@ -599,19 +590,19 @@ export function Dashboard() {
                   <Tooltip
                     cursor={{ fill: "transparent" }}
                     contentStyle={{
-                      borderRadius: "8px",
+                      borderRadius: "6px",
                       border: "none",
                       boxShadow:
-                        "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                      fontSize: "12px",
+                        "0 2px 4px rgb(0 0 0 / 0.1)",
+                      fontSize: "11px",
                     }}
                   />
-                  <Bar dataKey="hours" radius={[4, 4, 4, 4]}>
+                  <Bar dataKey="hours" radius={[2, 2, 0, 0]}>
                     {WEEKLY_HOURS.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={
-                          index === 4 ? "#2563eb" : "#e2e8f0"
+                          index === 4 ? "#1e293b" : "#e2e8f0"
                         }
                       />
                     ))}
@@ -619,72 +610,61 @@ export function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="mt-4 p-4 bg-blue-50 rounded-xl">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <TrendingUp className="w-4 h-4 text-blue-600" />
-                </div>
-                <div className="text-xs">
-                  <p className="font-bold text-blue-900">
-                    12% More than last week
-                  </p>
-                  <p className="text-blue-600/70 font-medium">
-                    You're on a 5-day study streak!
-                  </p>
-                </div>
-              </div>
+            <div className="mt-3 p-3 bg-slate-50 rounded text-xs text-slate-700">
+              <p className="font-medium">12% more than last week. 5-day streak!</p>
             </div>
           </div>
 
           {/* Upcoming tasks */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-            <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight mb-6 flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-emerald-600" />{" "}
-              Next Deadlines
+          <div className="bg-white p-4 rounded border border-slate-200 shadow-sm">
+            <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <GraduationCap className="w-4 h-4" /> Next Deadlines
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-2">
               {/* FR-01: Deadlines link to assignments, show countdown */}
               {DEADLINES.map((task, i) => (
                 <Link
                   key={i}
                   to={task.to}
                   className={cn(
-                    "block p-4 rounded-xl border border-slate-100 dark:border-slate-700 border-l-4 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer",
+                    "block p-3 rounded border border-slate-200 border-l-2 hover:bg-slate-50 transition-colors text-xs",
                     task.color,
                   )}
                 >
-                  <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                  <p className="text-[9px] font-semibold text-slate-500 uppercase">
                     {task.course}
                   </p>
-                  <h4 className="font-bold text-slate-900 dark:text-white text-sm mt-1">
+                  <p className="font-semibold text-slate-900 mt-1 truncate">
                     {task.title}
-                  </h4>
+                  </p>
                   <div className="flex items-center justify-between mt-2">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1.5">
+                    <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
                       <Clock className="w-3 h-3" /> {task.date}
                     </p>
                     <span
                       className={cn(
-                        "text-[10px] font-black px-2 py-0.5 rounded-full",
+                        "text-[9px] font-semibold px-1.5 py-0.5 rounded",
                         task.daysLeft <= 1
-                          ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                          ? "bg-red-100 text-red-700"
                           : task.daysLeft <= 3
-                            ? "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
-                            : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400",
+                            ? "bg-orange-100 text-orange-700"
+                            : "bg-slate-100 text-slate-600",
                       )}
                     >
                       {task.daysLeft === 1
                         ? "Due tomorrow"
-                        : `${task.daysLeft} days left`}
+                        : `${task.daysLeft}d left`}
                     </span>
                   </div>
                 </Link>
               ))}
             </div>
-            <button className="w-full mt-6 py-3 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
-              View All Tasks{" "}
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <Link 
+              to="/calendar"
+              className="block w-full mt-3 py-2 border border-slate-200 text-slate-700 text-xs font-medium rounded hover:bg-slate-50 transition-all text-center"
+            >
+              View All Deadlines
+            </Link>
           </div>
         </div>
       </div>

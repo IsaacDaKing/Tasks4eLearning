@@ -125,10 +125,10 @@ export function Sidebar() {
       isCollapsed ? "w-20" : "w-60"
     )}>
       <div className="p-4 flex items-center gap-3 border-b border-white/20">
-        <div className="w-8 h-8 bg-white/15 rounded flex items-center justify-center flex-shrink-0">
-          <BookOpen className="text-white w-5 h-5" />
+        <div className="w-9 h-9 bg-white rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <img src="/Tasks4eLearning.png" alt="Tasks4eLearning logo" className="h-8 w-8 object-contain" />
         </div>
-        {!isCollapsed && <span className="font-semibold text-sm text-white truncate">Blackboard</span>}
+        {!isCollapsed && <span className="font-semibold text-sm text-white truncate">Tasks4eLearning</span>}
       </div>
 
       <button

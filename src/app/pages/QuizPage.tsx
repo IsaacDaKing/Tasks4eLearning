@@ -1,103 +1,287 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Timer,
-  Maximize2,
-  Minimize2,
+  AlertCircle,
+  BookOpen,
+  CheckCircle,
   ChevronLeft,
   ChevronRight,
-  CheckCircle,
   Circle,
-  X,
-  AlertCircle,
+  Eye,
+  Maximize2,
+  Minimize2,
   RotateCcw,
-  BookOpen,
+  Settings,
+  ShieldCheck,
+  Timer,
+  X,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const QUIZ_METADATA = {
-  type: "Quiz" as "Quiz" | "Exam",
-  title: "Network Protocols Quiz",
-  courseCode: "CS 4390.0W1",
-  courseName: "Computer Networks",
-  moduleTitle: "Module 2: TCP/IP Protocol Suite",
-  timeLimitMinutes: 30,
-  attempts: 2,
-  attemptsUsed: 0,
-};
+type AssessmentType = "Quiz" | "Exam";
 
-const QUESTIONS = [
+interface Question {
+  id: number;
+  text: string;
+  options: string[];
+  correct: number;
+}
+
+interface Assessment {
+  id: string;
+  type: AssessmentType;
+  title: string;
+  courseCode: string;
+  courseName: string;
+  classSection: string;
+  moduleTitle: string;
+  dueDate: string;
+  timeLimitMinutes: number;
+  attemptsAllowed: number;
+  attemptsUsed: number;
+  coveredTopics: string[];
+  technicalRequirements: string[];
+  permittedResources: string[];
+  academicIntegrityRules: string[];
+  questions: Question[];
+}
+
+const ASSESSMENTS: Assessment[] = [
   {
-    id: 1,
-    text: "Which layer of the OSI model is responsible for end-to-end communication and error recovery?",
-    options: [
-      "Network Layer",
-      "Transport Layer",
-      "Session Layer",
-      "Application Layer",
+    id: "cs4390-network-protocols",
+    type: "Quiz",
+    title: "Network Protocols Quiz",
+    courseCode: "CS 4390.0W1",
+    courseName: "Computer Networks",
+    classSection: "CS 4390.0W1: Computer Networks",
+    moduleTitle: "Module 2: TCP/IP Protocol Suite",
+    dueDate: "February 17, 2026 at 11:59 PM",
+    timeLimitMinutes: 30,
+    attemptsAllowed: 2,
+    attemptsUsed: 0,
+    coveredTopics: ["OSI model", "TCP and UDP", "DNS", "IP addressing", "subnet masks"],
+    technicalRequirements: [
+      "Use a current browser with JavaScript enabled.",
+      "Keep a stable internet connection for the full timed session.",
+      "Screen reader labels are included for quiz controls and answer choices.",
     ],
-    correct: 1,
+    permittedResources: ["Course slides", "Personal notes", "Subnet reference chart"],
+    academicIntegrityRules: [
+      "Submit only your own answers.",
+      "Do not share questions or answers with classmates during the assessment window.",
+      "Do not use automated answer tools or outside messaging apps.",
+    ],
+    questions: [
+      {
+        id: 1,
+        text: "Which layer of the OSI model is responsible for end-to-end communication and error recovery?",
+        options: ["Network Layer", "Transport Layer", "Session Layer", "Application Layer"],
+        correct: 1,
+      },
+      {
+        id: 2,
+        text: "What is the primary difference between TCP and UDP?",
+        options: ["TCP is faster", "UDP is connection-oriented", "TCP provides reliable delivery", "UDP uses checksums"],
+        correct: 2,
+      },
+      {
+        id: 3,
+        text: "Which protocol is used to translate domain names to IP addresses?",
+        options: ["DHCP", "DNS", "HTTP", "FTP"],
+        correct: 1,
+      },
+      {
+        id: 4,
+        text: "What is the default subnet mask for a Class C network?",
+        options: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"],
+        correct: 2,
+      },
+    ],
   },
   {
-    id: 2,
-    text: "What is the primary difference between TCP and UDP?",
-    options: [
-      "TCP is faster",
-      "UDP is connection-oriented",
-      "TCP provides reliable delivery",
-      "UDP uses checksums",
+    id: "cs3354-software-engineering",
+    type: "Quiz",
+    title: "Software Engineering Foundations Quiz",
+    courseCode: "CS 3354.012",
+    courseName: "Software Engineering",
+    classSection: "CS 3354.012: Software Engineering",
+    moduleTitle: "Module 4: Requirements, Design, and Delivery",
+    dueDate: "February 19, 2026 at 2:00 PM",
+    timeLimitMinutes: 35,
+    attemptsAllowed: 2,
+    attemptsUsed: 0,
+    coveredTopics: ["Requirements", "user stories", "UML", "architecture", "testing", "traceability", "agile and scrum"],
+    technicalRequirements: [
+      "Use a laptop or desktop browser for diagram-heavy questions.",
+      "Enable captions or transcripts for any referenced lecture media.",
+      "Keyboard-only navigation and screen reader labels are available throughout the quiz.",
     ],
-    correct: 2,
+    permittedResources: ["Course textbook", "Instructor-provided UML notation guide", "Personal sprint notes"],
+    academicIntegrityRules: [
+      "Do not collaborate during the timed quiz.",
+      "Use only permitted course materials.",
+      "Do not copy user stories, acceptance criteria, or test cases from external sources.",
+    ],
+    questions: [
+      {
+        id: 1,
+        text: "Which statement best describes a strong user story?",
+        options: [
+          "It describes a database table and every column type.",
+          "It states a user role, goal, and reason for the value delivered.",
+          "It lists only implementation tasks for developers.",
+          "It replaces all acceptance criteria in the backlog.",
+        ],
+        correct: 1,
+      },
+      {
+        id: 2,
+        text: "What is the main purpose of requirements traceability?",
+        options: [
+          "To connect requirements to design, code, tests, and delivered features.",
+          "To make sprint ceremonies shorter.",
+          "To remove the need for stakeholder review.",
+          "To guarantee every feature uses the same architecture pattern.",
+        ],
+        correct: 0,
+      },
+      {
+        id: 3,
+        text: "Which UML diagram is most appropriate for showing object interactions over time?",
+        options: ["Class diagram", "Sequence diagram", "Deployment diagram", "Package diagram"],
+        correct: 1,
+      },
+      {
+        id: 4,
+        text: "In Scrum, who is primarily responsible for ordering the product backlog?",
+        options: ["Scrum Master", "Product Owner", "Development Team", "Project Sponsor"],
+        correct: 1,
+      },
+      {
+        id: 5,
+        text: "Which testing level verifies that multiple components work together correctly?",
+        options: ["Unit testing", "Integration testing", "Smoke testing", "Acceptance testing"],
+        correct: 1,
+      },
+    ],
   },
   {
-    id: 3,
-    text: "Which protocol is used to translate domain names to IP addresses?",
-    options: ["DHCP", "DNS", "HTTP", "FTP"],
-    correct: 1,
-  },
-  {
-    id: 4,
-    text: "What is the default subnet mask for a Class C network?",
-    options: [
-      "255.0.0.0",
-      "255.255.0.0",
-      "255.255.255.0",
-      "255.255.255.255",
+    id: "cs4347-database-systems",
+    type: "Exam",
+    title: "Database Systems Midterm Exam",
+    courseCode: "CS 4347.002",
+    courseName: "Database Systems",
+    classSection: "CS 4347.002: Database Systems",
+    moduleTitle: "Unit 5: Relational Modeling and Transactions",
+    dueDate: "February 21, 2026 at 9:00 AM",
+    timeLimitMinutes: 60,
+    attemptsAllowed: 1,
+    attemptsUsed: 0,
+    coveredTopics: ["ER modeling", "SQL", "normalization", "joins", "keys", "transactions", "indexing", "ACID properties"],
+    technicalRequirements: [
+      "Use a current browser with pop-up blockers disabled for proctoring prompts.",
+      "Keep one active browser instance for this exam account.",
+      "Screen reader support, visible focus states, and high-contrast mode are available.",
     ],
-    correct: 2,
+    permittedResources: ["One page SQL syntax sheet", "Instructor-provided relational algebra reference"],
+    academicIntegrityRules: [
+      "This exam is individual and proctored.",
+      "Do not log into the exam account from multiple browser instances.",
+      "Do not use database consoles, AI tools, messaging apps, or external websites.",
+    ],
+    questions: [
+      {
+        id: 1,
+        text: "Which normal form removes partial dependency on part of a composite key?",
+        options: ["First normal form", "Second normal form", "Third normal form", "Boyce-Codd normal form"],
+        correct: 1,
+      },
+      {
+        id: 2,
+        text: "Which SQL join returns matching rows plus unmatched rows from the left table?",
+        options: ["INNER JOIN", "LEFT JOIN", "CROSS JOIN", "SELF JOIN"],
+        correct: 1,
+      },
+      {
+        id: 3,
+        text: "In ER modeling, what does a foreign key usually represent in the relational schema?",
+        options: [
+          "A relationship between tables",
+          "A column that must be unique in every row",
+          "A derived attribute",
+          "A physical index page",
+        ],
+        correct: 0,
+      },
+      {
+        id: 4,
+        text: "Which ACID property ensures committed data survives a system crash?",
+        options: ["Atomicity", "Consistency", "Isolation", "Durability"],
+        correct: 3,
+      },
+      {
+        id: 5,
+        text: "What is a common benefit of adding an index to a frequently searched column?",
+        options: [
+          "It can reduce lookup time for matching rows.",
+          "It always reduces write cost.",
+          "It eliminates the need for primary keys.",
+          "It prevents all transaction conflicts.",
+        ],
+        correct: 0,
+      },
+    ],
   },
 ];
 
+const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900";
+
 export function QuizPage() {
-  const [focusMode, setFocusMode] = useState(true); // FR-09: active by default during quiz
+  const [selectedAssessmentId, setSelectedAssessmentId] = useState(ASSESSMENTS[0].id);
+  const assessment = useMemo(
+    () => ASSESSMENTS.find((item) => item.id === selectedAssessmentId) ?? ASSESSMENTS[0],
+    [selectedAssessmentId],
+  );
+  const [showAccessibility, setShowAccessibility] = useState(false);
+  const [fontScale, setFontScale] = useState(100);
+  const [highContrast, setHighContrast] = useState(false);
+  const [dyslexiaFont, setDyslexiaFont] = useState(false);
+  const [focusMode, setFocusMode] = useState(true);
   const [started, setStarted] = useState(false);
   const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(
-    new Array(QUESTIONS.length).fill(null),
-  );
+  const [answers, setAnswers] = useState<(number | null)[]>(new Array(assessment.questions.length).fill(null));
   const [submitted, setSubmitted] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(
-    QUIZ_METADATA.timeLimitMinutes * 60,
-  );
-  const timerRef = useRef<ReturnType<
-    typeof setInterval
-  > | null>(null);
+  const [timeLeft, setTimeLeft] = useState(assessment.timeLimitMinutes * 60);
+  const [lockMessage, setLockMessage] = useState("");
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sessionIdRef = useRef(`quiz-session-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+
+  useEffect(() => {
+    setStarted(false);
+    setSubmitted(false);
+    setCurrentQ(0);
+    setAnswers(new Array(assessment.questions.length).fill(null));
+    setTimeLeft(assessment.timeLimitMinutes * 60);
+    setFocusMode(true);
+    setLockMessage("");
+  }, [assessment]);
 
   useEffect(() => {
     if (started && !submitted) {
       timerRef.current = setInterval(() => {
-        setTimeLeft((t) => {
-          if (t <= 1) {
-            clearInterval(timerRef.current!);
+        setTimeLeft((time) => {
+          if (time <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current);
             setSubmitted(true);
+            releaseExamLock();
             return 0;
           }
-          return t - 1;
+          return time - 1;
         });
       }, 1000);
     }
@@ -106,161 +290,125 @@ export function QuizPage() {
     };
   }, [started, submitted]);
 
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, "0")}`;
+  useEffect(() => {
+    const handleUnload = () => releaseExamLock();
+    window.addEventListener("beforeunload", handleUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+      releaseExamLock();
+    };
+  }, [selectedAssessmentId]);
+
+  const releaseExamLock = () => {
+    if (assessment.type !== "Exam") return;
+    const lockKey = getExamLockKey(assessment.id);
+    if (localStorage.getItem(lockKey) === sessionIdRef.current) {
+      localStorage.removeItem(lockKey);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   const score = answers.reduce(
-    (acc, a, i) => acc + (a === QUESTIONS[i].correct ? 1 : 0),
+    (acc, answer, index) => acc + (answer === assessment.questions[index].correct ? 1 : 0),
     0,
   );
-  const percent = Math.round((score / QUESTIONS.length) * 100);
+  const percent = Math.round((score / assessment.questions.length) * 100);
 
-  if (!started) {
-    return (
-      <div className="p-8 max-w-2xl mx-auto animate-in fade-in duration-500">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400 mb-3">
-            <BookOpen className="w-4 h-4" />
-            {/* FR-55 */}
-            {QUIZ_METADATA.courseCode} —{" "}
-            {QUIZ_METADATA.courseName}
-          </div>
-          {/* FR-56: Module title as primary heading */}
-          <p className="text-slate-400 dark:text-slate-500 text-sm mb-1">
-            {QUIZ_METADATA.moduleTitle}
-          </p>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-6">
-            {QUIZ_METADATA.title}
-          </h1>
+  const startAssessment = () => {
+    if (assessment.type === "Exam") {
+      const lockKey = getExamLockKey(assessment.id);
+      const existingSession = localStorage.getItem(lockKey);
+      if (existingSession && existingSession !== sessionIdRef.current) {
+        setLockMessage("This exam account is already active in another browser instance. Close the other instance before starting.");
+        return;
+      }
+      localStorage.setItem(lockKey, sessionIdRef.current);
+    }
 
-          <div className="space-y-3 mb-8">
-            {/* FR-61: Assessment type label */}
-            <div className="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
-              <span className="text-sm font-bold text-yellow-900 dark:text-yellow-300">
-                Assessment Type
-              </span>
-              <span className="px-3 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-black uppercase tracking-wider">
-                {QUIZ_METADATA.type}
-              </span>
-            </div>
-            {/* FR-62: Time limit and attempts */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
-                Time Limit
-              </span>
-              <span className="text-sm font-black text-slate-900 dark:text-white">
-                {QUIZ_METADATA.timeLimitMinutes} minutes
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
-                Attempts Allowed
-              </span>
-              <span className="text-sm font-black text-slate-900 dark:text-white">
-                {QUIZ_METADATA.attemptsUsed} of{" "}
-                {QUIZ_METADATA.attempts} used
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-400">
-                Questions
-              </span>
-              <span className="text-sm font-black text-slate-900 dark:text-white">
-                {QUESTIONS.length} questions
-              </span>
-            </div>
-          </div>
+    setStarted(true);
+    setFocusMode(true);
+    setLockMessage("");
+  };
 
-          {/* FR-09: Focus Mode note */}
-          <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl mb-6 text-sm">
-            <Maximize2 className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-blue-900 dark:text-blue-300">
-                Focus Mode enabled
-              </p>
-              <p className="text-blue-800 dark:text-blue-400">
-                Non-essential widgets and notifications will be
-                hidden during the quiz. You can exit Focus Mode
-                at any time.
-              </p>
-            </div>
-          </div>
+  const resetAssessment = () => {
+    releaseExamLock();
+    setStarted(false);
+    setSubmitted(false);
+    setAnswers(new Array(assessment.questions.length).fill(null));
+    setCurrentQ(0);
+    setTimeLeft(assessment.timeLimitMinutes * 60);
+    setFocusMode(true);
+  };
 
-          <button
-            onClick={() => setStarted(true)}
-            className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl transition-all shadow-lg shadow-blue-200 dark:shadow-blue-900/50 active:scale-95"
-          >
-            Start {QUIZ_METADATA.type}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const submitAssessment = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setSubmitted(true);
+    setFocusMode(false);
+    releaseExamLock();
+  };
+
+  const pageStyle = {
+    fontSize: `${fontScale}%`,
+    fontFamily: dyslexiaFont ? '"Trebuchet MS", Verdana, Arial, sans-serif' : undefined,
+  };
+
+  const shellClasses = cn(
+    "min-h-full p-4 sm:p-8 animate-in fade-in duration-500",
+    highContrast ? "bg-black text-white" : "bg-slate-100 dark:bg-slate-900",
+    started && focusMode && "fixed inset-0 z-50 overflow-y-auto",
+  );
 
   if (submitted) {
     return (
-      <div className="p-8 max-w-2xl mx-auto animate-in fade-in duration-500">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8 text-center">
+      <div className={shellClasses} style={pageStyle}>
+        <div className={cn("mx-auto max-w-3xl rounded border p-6 text-center shadow-sm", highContrast ? "border-white bg-black" : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800")}>
           <div
             className={cn(
-              "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5",
-              percent >= 70
-                ? "bg-green-100 dark:bg-green-900/30"
-                : "bg-red-100 dark:bg-red-900/30",
+              "mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full",
+              percent >= 70 ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30",
             )}
           >
-            <span
-              className={cn(
-                "text-2xl font-black",
-                percent >= 70
-                  ? "text-green-600"
-                  : "text-red-600",
-              )}
-            >
-              {percent}%
-            </span>
+            <span className={cn("text-2xl font-black", percent >= 70 ? "text-green-600" : "text-red-600")}>{percent}%</span>
           </div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">
+          <h1 className={cn("mb-2 text-3xl font-black", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>
             {percent >= 70 ? "Great job!" : "Keep practicing!"}
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">
-            You scored{" "}
-            <strong>
-              {score} out of {QUESTIONS.length}
-            </strong>{" "}
-            on {QUIZ_METADATA.title}
+          <p className={cn("mb-8 text-sm", highContrast ? "text-white" : "text-slate-500 dark:text-slate-400")} aria-live="polite">
+            You scored <strong>{score} out of {assessment.questions.length}</strong> on {assessment.title}.
           </p>
 
-          <div className="space-y-3 text-left mb-8">
-            {QUESTIONS.map((q, i) => {
-              const userAnswer = answers[i];
-              const isCorrect = userAnswer === q.correct;
+          <div className="mb-8 space-y-3 text-left">
+            {assessment.questions.map((question, index) => {
+              const userAnswer = answers[index];
+              const isCorrect = userAnswer === question.correct;
               return (
                 <div
-                  key={q.id}
+                  key={question.id}
                   className={cn(
-                    "p-4 rounded-xl border",
-                    isCorrect
-                      ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                      : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800",
+                    "rounded border p-4",
+                    highContrast
+                      ? "border-white bg-black"
+                      : isCorrect
+                        ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
+                        : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20",
                   )}
                 >
                   <div className="flex items-start gap-3">
                     {isCorrect ? (
-                      <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
                     ) : (
-                      <X className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                      <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
                     )}
                     <div>
-                      <p className="text-sm font-bold text-slate-900 dark:text-white mb-1">
-                        {q.text}
-                      </p>
+                      <p className={cn("mb-1 text-sm font-bold", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{question.text}</p>
                       {!isCorrect && (
-                        <p className="text-xs text-green-700 dark:text-green-400">
-                          Correct: {q.options[q.correct]}
+                        <p className={cn("text-xs", highContrast ? "text-white" : "text-green-700 dark:text-green-400")}>
+                          Correct: {question.options[question.correct]}
                         </p>
                       )}
                     </div>
@@ -270,188 +418,354 @@ export function QuizPage() {
             })}
           </div>
 
-          <button
-            onClick={() => {
-              setStarted(false);
-              setSubmitted(false);
-              setAnswers(
-                new Array(QUESTIONS.length).fill(null),
-              );
-              setCurrentQ(0);
-              setTimeLeft(QUIZ_METADATA.timeLimitMinutes * 60);
-              setFocusMode(true);
-            }}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all mx-auto"
-          >
-            <RotateCcw className="w-4 h-4" /> Retake Quiz
+          <button onClick={resetAssessment} className={cn("mx-auto flex items-center gap-2 rounded px-6 py-3 font-bold text-white transition-all", FOCUS_RING, "bg-blue-600 hover:bg-blue-700")}>
+            <RotateCcw className="h-4 w-4" /> Retake {assessment.type}
           </button>
         </div>
       </div>
     );
   }
 
-  return (
-    // FR-09: focusMode hides the surrounding layout widgets via a portal-style overlay approach
-    <div
-      className={cn(
-        "p-8 max-w-3xl mx-auto animate-in fade-in duration-500",
-        focusMode && "relative",
-      )}
-    >
-      {/* FR-09: Focus Mode overlay banner */}
-      <AnimatePresence>
-        {focusMode && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="mb-4 flex items-center justify-between px-4 py-2.5 bg-slate-900 dark:bg-slate-950 text-white rounded-xl text-sm"
-          >
-            <div className="flex items-center gap-2 font-bold">
-              <Maximize2 className="w-4 h-4" /> Focus Mode
-              active — notifications and widgets hidden
-            </div>
-            <button
-              onClick={() => setFocusMode(false)}
-              className="text-slate-400 hover:text-white flex items-center gap-1 font-bold text-xs transition-colors"
-            >
-              <Minimize2 className="w-3.5 h-3.5" /> Exit Focus
-              Mode
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-        {/* Header bar */}
-        <div className="flex items-center justify-between px-6 py-4 bg-slate-50 dark:bg-slate-900/60 border-b border-slate-100 dark:border-slate-700">
-          <div>
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-              {QUIZ_METADATA.courseCode} · {QUIZ_METADATA.type}
-            </p>
-            <p className="text-sm font-bold text-slate-900 dark:text-white">
-              {QUIZ_METADATA.title}
-            </p>
-          </div>
-          {/* Timer */}
-          <div
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black",
-              timeLeft < 120
-                ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse"
-                : "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400",
-            )}
-          >
-            <Timer className="w-4 h-4" />
-            {formatTime(timeLeft)}
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="h-1.5 bg-slate-100 dark:bg-slate-700">
-          <div
-            className="h-full bg-blue-600 transition-all duration-300"
-            style={{
-              width: `${((currentQ + 1) / QUESTIONS.length) * 100}%`,
-            }}
-          />
-        </div>
-
-        {/* Question */}
-        <div className="p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <span className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center flex-shrink-0">
-              {currentQ + 1}
-            </span>
-            <p className="text-lg font-bold text-slate-900 dark:text-white">
-              {QUESTIONS[currentQ].text}
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            {QUESTIONS[currentQ].options.map((option, i) => {
-              const selected = answers[currentQ] === i;
-              return (
+  if (!started) {
+    return (
+      <div className={shellClasses} style={pageStyle}>
+        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <aside className={cn("rounded border p-4 shadow-sm", highContrast ? "border-white bg-black" : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800")}>
+            <h2 className={cn("mb-3 text-sm font-black uppercase tracking-wide", highContrast ? "text-white" : "text-slate-500 dark:text-slate-400")}>
+              Assessments
+            </h2>
+            <div className="space-y-2" role="list" aria-label="Selectable course assessments">
+              {ASSESSMENTS.map((item) => (
                 <button
-                  key={i}
-                  onClick={() => {
-                    const newAnswers = [...answers];
-                    newAnswers[currentQ] = i;
-                    setAnswers(newAnswers);
-                  }}
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedAssessmentId(item.id)}
                   className={cn(
-                    "w-full text-left p-4 rounded-xl border-2 transition-all font-medium text-sm",
-                    selected
-                      ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-200"
-                      : "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 text-slate-700 dark:text-slate-300",
+                    "w-full rounded border p-3 text-left transition-all",
+                    FOCUS_RING,
+                    selectedAssessmentId === item.id
+                      ? highContrast
+                        ? "border-white bg-white text-black"
+                        : "border-blue-600 bg-blue-50 text-blue-950 dark:bg-blue-900/30 dark:text-blue-100"
+                      : highContrast
+                        ? "border-white bg-black text-white hover:bg-white hover:text-black"
+                        : "border-slate-200 text-slate-700 hover:border-blue-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700",
                   )}
                 >
-                  <div className="flex items-center gap-3">
-                    {selected ? (
-                      <CheckCircle className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                    ) : (
-                      <Circle className="w-4 h-4 text-slate-300 dark:text-slate-600 flex-shrink-0" />
-                    )}
-                    {option}
-                  </div>
+                  <span className="block text-xs font-black uppercase tracking-wide">{item.type}</span>
+                  <span className="block text-sm font-bold">{item.courseCode}</span>
+                  <span className="block text-xs">{item.courseName}</span>
                 </button>
-              );
-            })}
-          </div>
-        </div>
+              ))}
+            </div>
+          </aside>
 
-        {/* Navigation */}
-        <div className="px-8 pb-6 flex items-center justify-between">
-          <button
-            onClick={() =>
-              setCurrentQ(Math.max(0, currentQ - 1))
-            }
-            disabled={currentQ === 0}
-            className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-400 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
-          >
-            <ChevronLeft className="w-4 h-4" /> Previous
-          </button>
-
-          <div className="flex gap-1.5">
-            {QUESTIONS.map((_, i) => (
+          <main className={cn("rounded border p-6 shadow-sm", highContrast ? "border-white bg-black" : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800")}>
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className={cn("mb-3 flex items-center gap-2 text-sm font-bold", highContrast ? "text-white" : "text-slate-500 dark:text-slate-400")}>
+                  <BookOpen className="h-4 w-4" />
+                  {assessment.courseCode} - {assessment.courseName}
+                </div>
+                <p className={cn("mb-1 text-sm", highContrast ? "text-white" : "text-slate-400 dark:text-slate-500")}>{assessment.moduleTitle}</p>
+                <h1 className={cn("text-3xl font-black", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{assessment.title}</h1>
+              </div>
               <button
-                key={i}
-                onClick={() => setCurrentQ(i)}
-                className={cn(
-                  "w-7 h-7 rounded-lg text-xs font-black transition-all",
-                  i === currentQ
-                    ? "bg-blue-600 text-white"
-                    : answers[i] !== null
-                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
-                      : "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500",
-                )}
+                type="button"
+                onClick={() => setShowAccessibility((value) => !value)}
+                className={cn("inline-flex items-center justify-center gap-2 rounded border px-4 py-2 text-sm font-bold transition-colors", FOCUS_RING, highContrast ? "border-white text-white hover:bg-white hover:text-black" : "border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-700")}
+                aria-expanded={showAccessibility}
               >
-                {i + 1}
+                <Settings className="h-4 w-4" /> Accessibility Settings
               </button>
-            ))}
+            </div>
+
+            <AccessibilityPanel
+              show={showAccessibility}
+              fontScale={fontScale}
+              setFontScale={setFontScale}
+              highContrast={highContrast}
+              setHighContrast={setHighContrast}
+              dyslexiaFont={dyslexiaFont}
+              setDyslexiaFont={setDyslexiaFont}
+            />
+
+            <section className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Assessment summary">
+              <InfoTile label="Class" value={assessment.classSection} highContrast={highContrast} />
+              <InfoTile label="Assessment Type" value={assessment.type} highContrast={highContrast} badge />
+              <InfoTile label="Due Date" value={assessment.dueDate} highContrast={highContrast} />
+              <InfoTile label="Time Limit" value={`${assessment.timeLimitMinutes} minutes`} highContrast={highContrast} />
+              <InfoTile label="Allowed Attempts" value={`${assessment.attemptsUsed} of ${assessment.attemptsAllowed} used`} highContrast={highContrast} />
+              <InfoTile label="Questions" value={`${assessment.questions.length} sample questions`} highContrast={highContrast} />
+            </section>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <InstructionList title="Covered Topics" items={assessment.coveredTopics} highContrast={highContrast} />
+              <InstructionList title="Technical Requirements" items={assessment.technicalRequirements} highContrast={highContrast} />
+              <InstructionList title="Permitted Resources" items={assessment.permittedResources} highContrast={highContrast} />
+              <InstructionList title="Academic Integrity Rules" items={assessment.academicIntegrityRules} highContrast={highContrast} />
+            </div>
+
+            <div className={cn("mt-6 rounded border p-4 text-sm", highContrast ? "border-white bg-black text-white" : "border-blue-200 bg-blue-50 text-blue-900 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-200")}>
+              <div className="flex items-start gap-3">
+                <Maximize2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                <div>
+                  <p className="font-bold">Focus Mode starts automatically</p>
+                  <p>Non-essential widgets and navigation are hidden during assessment taking. You can exit Focus Mode from the assessment banner.</p>
+                </div>
+              </div>
+            </div>
+
+            {assessment.type === "Exam" && (
+              <div className={cn("mt-4 rounded border p-4 text-sm", highContrast ? "border-white bg-black text-white" : "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200")}>
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <p>This exam checks for another active instance of the same exam-taking account before starting.</p>
+                </div>
+              </div>
+            )}
+
+            {lockMessage && (
+              <div className="mt-4 flex items-start gap-2 rounded border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700" role="alert">
+                <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" /> {lockMessage}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={startAssessment}
+              className={cn("mt-6 w-full rounded bg-blue-600 py-4 font-black text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 active:scale-[0.99] dark:shadow-blue-900/40", FOCUS_RING)}
+            >
+              Start Assessment
+            </button>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  const currentQuestion = assessment.questions[currentQ];
+
+  return (
+    <div className={shellClasses} style={pageStyle}>
+      <div className="mx-auto max-w-3xl">
+        <AnimatePresence>
+          {focusMode && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="mb-4 flex flex-col gap-3 rounded bg-slate-900 px-4 py-3 text-sm text-white sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex items-center gap-2 font-bold">
+                <Maximize2 className="h-4 w-4" /> Focus Mode active
+              </div>
+              <button onClick={() => setFocusMode(false)} className={cn("flex items-center gap-1 text-xs font-bold text-slate-300 transition-colors hover:text-white", FOCUS_RING)}>
+                <Minimize2 className="h-3.5 w-3.5" /> Exit Focus Mode
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className={cn("overflow-hidden rounded border shadow-sm", highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800")}>
+          <div className={cn("flex items-center justify-between border-b px-6 py-4", highContrast ? "border-white bg-black" : "border-slate-100 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/60")}>
+            <div>
+              <p className={cn("text-xs font-black uppercase tracking-widest", highContrast ? "text-white" : "text-slate-400")}>
+                {assessment.courseCode} - {assessment.type}
+              </p>
+              <p className={cn("text-sm font-bold", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{assessment.title}</p>
+            </div>
+            <div
+              className={cn(
+                "flex items-center gap-2 rounded px-4 py-2 text-sm font-black",
+                timeLeft < 120 ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400" : "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+              )}
+              aria-live="polite"
+            >
+              <Timer className="h-4 w-4" />
+              {formatTime(timeLeft)}
+            </div>
           </div>
 
-          {currentQ < QUESTIONS.length - 1 ? (
+          <div className={cn("h-1.5", highContrast ? "bg-white" : "bg-slate-100 dark:bg-slate-700")}>
+            <div className={cn("h-full transition-all duration-300", highContrast ? "bg-yellow-300" : "bg-blue-600")} style={{ width: `${((currentQ + 1) / assessment.questions.length) * 100}%` }} />
+          </div>
+
+          <div className="p-6 sm:p-8">
+            <div className="mb-6 flex items-start gap-3">
+              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">{currentQ + 1}</span>
+              <p className={cn("text-lg font-bold", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{currentQuestion.text}</p>
+            </div>
+
+            <div className="space-y-3" role="radiogroup" aria-label={`Question ${currentQ + 1} answer choices`}>
+              {currentQuestion.options.map((option, index) => {
+                const selected = answers[currentQ] === index;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => {
+                      const newAnswers = [...answers];
+                      newAnswers[currentQ] = index;
+                      setAnswers(newAnswers);
+                    }}
+                    className={cn(
+                      "w-full rounded border-2 p-4 text-left text-sm font-medium transition-all",
+                      FOCUS_RING,
+                      selected
+                        ? highContrast
+                          ? "border-yellow-300 bg-white text-black"
+                          : "border-blue-600 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-200"
+                        : highContrast
+                          ? "border-white bg-black text-white hover:bg-white hover:text-black"
+                          : "border-slate-200 text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-600",
+                    )}
+                  >
+                    <span className="flex items-center gap-3">
+                      {selected ? <CheckCircle className="h-4 w-4 flex-shrink-0 text-blue-600" /> : <Circle className="h-4 w-4 flex-shrink-0 text-slate-300 dark:text-slate-600" />}
+                      {option}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4 px-6 pb-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
             <button
-              onClick={() => setCurrentQ(currentQ + 1)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all"
+              type="button"
+              onClick={() => setCurrentQ(Math.max(0, currentQ - 1))}
+              disabled={currentQ === 0}
+              className={cn("flex items-center justify-center gap-2 rounded border px-4 py-2.5 text-sm font-bold transition-all disabled:opacity-40", FOCUS_RING, highContrast ? "border-white text-white hover:bg-white hover:text-black" : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700")}
             >
-              Next <ChevronRight className="w-4 h-4" />
+              <ChevronLeft className="h-4 w-4" /> Previous
             </button>
-          ) : (
-            <button
-              onClick={() => {
-                clearInterval(timerRef.current!);
-                setSubmitted(true);
-                setFocusMode(false);
-              }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-bold transition-all"
-            >
-              <CheckCircle className="w-4 h-4" /> Submit Quiz
-            </button>
-          )}
+
+            <div className="flex justify-center gap-1.5" aria-label="Question navigation">
+              {assessment.questions.map((question, index) => (
+                <button
+                  key={question.id}
+                  type="button"
+                  onClick={() => setCurrentQ(index)}
+                  className={cn(
+                    "h-8 w-8 rounded text-xs font-black transition-all",
+                    FOCUS_RING,
+                    index === currentQ
+                      ? "bg-blue-600 text-white"
+                      : answers[index] !== null
+                        ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
+                        : highContrast
+                          ? "border border-white bg-black text-white"
+                          : "bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500",
+                  )}
+                  aria-label={`Go to question ${index + 1}`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+
+            {currentQ < assessment.questions.length - 1 ? (
+              <button type="button" onClick={() => setCurrentQ(currentQ + 1)} className={cn("flex items-center justify-center gap-2 rounded bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700", FOCUS_RING)}>
+                Next <ChevronRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <button type="button" onClick={submitAssessment} className={cn("flex items-center justify-center gap-2 rounded bg-green-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-green-700", FOCUS_RING)}>
+                <CheckCircle className="h-4 w-4" /> Submit {assessment.type}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function getExamLockKey(assessmentId: string) {
+  return `assessment-lock:${assessmentId}:ZXT220067`;
+}
+
+function AccessibilityPanel({
+  show,
+  fontScale,
+  setFontScale,
+  highContrast,
+  setHighContrast,
+  dyslexiaFont,
+  setDyslexiaFont,
+}: {
+  show: boolean;
+  fontScale: number;
+  setFontScale: (value: number) => void;
+  highContrast: boolean;
+  setHighContrast: (value: boolean) => void;
+  dyslexiaFont: boolean;
+  setDyslexiaFont: (value: boolean) => void;
+}) {
+  if (!show) return null;
+
+  return (
+    <section className={cn("mb-6 rounded border p-4", highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/50")} aria-label="Accessibility settings">
+      <div className={cn("mb-4 flex items-center gap-2 text-sm font-black", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>
+        <Eye className="h-4 w-4" /> Accessibility Settings
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        <label className={cn("text-sm font-bold", highContrast ? "text-white" : "text-slate-700 dark:text-slate-200")}>
+          Font size
+          <input
+            type="range"
+            min="90"
+            max="130"
+            step="10"
+            value={fontScale}
+            onChange={(event) => setFontScale(Number(event.target.value))}
+            className={cn("mt-2 w-full accent-blue-600", FOCUS_RING)}
+          />
+          <span className={cn("mt-1 block text-xs", highContrast ? "text-white" : "text-slate-500")}>{fontScale}%</span>
+        </label>
+        <ToggleControl label="High contrast" checked={highContrast} onChange={setHighContrast} highContrast={highContrast} />
+        <ToggleControl label="Dyslexia-friendly font" checked={dyslexiaFont} onChange={setDyslexiaFont} highContrast={highContrast} />
+      </div>
+    </section>
+  );
+}
+
+function ToggleControl({ label, checked, onChange, highContrast }: { label: string; checked: boolean; onChange: (value: boolean) => void; highContrast: boolean }) {
+  return (
+    <label className={cn("flex items-center justify-between gap-3 rounded border px-3 py-2 text-sm font-bold", highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200")}>
+      {label}
+      <input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className={cn("h-5 w-5 accent-blue-600", FOCUS_RING)} />
+    </label>
+  );
+}
+
+function InfoTile({ label, value, highContrast, badge = false }: { label: string; value: string; highContrast: boolean; badge?: boolean }) {
+  return (
+    <div className={cn("rounded border p-4", highContrast ? "border-white bg-black text-white" : "border-slate-100 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/50")}>
+      <p className={cn("mb-2 text-xs font-black uppercase tracking-wide", highContrast ? "text-white" : "text-slate-500 dark:text-slate-400")}>{label}</p>
+      {badge ? (
+        <span className="inline-flex rounded-full bg-yellow-400 px-3 py-1 text-xs font-black uppercase tracking-wide text-yellow-900">{value}</span>
+      ) : (
+        <p className={cn("text-sm font-black", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{value}</p>
+      )}
+    </div>
+  );
+}
+
+function InstructionList({ title, items, highContrast }: { title: string; items: string[]; highContrast: boolean }) {
+  return (
+    <section className={cn("rounded border p-4", highContrast ? "border-white bg-black text-white" : "border-slate-100 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/50")}>
+      <h2 className={cn("mb-3 text-sm font-black", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{title}</h2>
+      <ul className={cn("space-y-2 text-sm", highContrast ? "text-white" : "text-slate-600 dark:text-slate-300")}>
+        {items.map((item) => (
+          <li key={item} className="flex gap-2">
+            <span aria-hidden="true">-</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

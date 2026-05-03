@@ -121,7 +121,8 @@ export function Sidebar() {
 
   return (
     <div className={cn(
-      "h-screen bg-[#E87500] border-r border-orange-700 transition-all duration-300 flex flex-col relative text-white",
+      "h-screen transition-all duration-300 flex flex-col relative text-white",
+      isDark ? "bg-orange-800 border-r border-orange-900" : "bg-[#E87500] border-r border-orange-700",
       isCollapsed ? "w-20" : "w-60"
     )}>
       <div className="p-4 flex items-center gap-3 border-b border-white/20">
@@ -134,7 +135,7 @@ export function Sidebar() {
       <button
         type="button"
         onClick={toggleSidebar}
-        className={cn("absolute -right-3 top-20 w-6 h-6 bg-orange-700 border border-orange-600 rounded-full flex items-center justify-center shadow-md hover:bg-orange-800 transition-all z-10", FOCUS_RING)}
+        className={cn("absolute -right-3 top-20 w-6 h-6 rounded-full flex items-center justify-center shadow-md transition-all z-10", isDark ? "bg-orange-900 border border-orange-800 hover:bg-orange-950" : "bg-orange-700 border border-orange-600 hover:bg-orange-800", FOCUS_RING)}
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isCollapsed ? <ChevronRight className="w-3 h-3 text-white" /> : <ChevronLeft className="w-3 h-3 text-white" />}
@@ -152,24 +153,6 @@ export function Sidebar() {
                   <span className="rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
                   {item.previewLabel}
                 </span>
-              )}
-              {!isCollapsed && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    togglePin(item.path);
-                  }}
-                  className={cn(
-                    "rounded p-1 transition-colors hover:bg-white/15",
-                    FOCUS_RING,
-                  )}
-                  aria-label={isPinned ? `Unpin ${item.name}` : `Pin ${item.name}`}
-                  title={isPinned ? `Unpin ${item.name}` : `Pin ${item.name}`}
-                >
-                  <Pin className={cn("w-3 h-3 text-white/55", isPinned && "fill-white text-white")} />
-                </button>
               )}
             </>
           );

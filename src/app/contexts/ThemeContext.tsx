@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useLayoutEffect, ReactNode } from "react";
 
 interface ThemeContextType {
   isDark: boolean;
@@ -19,7 +19,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [highContrast, setHighContrast] = useState(() => localStorage.getItem('lms-highcontrast') === 'true');
   const [dyslexiaFont, setDyslexiaFont] = useState(() => localStorage.getItem('lms-dyslexia') === 'true');
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
     if (isDark) {
       root.classList.add('dark');
@@ -46,9 +46,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('lms-dyslexia', String(dyslexiaFont));
   }, [isDark, fontSize, highContrast, dyslexiaFont]);
 
-  const toggleTheme = () => setIsDark(!isDark);
-  const toggleHighContrast = () => setHighContrast(!highContrast);
-  const toggleDyslexiaFont = () => setDyslexiaFont(!dyslexiaFont);
+  const toggleTheme = () => setIsDark((current) => !current);
+  const toggleHighContrast = () => setHighContrast((current) => !current);
+  const toggleDyslexiaFont = () => setDyslexiaFont((current) => !current);
 
   return (
     <ThemeContext.Provider value={{

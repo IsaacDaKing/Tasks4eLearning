@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router";
 import {
   LayoutDashboard,
@@ -15,7 +15,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Pin,
-  Calculator
+  Calculator,
+  ClipboardList,
+  MessageSquare,
+  Sparkles,
+  type LucideIcon
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -24,6 +28,10 @@ import { useTheme } from "../contexts/ThemeContext";
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+const PINNED_ITEMS_KEY = "blackboard:pinned-sidebar-tools";
+const DEFAULT_PINNED_ITEMS = ["/", "/courses", "/quiz", "/assignment", "/grades", "/calendar"];
+const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800";
 
 interface SidebarContextType {
   isCollapsed: boolean;
@@ -36,7 +44,21 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [pinnedItems, setPinnedItems] = useState<string[]>(["/", "/courses", "/calendar", "/grades"]);
+  const [pinnedItems, setPinnedItems] = useState<string[]>(() => {
+    if (typeof window === "undefined") return DEFAULT_PINNED_ITEMS;
+    try {
+      const savedItems = window.localStorage.getItem(PINNED_ITEMS_KEY);
+      const parsedItems = savedItems ? JSON.parse(savedItems) : null;
+      return Array.isArray(parsedItems) ? parsedItems : DEFAULT_PINNED_ITEMS;
+    } catch {
+      return DEFAULT_PINNED_ITEMS;
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(PINNED_ITEMS_KEY, JSON.stringify(pinnedItems));
+  }, [pinnedItems]);
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
@@ -66,14 +88,22 @@ export function Sidebar() {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
 
-  const allNavItems = [
+  const allNavItems: Array<{
+    name: string;
+    icon: LucideIcon;
+    path: string;
+    disabled?: boolean;
+    previewLabel?: string;
+  }> = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/" },
     { name: "Courses", icon: BookOpen, path: "/courses" },
-    { name: "Calendar", icon: CalendarIcon, path: "/calendar" },
-    { name: "Grades", icon: GraduationCap, path: "/grades" },
-    { name: "Grade Calculator", icon: Calculator, path: "/grade-calculator" },
-    { name: "Assignment", icon: Pin, path: "/assignment" },
     { name: "Quiz", icon: Bell, path: "/quiz" },
+    { name: "Assignment", icon: ClipboardList, path: "/assignment" },
+    { name: "Grades", icon: GraduationCap, path: "/grades" },
+    { name: "Calendar", icon: CalendarIcon, path: "/calendar" },
+    { name: "Grade Calculator", icon: Calculator, path: "/grade-calculator" },
+    { name: "Messages", icon: MessageSquare, path: "/messages", disabled: true, previewLabel: "Dashboard preview" },
+    { name: "AI Assistant", icon: Sparkles, path: "/ai-assistant", disabled: true, previewLabel: "Dashboard preview" },
     { name: "Settings", icon: Settings, path: "/settings" },
   ];
 
@@ -94,8 +124,10 @@ export function Sidebar() {
       </div>
 
       <button
+        type="button"
         onClick={toggleSidebar}
-        className="absolute -right-3 top-20 w-6 h-6 bg-slate-700 border border-slate-600 rounded-full flex items-center justify-center shadow-md hover:bg-slate-600 transition-all z-10"
+        className={cn("absolute -right-3 top-20 w-6 h-6 bg-slate-700 border border-slate-600 rounded-full flex items-center justify-center shadow-md hover:bg-slate-600 transition-all z-10", FOCUS_RING)}
+        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isCollapsed ? <ChevronRight className="w-3 h-3 text-slate-200" /> : <ChevronLeft className="w-3 h-3 text-slate-200" />}
       </button>
@@ -104,31 +136,63 @@ export function Sidebar() {
         {displayedItems.map((item) => {
           const isActive = location.pathname === item.path;
           const isPinned = pinnedItems.includes(item.path);
+          const content = (
+            <>
+              <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-slate-200" : "text-slate-400")} />
+              {!isCollapsed && <span className="font-normal flex-1 text-sm">{item.name}</span>}
+              {!isCollapsed && item.previewLabel && (
+                <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-300">
+                  {item.previewLabel}
+                </span>
+              )}
+              {!isCollapsed && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    togglePin(item.path);
+                  }}
+                  className={cn(
+                    "rounded p-1 transition-colors hover:bg-slate-600",
+                    FOCUS_RING,
+                  )}
+                  aria-label={isPinned ? `Unpin ${item.name}` : `Pin ${item.name}`}
+                  title={isPinned ? `Unpin ${item.name}` : `Pin ${item.name}`}
+                >
+                  <Pin className={cn("w-3 h-3 text-slate-500", isPinned && "fill-slate-400 text-slate-300")} />
+                </button>
+              )}
+            </>
+          );
+
           return (
             <div key={item.path} className="relative group/nav">
-              <Link
-                to={item.path}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm",
-                  isActive
-                    ? "bg-slate-700 text-slate-100 border-l-2 border-slate-300"
-                    : "text-slate-300 hover:bg-slate-700 hover:text-slate-100"
-                )}
-              >
-                <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-slate-200" : "text-slate-400")} />
-                {!isCollapsed && <span className="font-normal flex-1 text-sm">{item.name}</span>}
-                {!isCollapsed && (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      togglePin(item.path);
-                    }}
-                    className="opacity-0 group-hover/nav:opacity-100 transition-opacity"
-                  >
-                    <Pin className={cn("w-3 h-3 text-slate-500", isPinned && "fill-slate-400 text-slate-300")} />
-                  </button>
-                )}
-              </Link>
+              {item.disabled ? (
+                <div
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm text-slate-400",
+                    isPinned && "bg-slate-900/40",
+                  )}
+                  title={`${item.name} is available as a dashboard preview`}
+                  aria-disabled="true"
+                >
+                  {content}
+                </div>
+              ) : (
+                <Link
+                  to={item.path}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm",
+                    FOCUS_RING,
+                    isActive
+                      ? "bg-slate-700 text-slate-100 border-l-2 border-slate-300"
+                      : "text-slate-300 hover:bg-slate-700 hover:text-slate-100"
+                  )}
+                >
+                  {content}
+                </Link>
+              )}
             </div>
           );
         })}
@@ -136,13 +200,14 @@ export function Sidebar() {
 
       <div className="p-2 border-t border-slate-700 space-y-1">
         <button
+          type="button"
           onClick={toggleTheme}
-          className="flex items-center gap-3 px-3 py-2 rounded text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors w-full text-sm"
+          className={cn("flex items-center gap-3 px-3 py-2 rounded text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors w-full text-sm", FOCUS_RING)}
         >
           {isDark ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
           {!isCollapsed && <span className="font-normal text-sm">{isDark ? "Light" : "Dark"}</span>}
         </button>
-        <button className="flex items-center gap-3 px-3 py-2 rounded text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors w-full text-sm">
+        <button type="button" className={cn("flex items-center gap-3 px-3 py-2 rounded text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors w-full text-sm", FOCUS_RING)}>
           <LogOut className="w-4 h-4 flex-shrink-0" />
           {!isCollapsed && <span className="font-normal text-sm">Logout</span>}
         </button>
@@ -180,7 +245,11 @@ export function Header({ title }: { title: string }) {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="relative p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors">
+          <button
+            type="button"
+            className="relative p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
+            aria-label="Notifications"
+          >
             <Bell className="w-4 h-4" />
             <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
           </button>

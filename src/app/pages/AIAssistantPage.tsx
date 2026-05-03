@@ -121,7 +121,11 @@ const QUICK_ACTIONS = [
   "Prioritize This Week",
   "Prep for Quiz",
   "Prep for Exam",
+  "Mixed Question Practice",
   "Message My Professor",
+  "Plan Study Group",
+  "Choose Tonight's Study",
+  "Shorter Study Plan",
   "Explain Weak Topics",
   "Time Block My Day",
   "Review Deadlines",
@@ -134,8 +138,26 @@ const PROMPT_STARTERS = [
   "Make me a study plan for this week.",
   "Help me prepare for Database Systems.",
   "Explain what to review for Software Engineering.",
+  "How should I ask Professor Klyne Smith for Software Engineering project feedback?",
+  "I am stressed before my Database Systems exam. What should I do first?",
+  "Help me practice for a quiz with mixed question types.",
+  "I am confused about UML sequence diagrams.",
+  "Give me a shorter study plan for tonight.",
+  "Help me use Focus Mode and accessibility settings before a quiz.",
+  "Can you make a study group plan for SQL joins and normalization?",
+  "Help me with TCP/IP, subnetting, and DNS.",
   "What should I ask my professor?",
   "I feel overwhelmed. Help me prioritize.",
+];
+
+const SCENARIO_EXAMPLES = [
+  "Stressed before a Database Systems exam",
+  "Improve GPA with one high-value study block",
+  "Message Professor Klyne Smith about project feedback",
+  "Choose what to study tonight",
+  "Untangle a UML sequence diagram",
+  "Prepare for mixed question types",
+  "Set up Focus Mode and accessibility controls",
 ];
 
 const DEFAULT_SUGGESTIONS = [
@@ -403,6 +425,25 @@ export function AIAssistantPage() {
               <ContextRow label="Projected GPA" value={projectedGpa} />
               <ContextRow label="Next quiz or exam" value={COURSES[2].nextAssessment} />
               <ContextRow label="Unread signal" value="2 new feedback/message items" />
+            </div>
+          </Panel>
+
+          <Panel icon={ListChecks} title="Scenario Examples" description="Realistic student situations for demo chats.">
+            <div className="space-y-2">
+              {SCENARIO_EXAMPLES.map((scenario) => (
+                <button
+                  key={scenario}
+                  type="button"
+                  onClick={() => submitPrompt(scenario)}
+                  disabled={isAssistantTyping}
+                  className={cn(
+                    "w-full rounded border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60",
+                    FOCUS_RING,
+                  )}
+                >
+                  {scenario}
+                </button>
+              ))}
             </div>
           </Panel>
         </aside>
@@ -734,6 +775,46 @@ function getRuleBasedResponse(
     };
   }
 
+  if (/(klyne smith|professor smith|prof\. smith)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nFor Professor Klyne Smith, keep the message respectful, specific, and connected to your Software Engineering project artifacts. In this prototype profile, he has experience with IBM, the Olympics, and Macy's, so you can naturally frame the feedback request around practical project quality without making the message sound forced.\n\nSuggested message\nHello Professor Klyne Smith,\n\nI am working on the Software Engineering project and would appreciate your feedback on our requirements, UML sequence diagram, and testing plan. I am especially trying to understand whether our design choices would hold up in a real industry setting. Given your experience with IBM, the Olympics, and Macy's, I would value any guidance on making the project clearer, more practical, and easier to evaluate.\n\nCould I send you our current draft or ask one focused question during office hours?\n\nThank you,\nZabisaq\n\nRecommended next steps\n1. Attach the current UML or requirements draft.\n2. Ask for feedback on one or two specific areas.\n3. Mention your deadline so the professor can calibrate the response.",
+      suggestions: ["Make it shorter", "UML sequence diagram help", "Traceability checklist", "Plan Study Group"],
+      topic: "Professor Klyne Smith message",
+      courseId: "software",
+    };
+  }
+
+  if (/(mixed question|mixed quiz|question types|fill in|matching|ordering|true false)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nMixed question prep works best when you switch formats on purpose instead of practicing only recognition-style multiple choice.\n\nRecommended next steps\n1. Multiple choice: explain why the wrong options are wrong.\n2. True/False: rewrite false statements into true ones.\n3. Fill in the blank: practice exact vocabulary such as DNS, 2NF, or sequence diagram.\n4. Matching: pair terms with purposes, then cover the answers and repeat.\n5. Ordering: rehearse process flows such as TCP setup, SQL clause order, or feature delivery steps.\n\nPractice prompt\nGive yourself six questions: one MCQ, one True/False, one fill blank, one short answer, one matching set, and one ordering sequence.\n\nSuggested follow-up\nPick Computer Networks, Software Engineering, or Database Systems and I will make a focused drill.",
+      suggestions: ["Help with Computer Networks", "Help with Software Engineering", "Help with Database Systems", "Make it shorter"],
+      topic: "mixed question prep",
+      courseId,
+    };
+  }
+
+  if (/(study group|classmates|group plan|review group)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nA useful study group needs roles, a narrow topic, and a visible finish line.\n\nRecommended next steps\n1. Set a 45-minute session with one topic: normalization and joins, subnetting, or UML sequence diagrams.\n2. Assign roles: one person explains, one writes examples, one checks answers, one tracks confusing points.\n3. End with a five-question mixed drill so everyone leaves with evidence of progress.\n\nSample invite\nCan we meet for 45 minutes tonight to review SQL joins and normalization? I can bring two practice schemas. Let's spend 20 minutes on examples, 15 minutes on questions we missed, and 10 minutes making a mini checklist for the exam.\n\nSuggested follow-up\nAsk me for a Database Systems, Networks, or Software Engineering group agenda.",
+      suggestions: ["Database group agenda", "Subnetting group agenda", "UML group agenda", "Prep for Exam"],
+      topic: "study group planning",
+      courseId,
+    };
+  }
+
+  if (/(stressed|stress|anxious|panic).*(database|exam|midterm)|database.*(stressed|stress|anxious|panic)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nFor Database Systems exam stress, your job is not to review everything. Your job is to create a short confidence loop.\n\nRecommended next steps\n1. Spend 10 minutes listing the exact weak spots: normalization, joins, keys, ACID, or indexing.\n2. Do 25 minutes of joins and normalization because those are high-yield and easy to check.\n3. Take a 5-minute break, then explain 1NF, 2NF, and 3NF out loud.\n4. Stop after one more short drill so you do not turn review into late-night guessing.\n\nTonight's target\nLeave with three corrected mistakes and one professor or study group question if anything still feels muddy.",
+      suggestions: ["30-minute Database drill", "Make it shorter", "Improve My Grade", "Plan Study Group"],
+      topic: "Database exam stress",
+      courseId: "database",
+    };
+  }
+
   if (/\b(hi|hello|hey|howdy|good morning|good afternoon|good evening)\b/.test(normalized)) {
     return {
       body:
@@ -790,6 +871,15 @@ function getRuleBasedResponse(
     };
   }
 
+  if (/(high contrast|dyslexia font|font size|focus|keyboard|captions|accessibility|settings)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nBefore a quiz, set up the environment so the assessment itself gets your attention.\n\nRecommended next steps\n1. Turn on Focus Mode when you start so non-essential navigation stays out of the way.\n2. Increase font size if long questions feel tiring to scan.\n3. Use high contrast if answer states or timer colors are hard to distinguish.\n4. Use the dyslexia-friendly font option if it improves reading comfort.\n5. Keep keyboard focus visible and move through controls in order: prompt, answer, next, submit.\n\nWhy this matters\nAccessibility settings are not extra polish; they reduce avoidable mistakes during timed work.",
+      suggestions: ["Prep for Quiz", "Time Block My Day", "Mixed Question Practice", "What should I do next?"],
+      topic: "accessibility",
+    };
+  }
+
   if (/(quiz|exam|midterm|final|time limit|attempts|focus mode|study for quiz|prepare for exam|prep for quiz|prep for exam)/.test(normalized)) {
     return {
       body:
@@ -797,6 +887,16 @@ function getRuleBasedResponse(
       suggestions: ["Help with Database Systems", "Help with Computer Networks", "Time Block My Day", "Improve My Grade"],
       topic: "quiz and exam prep",
       courseId: courseId ?? "database",
+    };
+  }
+
+  if (/(uml|sequence diagram)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nA UML sequence diagram should show who talks to whom, in what order, and where responsibility changes.\n\nRecommended next steps\n1. Put actors or systems across the top as lifelines.\n2. Read the user story and list the messages in time order.\n3. Use activation bars only where an object is doing work.\n4. Check that every message supports a requirement or acceptance criterion.\n5. Add one test case that follows the same path as the diagram.\n\nCommon check\nIf your diagram has classes but no time-ordered messages, you may be drawing a class diagram instead of a sequence diagram.",
+      suggestions: ["Traceability checklist", "Message Professor Klyne Smith", "Make it shorter", "Prep for Quiz"],
+      topic: "UML sequence diagrams",
+      courseId: "software",
     };
   }
 

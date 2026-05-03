@@ -24,13 +24,56 @@ function cn(...inputs: ClassValue[]) {
 }
 
 type AssessmentType = "Quiz" | "Exam";
+type QuestionType = "multipleChoice" | "trueFalse" | "fillBlank" | "shortAnswer" | "matching" | "ordering";
+type AnswerValue = number | boolean | string | Record<string, string> | string[] | null;
 
-interface Question {
+interface BaseQuestion {
   id: number;
+  questionType: QuestionType;
   text: string;
+}
+
+interface MultipleChoiceQuestion extends BaseQuestion {
+  questionType: "multipleChoice";
   options: string[];
   correct: number;
 }
+
+interface TrueFalseQuestion extends BaseQuestion {
+  questionType: "trueFalse";
+  correct: boolean;
+}
+
+interface FillBlankQuestion extends BaseQuestion {
+  questionType: "fillBlank";
+  acceptedAnswers: string[];
+}
+
+interface ShortAnswerQuestion extends BaseQuestion {
+  questionType: "shortAnswer";
+  keywords: string[];
+  manualReview?: boolean;
+}
+
+interface MatchingQuestion extends BaseQuestion {
+  questionType: "matching";
+  pairs: Array<{ prompt: string; answer: string }>;
+  choices: string[];
+}
+
+interface OrderingQuestion extends BaseQuestion {
+  questionType: "ordering";
+  items: string[];
+  correctOrder: string[];
+}
+
+type Question =
+  | MultipleChoiceQuestion
+  | TrueFalseQuestion
+  | FillBlankQuestion
+  | ShortAnswerQuestion
+  | MatchingQuestion
+  | OrderingQuestion;
 
 interface Assessment {
   id: string;
@@ -79,24 +122,44 @@ const ASSESSMENTS: Assessment[] = [
     questions: [
       {
         id: 1,
+        questionType: "multipleChoice",
         text: "Which layer of the OSI model is responsible for end-to-end communication and error recovery?",
         options: ["Network Layer", "Transport Layer", "Session Layer", "Application Layer"],
         correct: 1,
       },
       {
         id: 2,
-        text: "What is the primary difference between TCP and UDP?",
-        options: ["TCP is faster", "UDP is connection-oriented", "TCP provides reliable delivery", "UDP uses checksums"],
-        correct: 2,
+        questionType: "trueFalse",
+        text: "TCP establishes a connection before sending application data.",
+        correct: true,
       },
       {
         id: 3,
+        questionType: "fillBlank",
         text: "Which protocol is used to translate domain names to IP addresses?",
-        options: ["DHCP", "DNS", "HTTP", "FTP"],
-        correct: 1,
+        acceptedAnswers: ["DNS", "Domain Name System"],
       },
       {
         id: 4,
+        questionType: "matching",
+        text: "Match each networking term with its best description.",
+        pairs: [
+          { prompt: "DNS", answer: "Resolves names to IP addresses" },
+          { prompt: "UDP", answer: "Connectionless transport protocol" },
+          { prompt: "Subnet mask", answer: "Splits network and host portions" },
+        ],
+        choices: ["Connectionless transport protocol", "Splits network and host portions", "Resolves names to IP addresses"],
+      },
+      {
+        id: 5,
+        questionType: "ordering",
+        text: "Place these TCP connection setup steps in order.",
+        items: ["ACK", "SYN-ACK", "SYN"],
+        correctOrder: ["SYN", "SYN-ACK", "ACK"],
+      },
+      {
+        id: 6,
+        questionType: "multipleChoice",
         text: "What is the default subnet mask for a Class C network?",
         options: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"],
         correct: 2,
@@ -130,6 +193,7 @@ const ASSESSMENTS: Assessment[] = [
     questions: [
       {
         id: 1,
+        questionType: "multipleChoice",
         text: "Which statement best describes a strong user story?",
         options: [
           "It describes a database table and every column type.",
@@ -141,6 +205,13 @@ const ASSESSMENTS: Assessment[] = [
       },
       {
         id: 2,
+        questionType: "trueFalse",
+        text: "Requirements traceability connects requirements to design, implementation, tests, and delivered features.",
+        correct: true,
+      },
+      {
+        id: 3,
+        questionType: "multipleChoice",
         text: "What is the main purpose of requirements traceability?",
         options: [
           "To connect requirements to design, code, tests, and delivered features.",
@@ -151,19 +222,46 @@ const ASSESSMENTS: Assessment[] = [
         correct: 0,
       },
       {
-        id: 3,
+        id: 4,
+        questionType: "fillBlank",
         text: "Which UML diagram is most appropriate for showing object interactions over time?",
-        options: ["Class diagram", "Sequence diagram", "Deployment diagram", "Package diagram"],
-        correct: 1,
+        acceptedAnswers: ["sequence diagram", "UML sequence diagram"],
       },
       {
-        id: 4,
+        id: 5,
+        questionType: "shortAnswer",
+        text: "In one or two sentences, describe what acceptance criteria should clarify for a user story.",
+        keywords: ["conditions", "done", "expected", "behavior"],
+        manualReview: true,
+      },
+      {
+        id: 6,
+        questionType: "matching",
+        text: "Match each Software Engineering artifact to its purpose.",
+        pairs: [
+          { prompt: "User story", answer: "Captures role, goal, and value" },
+          { prompt: "Sequence diagram", answer: "Shows interactions over time" },
+          { prompt: "Test case", answer: "Verifies expected behavior" },
+        ],
+        choices: ["Shows interactions over time", "Verifies expected behavior", "Captures role, goal, and value"],
+      },
+      {
+        id: 7,
+        questionType: "ordering",
+        text: "Order these lightweight delivery steps for a small feature.",
+        items: ["Write or update tests", "Clarify requirement", "Implement feature", "Review acceptance criteria"],
+        correctOrder: ["Clarify requirement", "Review acceptance criteria", "Implement feature", "Write or update tests"],
+      },
+      {
+        id: 8,
+        questionType: "multipleChoice",
         text: "In Scrum, who is primarily responsible for ordering the product backlog?",
         options: ["Scrum Master", "Product Owner", "Development Team", "Project Sponsor"],
         correct: 1,
       },
       {
-        id: 5,
+        id: 9,
+        questionType: "multipleChoice",
         text: "Which testing level verifies that multiple components work together correctly?",
         options: ["Unit testing", "Integration testing", "Smoke testing", "Acceptance testing"],
         correct: 1,
@@ -197,18 +295,58 @@ const ASSESSMENTS: Assessment[] = [
     questions: [
       {
         id: 1,
+        questionType: "multipleChoice",
         text: "Which normal form removes partial dependency on part of a composite key?",
         options: ["First normal form", "Second normal form", "Third normal form", "Boyce-Codd normal form"],
         correct: 1,
       },
       {
         id: 2,
+        questionType: "multipleChoice",
         text: "Which SQL join returns matching rows plus unmatched rows from the left table?",
         options: ["INNER JOIN", "LEFT JOIN", "CROSS JOIN", "SELF JOIN"],
         correct: 1,
       },
       {
         id: 3,
+        questionType: "trueFalse",
+        text: "A foreign key commonly represents a relationship between tables in a relational schema.",
+        correct: true,
+      },
+      {
+        id: 4,
+        questionType: "fillBlank",
+        text: "Which ACID property ensures committed data survives a system crash?",
+        acceptedAnswers: ["durability"],
+      },
+      {
+        id: 5,
+        questionType: "shortAnswer",
+        text: "Briefly explain why normalization can reduce update anomalies.",
+        keywords: ["redundancy", "duplicate", "dependency", "consistent"],
+        manualReview: true,
+      },
+      {
+        id: 6,
+        questionType: "matching",
+        text: "Match each database concept to its purpose.",
+        pairs: [
+          { prompt: "Primary key", answer: "Uniquely identifies a row" },
+          { prompt: "Index", answer: "Speeds up lookup on selected columns" },
+          { prompt: "Transaction", answer: "Groups operations into one logical unit" },
+        ],
+        choices: ["Groups operations into one logical unit", "Uniquely identifies a row", "Speeds up lookup on selected columns"],
+      },
+      {
+        id: 7,
+        questionType: "ordering",
+        text: "Order these SQL clauses as they typically appear in a simple query.",
+        items: ["WHERE", "SELECT", "FROM", "ORDER BY"],
+        correctOrder: ["SELECT", "FROM", "WHERE", "ORDER BY"],
+      },
+      {
+        id: 8,
+        questionType: "multipleChoice",
         text: "In ER modeling, what does a foreign key usually represent in the relational schema?",
         options: [
           "A relationship between tables",
@@ -219,13 +357,8 @@ const ASSESSMENTS: Assessment[] = [
         correct: 0,
       },
       {
-        id: 4,
-        text: "Which ACID property ensures committed data survives a system crash?",
-        options: ["Atomicity", "Consistency", "Isolation", "Durability"],
-        correct: 3,
-      },
-      {
-        id: 5,
+        id: 9,
+        questionType: "multipleChoice",
         text: "What is a common benefit of adding an index to a frequently searched column?",
         options: [
           "It can reduce lookup time for matching rows.",
@@ -254,7 +387,7 @@ export function QuizPage() {
   const [focusMode, setFocusMode] = useState(true);
   const [started, setStarted] = useState(false);
   const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(new Array(assessment.questions.length).fill(null));
+  const [answers, setAnswers] = useState<AnswerValue[]>(new Array(assessment.questions.length).fill(null));
   const [submitted, setSubmitted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(assessment.timeLimitMinutes * 60);
   const [lockMessage, setLockMessage] = useState("");
@@ -313,11 +446,13 @@ export function QuizPage() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
+  const gradedQuestions = assessment.questions.filter((question) => !isManualReview(question));
   const score = answers.reduce(
-    (acc, answer, index) => acc + (answer === assessment.questions[index].correct ? 1 : 0),
+    (acc, answer, index) => acc + (isAnswerCorrect(assessment.questions[index], answer) ? 1 : 0),
     0,
   );
-  const percent = Math.round((score / assessment.questions.length) * 100);
+  const manualReviewCount = assessment.questions.length - gradedQuestions.length;
+  const percent = Math.round((score / Math.max(gradedQuestions.length, 1)) * 100);
 
   const startAssessment = () => {
     if (assessment.type === "Exam") {
@@ -379,13 +514,15 @@ export function QuizPage() {
             {percent >= 70 ? "Great job!" : "Keep practicing!"}
           </h1>
           <p className={cn("mb-8 text-sm", highContrast ? "text-white" : "text-slate-500 dark:text-slate-400")} aria-live="polite">
-            You scored <strong>{score} out of {assessment.questions.length}</strong> on {assessment.title}.
+            You scored <strong>{score} out of {gradedQuestions.length}</strong> auto-graded points on {assessment.title}.
+            {manualReviewCount > 0 && <span> {manualReviewCount} short answer {manualReviewCount === 1 ? "response is" : "responses are"} marked for Manual review.</span>}
           </p>
 
           <div className="mb-8 space-y-3 text-left">
             {assessment.questions.map((question, index) => {
               const userAnswer = answers[index];
-              const isCorrect = userAnswer === question.correct;
+              const manualReview = isManualReview(question);
+              const isCorrect = isAnswerCorrect(question, userAnswer);
               return (
                 <div
                   key={question.id}
@@ -399,16 +536,25 @@ export function QuizPage() {
                   )}
                 >
                   <div className="flex items-start gap-3">
-                    {isCorrect ? (
+                    {manualReview ? (
+                      <BookOpen className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                    ) : isCorrect ? (
                       <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
                     ) : (
                       <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
                     )}
                     <div>
-                      <p className={cn("mb-1 text-sm font-bold", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{question.text}</p>
-                      {!isCorrect && (
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <p className={cn("text-sm font-bold", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{question.text}</p>
+                        <QuestionTypeBadge questionType={question.questionType} highContrast={highContrast} />
+                      </div>
+                      {manualReview ? (
+                        <p className={cn("text-xs font-bold", highContrast ? "text-white" : "text-blue-700 dark:text-blue-300")}>
+                          Manual review: this response is not included in the auto-graded score.
+                        </p>
+                      ) : !isCorrect && (
                         <p className={cn("text-xs", highContrast ? "text-white" : "text-green-700 dark:text-green-400")}>
-                          Correct: {question.options[question.correct]}
+                          Correct: {getCorrectAnswerLabel(question)}
                         </p>
                       )}
                     </div>
@@ -496,7 +642,7 @@ export function QuizPage() {
               <InfoTile label="Due Date" value={assessment.dueDate} highContrast={highContrast} />
               <InfoTile label="Time Limit" value={`${assessment.timeLimitMinutes} minutes`} highContrast={highContrast} />
               <InfoTile label="Allowed Attempts" value={`${assessment.attemptsUsed} of ${assessment.attemptsAllowed} used`} highContrast={highContrast} />
-              <InfoTile label="Questions" value={`${assessment.questions.length} sample questions`} highContrast={highContrast} />
+              <InfoTile label="Questions" value={`${assessment.questions.length} mixed questions`} highContrast={highContrast} />
             </section>
 
             <div className="grid gap-4 lg:grid-cols-2">
@@ -591,46 +737,37 @@ export function QuizPage() {
             <div className={cn("h-full transition-all duration-300", highContrast ? "bg-yellow-300" : "bg-blue-600")} style={{ width: `${((currentQ + 1) / assessment.questions.length) * 100}%` }} />
           </div>
 
-          <div className="p-6 sm:p-8">
-            <div className="mb-6 flex items-start gap-3">
-              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">{currentQ + 1}</span>
-              <p className={cn("text-lg font-bold", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{currentQuestion.text}</p>
+          <div className="p-5 sm:p-6">
+            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start gap-3">
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">{currentQ + 1}</span>
+                <div>
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className={cn("text-xs font-black uppercase tracking-wide", highContrast ? "text-white" : "text-slate-500 dark:text-slate-400")}>
+                      Question {currentQ + 1} of {assessment.questions.length}
+                    </span>
+                    <QuestionTypeBadge questionType={currentQuestion.questionType} highContrast={highContrast} />
+                  </div>
+                  <p className={cn("text-lg font-bold leading-relaxed", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{currentQuestion.text}</p>
+                </div>
+              </div>
+              {isManualReview(currentQuestion) && (
+                <span className={cn("rounded border px-2.5 py-1 text-xs font-black", highContrast ? "border-white text-white" : "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300")}>
+                  Manual review
+                </span>
+              )}
             </div>
 
-            <div className="space-y-3" role="radiogroup" aria-label={`Question ${currentQ + 1} answer choices`}>
-              {currentQuestion.options.map((option, index) => {
-                const selected = answers[currentQ] === index;
-                return (
-                  <button
-                    key={option}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => {
-                      const newAnswers = [...answers];
-                      newAnswers[currentQ] = index;
-                      setAnswers(newAnswers);
-                    }}
-                    className={cn(
-                      "w-full rounded border-2 p-4 text-left text-sm font-medium transition-all",
-                      FOCUS_RING,
-                      selected
-                        ? highContrast
-                          ? "border-yellow-300 bg-white text-black"
-                          : "border-blue-600 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-200"
-                        : highContrast
-                          ? "border-white bg-black text-white hover:bg-white hover:text-black"
-                          : "border-slate-200 text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-600",
-                    )}
-                  >
-                    <span className="flex items-center gap-3">
-                      {selected ? <CheckCircle className="h-4 w-4 flex-shrink-0 text-blue-600" /> : <Circle className="h-4 w-4 flex-shrink-0 text-slate-300 dark:text-slate-600" />}
-                      {option}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            <QuestionResponse
+              question={currentQuestion}
+              answer={answers[currentQ]}
+              setAnswer={(answer) => {
+                const newAnswers = [...answers];
+                newAnswers[currentQ] = answer;
+                setAnswers(newAnswers);
+              }}
+              highContrast={highContrast}
+            />
           </div>
 
           <div className="flex flex-col gap-4 px-6 pb-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
@@ -654,7 +791,7 @@ export function QuizPage() {
                     FOCUS_RING,
                     index === currentQ
                       ? "bg-blue-600 text-white"
-                      : answers[index] !== null
+                    : hasAnswer(answers[index])
                         ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
                         : highContrast
                           ? "border border-white bg-black text-white"
@@ -685,6 +822,218 @@ export function QuizPage() {
 
 function getExamLockKey(assessmentId: string) {
   return `assessment-lock:${assessmentId}:ZXT220067`;
+}
+
+function questionTypeLabel(questionType: QuestionType) {
+  const labels: Record<QuestionType, string> = {
+    multipleChoice: "Multiple choice",
+    trueFalse: "True/False",
+    fillBlank: "Fill blank",
+    shortAnswer: "Short answer",
+    matching: "Matching",
+    ordering: "Ordering",
+  };
+  return labels[questionType];
+}
+
+function isManualReview(question: Question) {
+  return question.questionType === "shortAnswer" && question.manualReview;
+}
+
+function normalizeText(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function isAnswerCorrect(question: Question, answer: AnswerValue) {
+  if (isManualReview(question)) return false;
+
+  switch (question.questionType) {
+    case "multipleChoice":
+      return typeof answer === "number" && answer === question.correct;
+    case "trueFalse":
+      return typeof answer === "boolean" && answer === question.correct;
+    case "fillBlank":
+      return typeof answer === "string" && question.acceptedAnswers.some((item) => normalizeText(item) === normalizeText(answer));
+    case "shortAnswer":
+      return typeof answer === "string" && question.keywords.every((keyword) => normalizeText(answer).includes(normalizeText(keyword)));
+    case "matching":
+      return isAnswerMap(answer) && question.pairs.every((pair) => answer[pair.prompt] === pair.answer);
+    case "ordering":
+      return Array.isArray(answer) && question.correctOrder.every((item, index) => answer[index] === item);
+    default:
+      return false;
+  }
+}
+
+function getCorrectAnswerLabel(question: Question) {
+  switch (question.questionType) {
+    case "multipleChoice":
+      return question.options[question.correct];
+    case "trueFalse":
+      return question.correct ? "True" : "False";
+    case "fillBlank":
+      return question.acceptedAnswers[0];
+    case "shortAnswer":
+      return `Include: ${question.keywords.join(", ")}`;
+    case "matching":
+      return question.pairs.map((pair) => `${pair.prompt} -> ${pair.answer}`).join("; ");
+    case "ordering":
+      return question.correctOrder.join(" -> ");
+    default:
+      return "";
+  }
+}
+
+function hasAnswer(answer: AnswerValue) {
+  if (answer === null) return false;
+  if (typeof answer === "string") return answer.trim().length > 0;
+  if (Array.isArray(answer)) return answer.some(Boolean);
+  if (typeof answer === "object") return Object.values(answer).some(Boolean);
+  return true;
+}
+
+function isAnswerMap(answer: AnswerValue): answer is Record<string, string> {
+  return Boolean(answer) && typeof answer === "object" && !Array.isArray(answer);
+}
+
+function QuestionTypeBadge({ questionType, highContrast }: { questionType: QuestionType; highContrast: boolean }) {
+  return (
+    <span className={cn("rounded px-2 py-0.5 text-[10px] font-black uppercase tracking-wide", highContrast ? "bg-white text-black" : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200")}>
+      {questionTypeLabel(questionType)}
+    </span>
+  );
+}
+
+function QuestionResponse({
+  question,
+  answer,
+  setAnswer,
+  highContrast,
+}: {
+  question: Question;
+  answer: AnswerValue;
+  setAnswer: (answer: AnswerValue) => void;
+  highContrast: boolean;
+}) {
+  const optionButtonClass = (selected: boolean) =>
+    cn(
+      "w-full rounded border-2 p-3 text-left text-sm font-medium transition-all",
+      FOCUS_RING,
+      selected
+        ? highContrast
+          ? "border-yellow-300 bg-white text-black"
+          : "border-blue-600 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-200"
+        : highContrast
+          ? "border-white bg-black text-white hover:bg-white hover:text-black"
+          : "border-slate-200 text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-600",
+    );
+
+  if (question.questionType === "multipleChoice") {
+    return (
+      <div className="space-y-2" role="radiogroup" aria-label="Multiple choice answer choices">
+        {question.options.map((option, index) => {
+          const selected = answer === index;
+          return (
+            <button key={option} type="button" role="radio" aria-checked={selected} onClick={() => setAnswer(index)} className={optionButtonClass(selected)}>
+              <span className="flex items-center gap-3">
+                {selected ? <CheckCircle className="h-4 w-4 flex-shrink-0 text-blue-600" /> : <Circle className="h-4 w-4 flex-shrink-0 text-slate-300 dark:text-slate-600" />}
+                {option}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (question.questionType === "trueFalse") {
+    return (
+      <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="True or false choices">
+        {[true, false].map((value) => {
+          const selected = answer === value;
+          return (
+            <button key={String(value)} type="button" role="radio" aria-checked={selected} onClick={() => setAnswer(value)} className={optionButtonClass(selected)}>
+              <span className="flex items-center gap-3">
+                {selected ? <CheckCircle className="h-4 w-4 flex-shrink-0 text-blue-600" /> : <Circle className="h-4 w-4 flex-shrink-0 text-slate-300 dark:text-slate-600" />}
+                {value ? "True" : "False"}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (question.questionType === "fillBlank" || question.questionType === "shortAnswer") {
+    return (
+      <label className={cn("block text-sm font-bold", highContrast ? "text-white" : "text-slate-700 dark:text-slate-200")}>
+        Your answer
+        {question.questionType === "shortAnswer" ? (
+          <textarea
+            value={typeof answer === "string" ? answer : ""}
+            onChange={(event) => setAnswer(event.target.value)}
+            rows={4}
+            className={cn("mt-2 w-full resize-none rounded border px-3 py-2 text-sm", FOCUS_RING, highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}
+          />
+        ) : (
+          <input
+            type="text"
+            value={typeof answer === "string" ? answer : ""}
+            onChange={(event) => setAnswer(event.target.value)}
+            className={cn("mt-2 w-full rounded border px-3 py-2 text-sm", FOCUS_RING, highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}
+          />
+        )}
+      </label>
+    );
+  }
+
+  if (question.questionType === "matching") {
+    const answerMap = isAnswerMap(answer) ? answer : {};
+    return (
+      <div className="space-y-3">
+        {question.pairs.map((pair) => (
+          <label key={pair.prompt} className={cn("grid gap-2 rounded border p-3 text-sm font-bold sm:grid-cols-[160px_minmax(0,1fr)] sm:items-center", highContrast ? "border-white text-white" : "border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200")}>
+            <span>{pair.prompt}</span>
+            <select
+              value={answerMap[pair.prompt] ?? ""}
+              onChange={(event) => setAnswer({ ...answerMap, [pair.prompt]: event.target.value })}
+              className={cn("rounded border px-3 py-2 text-sm", FOCUS_RING, highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}
+            >
+              <option value="">Select a match</option>
+              {question.choices.map((choice) => (
+                <option key={choice} value={choice}>{choice}</option>
+              ))}
+            </select>
+          </label>
+        ))}
+      </div>
+    );
+  }
+
+  const orderedAnswer = Array.isArray(answer) ? answer : new Array(question.items.length).fill("");
+  return (
+    <div className="space-y-3">
+      {question.correctOrder.map((_, index) => (
+        <label key={index} className={cn("grid gap-2 rounded border p-3 text-sm font-bold sm:grid-cols-[80px_minmax(0,1fr)] sm:items-center", highContrast ? "border-white text-white" : "border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200")}>
+          <span>Step {index + 1}</span>
+          <select
+            value={orderedAnswer[index] ?? ""}
+            onChange={(event) => {
+              const nextAnswer = [...orderedAnswer];
+              nextAnswer[index] = event.target.value;
+              setAnswer(nextAnswer);
+            }}
+            className={cn("rounded border px-3 py-2 text-sm", FOCUS_RING, highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}
+          >
+            <option value="">Select item</option>
+            {question.items.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
+        </label>
+      ))}
+    </div>
+  );
 }
 
 function AccessibilityPanel({

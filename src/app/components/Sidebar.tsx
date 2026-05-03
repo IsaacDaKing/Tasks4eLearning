@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import {
   LayoutDashboard,
   BookOpen,
@@ -30,7 +30,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const PINNED_ITEMS_KEY = "blackboard:pinned-sidebar-tools";
-const DEFAULT_PINNED_ITEMS = ["/", "/courses", "/quiz", "/assignment", "/grades", "/calendar", "/messages", "/ai-assistant"];
+const DEFAULT_PINNED_ITEMS = ["/dashboard", "/courses", "/quiz", "/assignment", "/grades", "/calendar", "/messages", "/ai-assistant"];
 const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#E87500]";
 
 interface SidebarContextType {
@@ -49,7 +49,9 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     try {
       const savedItems = window.localStorage.getItem(PINNED_ITEMS_KEY);
       const parsedItems = savedItems ? JSON.parse(savedItems) : null;
-      return Array.isArray(parsedItems) ? parsedItems : DEFAULT_PINNED_ITEMS;
+      return Array.isArray(parsedItems)
+        ? parsedItems.map((item) => (item === "/" ? "/dashboard" : item))
+        : DEFAULT_PINNED_ITEMS;
     } catch {
       return DEFAULT_PINNED_ITEMS;
     }
@@ -87,6 +89,12 @@ export function Sidebar() {
   const { isCollapsed, toggleSidebar, pinnedItems, togglePin } = useSidebar();
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    window.localStorage.removeItem("lms-prototype-session");
+    navigate("/");
+  };
 
   const allNavItems: Array<{
     name: string;
@@ -95,7 +103,7 @@ export function Sidebar() {
     disabled?: boolean;
     previewLabel?: string;
   }> = [
-    { name: "Dashboard", icon: LayoutDashboard, path: "/" },
+    { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { name: "Courses", icon: BookOpen, path: "/courses" },
     { name: "Quiz", icon: Bell, path: "/quiz" },
     { name: "Assignment", icon: ClipboardList, path: "/assignment" },
@@ -207,7 +215,11 @@ export function Sidebar() {
           {isDark ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
           {!isCollapsed && <span className="font-normal text-sm">{isDark ? "Light" : "Dark"}</span>}
         </button>
-        <button type="button" className={cn("flex items-center gap-3 px-3 py-2 rounded text-white/90 hover:bg-white/15 hover:text-white transition-colors w-full text-sm", FOCUS_RING)}>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className={cn("flex items-center gap-3 px-3 py-2 rounded text-white/90 hover:bg-white/15 hover:text-white transition-colors w-full text-sm", FOCUS_RING)}
+        >
           <LogOut className="w-4 h-4 flex-shrink-0" />
           {!isCollapsed && <span className="font-normal text-sm">Logout</span>}
         </button>

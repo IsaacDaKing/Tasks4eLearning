@@ -8,7 +8,6 @@ import {
   Settings,
   LogOut,
   Bell,
-  Search,
   User,
   Moon,
   Sun,
@@ -212,42 +211,69 @@ export function Sidebar() {
 }
 
 export function Header({ title }: { title: string }) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const announcements = [
+    {
+      scope: "CS 4347.002",
+      title: "Database Systems midterm review posted",
+      date: "Today",
+    },
+    {
+      scope: "CS 3354.012",
+      title: "Software Engineering project milestone reminder",
+      date: "Yesterday",
+    },
+    {
+      scope: "University",
+      title: "Spring registration and advising windows are open",
+      date: "2 days ago",
+    },
+  ];
 
   return (
     <header className="h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-6">
       <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h1>
 
       <div className="flex items-center gap-4">
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onFocus={() => setShowSearchResults(true)}
-            onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-            className="pl-9 pr-3 py-1.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-sm focus:outline-none focus:ring-1 focus:ring-slate-400 w-64 text-slate-900 dark:text-slate-100 placeholder-slate-500"
-          />
-          {showSearchResults && searchQuery && (
-            <div className="absolute top-full mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded shadow-sm p-2 z-50">
-              <div className="text-xs text-slate-400 px-2 py-1">Search results for "{searchQuery}"</div>
-              <div className="text-sm text-slate-500 px-2 py-1">No results found</div>
-            </div>
-          )}
-        </div>
-
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="relative p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
-            aria-label="Notifications"
-          >
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowNotifications((visible) => !visible)}
+              className="relative p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
+              aria-label="Notifications"
+              aria-expanded={showNotifications}
+            >
+              <Bell className="w-4 h-4" />
+              <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+            </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Announcements</p>
+                </div>
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {announcements.map((announcement) => (
+                    <div key={`${announcement.scope}-${announcement.title}`} className="px-4 py-3">
+                      <div className="mb-1 flex items-center justify-between gap-3">
+                        <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                          {announcement.scope}
+                        </span>
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                          {announcement.date}
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold leading-snug text-slate-900 dark:text-slate-100">
+                        {announcement.title}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-700">
             <div className="text-right hidden sm:block">

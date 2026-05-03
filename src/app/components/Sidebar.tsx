@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import {
   LayoutDashboard,
   BookOpen,
@@ -30,7 +30,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const PINNED_ITEMS_KEY = "blackboard:pinned-sidebar-tools";
-const DEFAULT_PINNED_ITEMS = ["/", "/courses", "/quiz", "/assignment", "/grades", "/calendar", "/messages", "/ai-assistant"];
+const DEFAULT_PINNED_ITEMS = ["/dashboard", "/courses", "/quiz", "/assignment", "/grades", "/calendar", "/messages", "/ai-assistant"];
 const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#E87500]";
 
 interface SidebarContextType {
@@ -49,7 +49,9 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     try {
       const savedItems = window.localStorage.getItem(PINNED_ITEMS_KEY);
       const parsedItems = savedItems ? JSON.parse(savedItems) : null;
-      return Array.isArray(parsedItems) ? parsedItems : DEFAULT_PINNED_ITEMS;
+      return Array.isArray(parsedItems)
+        ? parsedItems.map((item) => (item === "/" ? "/dashboard" : item))
+        : DEFAULT_PINNED_ITEMS;
     } catch {
       return DEFAULT_PINNED_ITEMS;
     }
@@ -87,6 +89,12 @@ export function Sidebar() {
   const { isCollapsed, toggleSidebar, pinnedItems, togglePin } = useSidebar();
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    window.localStorage.removeItem("lms-prototype-session");
+    navigate("/");
+  };
 
   const allNavItems: Array<{
     name: string;
@@ -95,7 +103,7 @@ export function Sidebar() {
     disabled?: boolean;
     previewLabel?: string;
   }> = [
-    { name: "Dashboard", icon: LayoutDashboard, path: "/" },
+    { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { name: "Courses", icon: BookOpen, path: "/courses" },
     { name: "Quiz", icon: Bell, path: "/quiz" },
     { name: "Assignment", icon: ClipboardList, path: "/assignment" },
@@ -113,7 +121,8 @@ export function Sidebar() {
 
   return (
     <div className={cn(
-      "h-screen bg-[#E87500] border-r border-orange-700 transition-all duration-300 flex flex-col relative text-white",
+      "h-screen transition-all duration-300 flex flex-col relative text-white",
+      isDark ? "bg-orange-800 border-r border-orange-900" : "bg-[#E87500] border-r border-orange-700",
       isCollapsed ? "w-20" : "w-60"
     )}>
       <div className="p-4 flex items-center gap-3 border-b border-white/20">
@@ -126,7 +135,7 @@ export function Sidebar() {
       <button
         type="button"
         onClick={toggleSidebar}
-        className={cn("absolute -right-3 top-20 w-6 h-6 bg-orange-700 border border-orange-600 rounded-full flex items-center justify-center shadow-md hover:bg-orange-800 transition-all z-10", FOCUS_RING)}
+        className={cn("absolute -right-3 top-20 w-6 h-6 rounded-full flex items-center justify-center shadow-md transition-all z-10", isDark ? "bg-orange-900 border border-orange-800 hover:bg-orange-950" : "bg-orange-700 border border-orange-600 hover:bg-orange-800", FOCUS_RING)}
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isCollapsed ? <ChevronRight className="w-3 h-3 text-white" /> : <ChevronLeft className="w-3 h-3 text-white" />}
@@ -144,24 +153,6 @@ export function Sidebar() {
                   <span className="rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
                   {item.previewLabel}
                 </span>
-              )}
-              {!isCollapsed && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    togglePin(item.path);
-                  }}
-                  className={cn(
-                    "rounded p-1 transition-colors hover:bg-white/15",
-                    FOCUS_RING,
-                  )}
-                  aria-label={isPinned ? `Unpin ${item.name}` : `Pin ${item.name}`}
-                  title={isPinned ? `Unpin ${item.name}` : `Pin ${item.name}`}
-                >
-                  <Pin className={cn("w-3 h-3 text-white/55", isPinned && "fill-white text-white")} />
-                </button>
               )}
             </>
           );
@@ -207,7 +198,11 @@ export function Sidebar() {
           {isDark ? <Sun className="w-4 h-4 flex-shrink-0" /> : <Moon className="w-4 h-4 flex-shrink-0" />}
           {!isCollapsed && <span className="font-normal text-sm">{isDark ? "Light" : "Dark"}</span>}
         </button>
-        <button type="button" className={cn("flex items-center gap-3 px-3 py-2 rounded text-white/90 hover:bg-white/15 hover:text-white transition-colors w-full text-sm", FOCUS_RING)}>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className={cn("flex items-center gap-3 px-3 py-2 rounded text-white/90 hover:bg-white/15 hover:text-white transition-colors w-full text-sm", FOCUS_RING)}
+        >
           <LogOut className="w-4 h-4 flex-shrink-0" />
           {!isCollapsed && <span className="font-normal text-sm">Logout</span>}
         </button>

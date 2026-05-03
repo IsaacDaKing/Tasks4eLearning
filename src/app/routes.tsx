@@ -27,7 +27,7 @@ function Layout() {
     if (location.pathname === "/assignment") return "Assignment Submission";
     if (location.pathname === "/quiz") return "Quiz";
     if (location.pathname === "/messages") return "Messaging System";
-    if (location.pathname === "/ai-assistant") return "AI Student Success Assistant";
+    if (location.pathname === "/ai-assistant") return "Comet AI";
     if (location.pathname === "/settings") return "Account Settings";
     return "LMS Dashboard";
   };

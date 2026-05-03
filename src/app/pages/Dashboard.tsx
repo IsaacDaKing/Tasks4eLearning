@@ -19,16 +19,6 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { motion } from "motion/react";
@@ -70,16 +60,6 @@ const DASHBOARD_STATS = [
     icon: Bell,
     color: "bg-slate-700",
   },
-];
-
-const WEEKLY_HOURS = [
-  { day: "Mon", hours: 4.5 },
-  { day: "Tue", hours: 6.2 },
-  { day: "Wed", hours: 5.1 },
-  { day: "Thu", hours: 3.8 },
-  { day: "Fri", hours: 7.4 },
-  { day: "Sat", hours: 2.5 },
-  { day: "Sun", hours: 4.0 },
 ];
 
 const INITIAL_ANNOUNCEMENTS = [
@@ -644,40 +624,6 @@ export function Dashboard() {
             </div>
           </Panel>
 
-          <Panel icon={Clock} title="Weekly Activity" description="Study rhythm">
-            <div className="h-[150px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={WEEKLY_HOURS}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis
-                    dataKey="day"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fill: "#94a3b8", fontWeight: 500 }}
-                    dy={5}
-                  />
-                  <YAxis hide />
-                  <Tooltip
-                    cursor={{ fill: "transparent" }}
-                    contentStyle={{
-                      borderRadius: "6px",
-                      border: "none",
-                      boxShadow: "0 2px 4px rgb(0 0 0 / 0.1)",
-                      fontSize: "11px",
-                    }}
-                  />
-                  <Bar dataKey="hours" radius={[2, 2, 0, 0]}>
-                    {WEEKLY_HOURS.map((entry, index) => (
-                      <Cell key={`cell-${entry.day}`} fill={index === 4 ? "#1e293b" : "#e2e8f0"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-3 rounded bg-slate-50 p-3 text-xs text-slate-700">
-              <p className="font-medium">Weekly summary email queued for Monday morning.</p>
-            </div>
-          </Panel>
         </aside>
       </div>
     </div>

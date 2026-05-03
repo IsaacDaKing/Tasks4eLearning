@@ -38,7 +38,7 @@ export const COURSES: Course[] = [
     students: 48,
     time: "2h 45m left",
     image:
-      "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=1000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1000&auto=format&fit=crop",
     color: "bg-blue-600",
     assignments: [
       {
@@ -78,7 +78,7 @@ export const COURSES: Course[] = [
     students: 36,
     time: "4h 12m left",
     image:
-      "https://images.unsplash.com/photo-1544383021-6e6a3c00a92b?q=80&w=1000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1000&auto=format&fit=crop",
     color: "bg-purple-600",
     assignments: [
       {
@@ -106,7 +106,7 @@ export const COURSES: Course[] = [
     students: 52,
     time: "6h 30m left",
     image:
-      "https://images.unsplash.com/photo-1516116216624-53e697fedbea?q=80&w=1000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1000&auto=format&fit=crop",
     color: "bg-emerald-600",
     assignments: [
       {
@@ -134,7 +134,7 @@ export const COURSES: Course[] = [
     students: 42,
     time: "45m left",
     image:
-      "https://images.unsplash.com/photo-1586717791821-3f44a563eb4c?q=80&w=1000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1544383835-bda2bc66a55d?q=80&w=1000&auto=format&fit=crop",
     color: "bg-pink-600",
     assignments: [
       {
@@ -174,7 +174,7 @@ export const COURSES: Course[] = [
     students: 38,
     time: "1h 30m left",
     image:
-      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1000&auto=format&fit=crop",
     color: "bg-orange-600",
     assignments: [
       {
@@ -202,7 +202,7 @@ export const COURSES: Course[] = [
     students: 85,
     time: "3h 20m left",
     image:
-      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1000&auto=format&fit=crop",
     color: "bg-indigo-600",
     assignments: [
       {

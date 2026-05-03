@@ -27,9 +27,9 @@ export function CoursePage() {
   }
 
   return (
-    <div className="p-6 animate-in fade-in duration-500">
-      <div className="bg-white rounded border border-slate-200 shadow-sm p-6 mb-6">
-        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+    <div className="p-4 sm:p-6 max-w-[1500px] mx-auto animate-in fade-in duration-500">
+      <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-6 mb-6">
+        <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className={`inline-flex items-center justify-center w-8 h-8 rounded text-white text-xs font-bold ${course.color}`}>
@@ -39,7 +39,7 @@ export function CoursePage() {
                 <p className="text-xs font-semibold uppercase text-slate-500">
                   Course Overview
                 </p>
-                <h1 className="text-2xl font-bold text-slate-900">
+                <h1 className="text-3xl font-bold text-slate-900">
                   {course.title}
                 </h1>
               </div>
@@ -113,7 +113,7 @@ export function CoursePage() {
                 <Link
                   key={assignment.id}
                   to={`/courses/${course.id}/assignments/${assignment.id}`}
-                  className="block rounded border border-slate-200 p-4 hover:bg-slate-50 transition-colors"
+                  className="block rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex-1">

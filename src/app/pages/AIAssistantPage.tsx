@@ -271,14 +271,47 @@ export function AIAssistantPage() {
         </div>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="AI assistant overview">
+      <section className="grid gap-3 md:grid-cols-4" aria-label="AI assistant overview">
         <MetricCard icon={GraduationCap} label="Current GPA" value={currentGpa.toFixed(2)} detail="Temporary local calculation" />
         <MetricCard icon={TrendingUp} label="Projected GPA" value={projectedGpa} detail="Updates from simulated scores" />
         <MetricCard icon={AlertCircle} label="Courses Needing Attention" value={String(attentionCount)} detail="Supportive priority signals" />
         <MetricCard icon={CalendarClock} label="High-Priority Deadlines" value="3" detail="Next 72 hours" />
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <div className="grid gap-6">
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div>
+            <AssistantChatPanel
+              messages={messages}
+              isAssistantTyping={isAssistantTyping}
+              suggestions={suggestions}
+              chatInput={chatInput}
+              copyNotice={copyNotice}
+              setChatInput={setChatInput}
+              submitPrompt={submitPrompt}
+              sendMessage={sendMessage}
+              handleChatKeyDown={handleChatKeyDown}
+              copyLatestAssistantResponse={copyLatestAssistantResponse}
+              resetChat={resetChat}
+            />
+          </div>
+
+          <Panel icon={Target} title="What To Study Next" description="Priority order from local rules.">
+            <div className="space-y-3">
+              {projectedCourses
+                .slice()
+                .sort((a, b) => a.projectedGrade - b.projectedGrade)
+                .map((course) => (
+                  <div key={course.id} className="rounded border border-slate-200 p-3">
+                    <p className="text-sm font-bold text-slate-900">{course.name}</p>
+                    <p className="mt-1 text-xs text-slate-600">{course.weakArea}</p>
+                    <p className="mt-2 text-xs font-bold text-blue-700">{course.deadline}</p>
+                  </div>
+                ))}
+            </div>
+          </Panel>
+        </section>
+
         <main className="space-y-6">
           <Panel icon={BarChart3} title="Course Grade Planner" description="Adjust projected assignment or exam scores to simulate final course grades.">
             <div className="grid gap-4 lg:grid-cols-3">
@@ -377,134 +410,6 @@ export function AIAssistantPage() {
           </Panel>
         </main>
 
-        <aside className="space-y-6">
-          <Panel icon={Sparkles} title="Mock Assistant Chat" description="Rule-based responses, no external model.">
-            <div className="mb-4 flex flex-wrap gap-2" aria-label="Assistant quick actions">
-              {QUICK_ACTIONS.map((action) => (
-                <button
-                  key={action}
-                  type="button"
-                  onClick={() => submitPrompt(action)}
-                  disabled={isAssistantTyping}
-                  className={cn("rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}
-                >
-                  {action}
-                </button>
-              ))}
-            </div>
-
-            <div className="h-[420px] overflow-y-auto rounded border border-slate-200 bg-slate-50 p-3" aria-live="polite" aria-label="Assistant chat history">
-              <div className="space-y-3">
-                {messages.map((message) => (
-                  <article
-                    key={message.id}
-                    className={cn(
-                      "rounded border p-3 text-sm",
-                      message.sender === "You"
-                        ? "ml-8 border-blue-200 bg-blue-600 text-white"
-                        : "mr-8 border-slate-200 bg-white text-slate-700",
-                    )}
-                  >
-                    <p className="mb-1 text-xs font-black">{message.sender}</p>
-                    <p className="whitespace-pre-line leading-relaxed">{message.body}</p>
-                  </article>
-                ))}
-                {isAssistantTyping && messages[messages.length - 1]?.sender !== "Assistant" && (
-                  <div className="mr-8 rounded border border-slate-200 bg-white p-3 text-sm text-slate-700" role="status" aria-live="polite">
-                    <p className="mb-1 text-xs font-black">Assistant</p>
-                    <p>Assistant is typing...</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {suggestions.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2" aria-label="Follow-up suggestions">
-                {suggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => submitPrompt(suggestion)}
-                    disabled={isAssistantTyping}
-                    className={cn("rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-800 hover:bg-blue-100", FOCUS_RING)}
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={copyLatestAssistantResponse}
-                className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}
-              >
-                <Copy className="h-3.5 w-3.5" />
-                Copy latest response
-              </button>
-              <button
-                type="button"
-                onClick={resetChat}
-                className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                Reset chat
-              </button>
-            </div>
-            {copyNotice && (
-              <p className="mt-2 text-xs font-bold text-emerald-700" role="status" aria-live="polite">
-                {copyNotice}
-              </p>
-            )}
-
-            <form onSubmit={sendMessage} className="mt-4">
-              <label className="sr-only" htmlFor="ai-chat-input">
-                Ask the student success assistant
-              </label>
-              <div className="flex gap-2">
-                <textarea
-                  id="ai-chat-input"
-                  value={chatInput}
-                  onChange={(event) => setChatInput(event.target.value)}
-                  onKeyDown={handleChatKeyDown}
-                  placeholder="Ask about grades, deadlines, study plans, or a course..."
-                  rows={2}
-                  className={cn("min-w-0 flex-1 resize-none rounded border border-slate-200 px-3 py-2 text-sm", FOCUS_RING)}
-                />
-                <button
-                  type="submit"
-                  disabled={!chatInput.trim() || isAssistantTyping}
-                  className={cn(
-                    "inline-flex items-center gap-2 rounded px-3 py-2 text-sm font-black",
-                    FOCUS_RING,
-                    chatInput.trim() && !isAssistantTyping
-                      ? "bg-slate-800 text-white hover:bg-slate-900"
-                      : "cursor-not-allowed bg-slate-200 text-slate-400",
-                  )}
-                >
-                  <Send className="h-4 w-4" />
-                  Send
-                </button>
-              </div>
-            </form>
-          </Panel>
-
-          <Panel icon={Target} title="What To Study Next" description="Priority order from local rules.">
-            <div className="space-y-3">
-              {projectedCourses
-                .slice()
-                .sort((a, b) => a.projectedGrade - b.projectedGrade)
-                .map((course) => (
-                  <div key={course.id} className="rounded border border-slate-200 p-3">
-                    <p className="text-sm font-bold text-slate-900">{course.name}</p>
-                    <p className="mt-1 text-xs text-slate-600">{course.weakArea}</p>
-                    <p className="mt-2 text-xs font-bold text-blue-700">{course.deadline}</p>
-                  </div>
-                ))}
-            </div>
-          </Panel>
-        </aside>
       </div>
     </div>
   );
@@ -673,6 +578,136 @@ function MetricCard({
       <p className="mt-2 text-3xl font-black text-slate-900">{value}</p>
       <p className="mt-1 text-xs text-slate-600">{detail}</p>
     </article>
+  );
+}
+
+function AssistantChatPanel({
+  messages,
+  isAssistantTyping,
+  suggestions,
+  chatInput,
+  copyNotice,
+  setChatInput,
+  submitPrompt,
+  sendMessage,
+  handleChatKeyDown,
+  copyLatestAssistantResponse,
+  resetChat,
+}: {
+  messages: ChatMessage[];
+  isAssistantTyping: boolean;
+  suggestions: string[];
+  chatInput: string;
+  copyNotice: string;
+  setChatInput: (value: string) => void;
+  submitPrompt: (prompt: string) => void;
+  sendMessage: (event: FormEvent) => void;
+  handleChatKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
+  copyLatestAssistantResponse: () => void;
+  resetChat: () => void;
+}) {
+  return (
+    <Panel icon={Sparkles} title="Mock Assistant Chat" description="Rule-based responses, no external model.">
+      <div className="mb-4 flex flex-wrap gap-2" aria-label="Assistant quick actions">
+        {QUICK_ACTIONS.map((action) => (
+          <button
+            key={action}
+            type="button"
+            onClick={() => submitPrompt(action)}
+            disabled={isAssistantTyping}
+            className={cn("rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}
+          >
+            {action}
+          </button>
+        ))}
+      </div>
+
+      <div className="h-[460px] overflow-y-auto rounded border border-slate-200 bg-slate-50 p-3" aria-live="polite" aria-label="Assistant chat history">
+        <div className="space-y-3">
+          {messages.map((message) => (
+            <article
+              key={message.id}
+              className={cn(
+                "rounded border p-3 text-sm",
+                message.sender === "You"
+                  ? "ml-8 border-blue-200 bg-blue-600 text-white"
+                  : "mr-8 border-slate-200 bg-white text-slate-700",
+              )}
+            >
+              <p className="mb-1 text-xs font-black">{message.sender}</p>
+              <p className="whitespace-pre-line leading-relaxed">{message.body}</p>
+            </article>
+          ))}
+          {isAssistantTyping && messages[messages.length - 1]?.sender !== "Assistant" && (
+            <div className="mr-8 rounded border border-slate-200 bg-white p-3 text-sm text-slate-700" role="status" aria-live="polite">
+              <p className="mb-1 text-xs font-black">Assistant</p>
+              <p>Assistant is typing...</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {suggestions.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2" aria-label="Follow-up suggestions">
+          {suggestions.map((suggestion) => (
+            <button
+              key={suggestion}
+              type="button"
+              onClick={() => submitPrompt(suggestion)}
+              disabled={isAssistantTyping}
+              className={cn("rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-800 hover:bg-blue-100", FOCUS_RING)}
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button type="button" onClick={copyLatestAssistantResponse} className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}>
+          <Copy className="h-3.5 w-3.5" />
+          Copy latest response
+        </button>
+        <button type="button" onClick={resetChat} className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}>
+          <RotateCcw className="h-3.5 w-3.5" />
+          Reset chat
+        </button>
+      </div>
+      {copyNotice && (
+        <p className="mt-2 text-xs font-bold text-emerald-700" role="status" aria-live="polite">
+          {copyNotice}
+        </p>
+      )}
+
+      <form onSubmit={sendMessage} className="mt-4">
+        <label className="sr-only" htmlFor="ai-chat-input">Ask the student success assistant</label>
+        <div className="flex gap-2">
+          <textarea
+            id="ai-chat-input"
+            value={chatInput}
+            onChange={(event) => setChatInput(event.target.value)}
+            onKeyDown={handleChatKeyDown}
+            placeholder="Ask about grades, deadlines, study plans, or a course..."
+            rows={2}
+            className={cn("min-w-0 flex-1 resize-none rounded border border-slate-200 px-3 py-2 text-sm", FOCUS_RING)}
+          />
+          <button
+            type="submit"
+            disabled={!chatInput.trim() || isAssistantTyping}
+            className={cn(
+              "inline-flex items-center gap-2 rounded px-3 py-2 text-sm font-black",
+              FOCUS_RING,
+              chatInput.trim() && !isAssistantTyping
+                ? "bg-slate-800 text-white hover:bg-slate-900"
+                : "cursor-not-allowed bg-slate-200 text-slate-400",
+            )}
+          >
+            <Send className="h-4 w-4" />
+            Send
+          </button>
+        </div>
+      </form>
+    </Panel>
   );
 }
 

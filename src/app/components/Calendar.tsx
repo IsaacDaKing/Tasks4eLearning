@@ -33,7 +33,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-type EventType = "assignment" | "quiz" | "test";
+type EventType = "assignment" | "quiz" | "exam" | "study" | "office";
 
 interface CalendarEvent {
   id: string;
@@ -50,19 +50,23 @@ interface CalendarEvent {
 const SAMPLE_EVENTS: CalendarEvent[] = [
   { id: "1", title: "Software Design Patterns Lab", type: "assignment", date: new Date(2026, 1, 19, 23, 59), course: "CS 3354.012: Software Engineering", courseId: "cs3354", time: "11:59 PM", color: "bg-amber-500" },
   { id: "2", title: "Quiz: Agile Methodologies", type: "quiz", date: new Date(2026, 1, 19, 14, 0), course: "CS 3354.012: Software Engineering", courseId: "cs3354", time: "2:00 PM", color: "bg-orange-500" },
-  { id: "3", title: "Midterm: Database Normalization", type: "test", date: new Date(2026, 1, 21, 9, 0), course: "CS 4347.002: Database Systems", courseId: "cs4347", time: "9:00 AM", color: "bg-red-500" },
+  { id: "3", title: "Midterm: Database Normalization", type: "exam", date: new Date(2026, 1, 21, 9, 0), course: "CS 4347.002: Database Systems", courseId: "cs4347", time: "9:00 AM", color: "bg-red-600" },
   { id: "4", title: "SQL Query Optimization", type: "assignment", date: new Date(2026, 1, 16, 23, 59), course: "CS 4347.002: Database Systems", courseId: "cs4347", time: "11:59 PM", color: "bg-amber-500" },
   { id: "5", title: "Network Protocol Analysis", type: "assignment", date: new Date(2026, 1, 17, 23, 59), course: "CS 4390.0W1: Computer Networks", courseId: "cs4390", time: "11:59 PM", color: "bg-amber-500" },
-  { id: "6", title: "Logic Circuit Design Test", type: "test", date: new Date(2026, 1, 24, 15, 0), course: "CS 4341.003: Digital Logic", courseId: "cs4341", time: "3:00 PM", color: "bg-red-500" },
+  { id: "6", title: "Logic Circuit Design Test", type: "exam", date: new Date(2026, 1, 24, 15, 0), course: "CS 4341.003: Digital Logic", courseId: "cs4341", time: "3:00 PM", color: "bg-red-600" },
   { id: "7", title: "Functional Programming Quiz", type: "quiz", date: new Date(2026, 1, 18, 10, 0), course: "CS 4337.005: Programming Languages", courseId: "cs4337", time: "10:00 AM", color: "bg-orange-500" },
   { id: "8", title: "Final Project Pitch", type: "quiz", date: new Date(2026, 1, 26, 11, 0), course: "CS 3354.012: Software Engineering", courseId: "cs3354", time: "11:00 AM", color: "bg-orange-500" },
   { id: "9", title: "Volcanic Hazard Assessment", type: "assignment", date: new Date(2026, 1, 20, 23, 59), course: "ISNS 2359.0W1: Earthquakes and Volcanoes", courseId: "isns2359", time: "11:59 PM", color: "bg-amber-500" },
+  { id: "10", title: "Database Review Block", type: "study", date: new Date(2026, 1, 18, 16, 0), course: "CS 4347.002: Database Systems", courseId: "cs4347", time: "4:00 PM", color: "bg-blue-600" },
+  { id: "11", title: "Networks Office Hours", type: "office", date: new Date(2026, 1, 20, 13, 30), course: "CS 4390.0W1: Computer Networks", courseId: "cs4390", time: "1:30 PM", color: "bg-emerald-600" },
 ];
 
 const EVENT_TYPE_CONFIG: Record<EventType, { label: string; color: string; ring: string }> = {
-  assignment: { label: "Assignments", color: "bg-amber-500", ring: "ring-amber-500" },
-  quiz: { label: "Quizzes", color: "bg-orange-500", ring: "ring-orange-500" },
-  test: { label: "Tests", color: "bg-red-500", ring: "ring-red-500" },
+  assignment: { label: "Assignment", color: "bg-amber-500", ring: "ring-amber-500" },
+  quiz: { label: "Quiz", color: "bg-orange-500", ring: "ring-orange-500" },
+  exam: { label: "Exam", color: "bg-red-600", ring: "ring-red-600" },
+  study: { label: "Study session", color: "bg-blue-600", ring: "ring-blue-600" },
+  office: { label: "Office hours", color: "bg-emerald-600", ring: "ring-emerald-600" },
 };
 
 const UNIQUE_COURSES = Array.from(new Set(SAMPLE_EVENTS.map(e => JSON.stringify({ id: e.courseId, name: e.course }))))
@@ -70,7 +74,7 @@ const UNIQUE_COURSES = Array.from(new Set(SAMPLE_EVENTS.map(e => JSON.stringify(
 
 export function LMSCalendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 1, 1));
-  const [selectedTypes, setSelectedTypes] = useState<EventType[]>(["assignment", "quiz", "test"]);
+  const [selectedTypes, setSelectedTypes] = useState<EventType[]>(["assignment", "quiz", "exam", "study", "office"]);
   const [selectedCourses, setSelectedCourses] = useState<string[]>(UNIQUE_COURSES.map(c => c.id));
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
@@ -133,6 +137,16 @@ export function LMSCalendar() {
               </button>
             </div>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 rounded border border-slate-200 bg-white p-2">
+          <span className="text-xs font-black uppercase tracking-wide text-slate-500">Legend</span>
+          {(Object.entries(EVENT_TYPE_CONFIG) as [EventType, typeof EVENT_TYPE_CONFIG.assignment][]).map(([type, config]) => (
+            <span key={type} className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700">
+              <span className={cn("h-2.5 w-2.5 rounded-full", config.color)} />
+              {config.label}
+            </span>
+          ))}
         </div>
 
         {/* Filter Controls - More Compact */}
@@ -201,7 +215,7 @@ export function LMSCalendar() {
               <div 
                 key={day.toString()} 
                 className={cn(
-                  "min-h-[80px] p-1.5 border-r border-b border-slate-100 last:border-r-0 transition-colors group hover:bg-slate-50",
+                  "min-h-[96px] p-1.5 border-r border-b border-slate-100 last:border-r-0 transition-colors group hover:bg-slate-50",
                   !isCurrentMonth && "bg-slate-50"
                 )}
               >
@@ -226,12 +240,13 @@ export function LMSCalendar() {
                       key={event.id}
                       onClick={() => setSelectedEvent(event)}
                       className={cn(
-                        "w-full text-left p-0.5 rounded text-[8px] font-semibold leading-tight truncate transition-all active:scale-95",
+                        "w-full text-left px-1.5 py-1 rounded text-[10px] font-bold leading-tight transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500",
                         event.color,
                         "text-white"
                       )}
                     >
                       <div className="truncate">{event.title}</div>
+                      <div className="truncate text-[9px] font-medium opacity-90">{event.time}</div>
                     </motion.button>
                   ))}
                 </div>
@@ -296,7 +311,9 @@ export function LMSCalendar() {
                   <p className="text-sm text-slate-600 leading-relaxed font-medium">
                     {selectedEvent.type === 'assignment' && 'Submit your files in PDF format. Late submissions will receive a 10% penalty per day.'}
                     {selectedEvent.type === 'quiz' && ' This quiz covers the current module. You have 30 minutes to complete it once started.'}
-                    {selectedEvent.type === 'test' && ' This is a proctored midterm exam. Ensure your webcam and microphone are working.'}
+                    {selectedEvent.type === 'exam' && ' This is a proctored midterm exam. Ensure your webcam and microphone are working.'}
+                    {selectedEvent.type === 'study' && ' This is a planned study session based on upcoming deadlines.'}
+                    {selectedEvent.type === 'office' && ' Bring questions and recent feedback to office hours.'}
                   </p>
                 </div>
 

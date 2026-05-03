@@ -612,7 +612,16 @@ export function Dashboard() {
             </div>
           </Panel>
 
-          <Panel icon={MessageSquare} title="Messages" description="Recent course messages">
+          <Panel
+            icon={MessageSquare}
+            title="Messages"
+            description="Recent course messages"
+            action={
+              <Link to="/messages" className={cn("text-xs font-bold text-slate-600 hover:text-slate-900", FOCUS_RING)}>
+                View all messages
+              </Link>
+            }
+          >
             <div className="space-y-3">
               {MESSAGES.map((message) => (
                 <div key={message.id} className="rounded border border-slate-200 p-3">

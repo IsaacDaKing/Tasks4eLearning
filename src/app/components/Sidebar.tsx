@@ -30,7 +30,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const PINNED_ITEMS_KEY = "blackboard:pinned-sidebar-tools";
-const DEFAULT_PINNED_ITEMS = ["/", "/courses", "/quiz", "/assignment", "/grades", "/calendar"];
+const DEFAULT_PINNED_ITEMS = ["/", "/courses", "/quiz", "/assignment", "/grades", "/calendar", "/messages"];
 const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800";
 
 interface SidebarContextType {
@@ -102,7 +102,7 @@ export function Sidebar() {
     { name: "Grades", icon: GraduationCap, path: "/grades" },
     { name: "Calendar", icon: CalendarIcon, path: "/calendar" },
     { name: "Grade Calculator", icon: Calculator, path: "/grade-calculator" },
-    { name: "Messages", icon: MessageSquare, path: "/messages", disabled: true, previewLabel: "Dashboard preview" },
+    { name: "Messages", icon: MessageSquare, path: "/messages" },
     { name: "AI Assistant", icon: Sparkles, path: "/ai-assistant", disabled: true, previewLabel: "Dashboard preview" },
     { name: "Settings", icon: Settings, path: "/settings" },
   ];

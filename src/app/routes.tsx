@@ -10,6 +10,7 @@ import { AssignmentPage } from "./pages/AssignmentPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { QuizPage } from "./pages/QuizPage";
+import { MessagesPage } from "./pages/MessagesPage";
 import { useLocation } from "react-router";
 
 function Layout() {
@@ -24,6 +25,7 @@ function Layout() {
     if (location.pathname === "/grade-calculator") return "Grade Calculator";
     if (location.pathname === "/assignment") return "Assignment Submission";
     if (location.pathname === "/quiz") return "Quiz";
+    if (location.pathname === "/messages") return "Messaging System";
     if (location.pathname === "/settings") return "Account Settings";
     return "LMS Dashboard";
   };
@@ -68,6 +70,7 @@ export const router = createBrowserRouter([
       { path: "grade-calculator", Component: GradeCalculator },
       { path: "assignment", Component: AssignmentPage },
       { path: "quiz", Component: QuizPage },
+      { path: "messages", Component: MessagesPage },
       { path: "settings", Component: SettingsPage },
       { path: "*", Component: NotFound },
     ],

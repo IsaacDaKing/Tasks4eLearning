@@ -14,17 +14,40 @@ import {
   BookOpen,
   Timer,
   RotateCcw,
+  ChevronRight,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { motion } from "motion/react";
-import { getCourseById, getAssignmentById } from "../data/courses";
+import { COURSES, getCourseById, getAssignmentById, type AssessmentType } from "../data/courses";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 const MAX_FILE_SIZE_MB = 25;
+
+function parseDueDate(dueDate: string) {
+  return new Date(dueDate.replace(" at ", " "));
+}
+
+function displayType(type: AssessmentType) {
+  return type === "Exam" ? "Test" : type;
+}
+
+function getAssignmentStatus(assignmentId: string) {
+  return assignmentId === "4" ? "Submitted" : "Not Submitted";
+}
+
+const ALL_ASSIGNMENTS = COURSES.flatMap((course) =>
+  course.assignments.map((assignment) => ({
+    ...assignment,
+    courseId: course.id,
+    courseTitle: course.title,
+    courseCode: course.code,
+    dueDateValue: parseDueDate(assignment.dueDate).getTime(),
+    status: getAssignmentStatus(assignment.id),
+  })),
+).sort((a, b) => a.dueDateValue - b.dueDateValue);
 
 export function AssignmentPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -38,21 +61,79 @@ export function AssignmentPage() {
   const course = courseId ? getCourseById(courseId) : null;
   const assignment = assignmentId && course ? getAssignmentById(course.id, assignmentId) : null;
 
+  if (!courseId && !assignmentId) {
+    return (
+      <div className="p-4 sm:p-8 max-w-[1200px] mx-auto animate-in fade-in duration-500 bg-slate-100 dark:bg-slate-950 min-h-full">
+        <div className="mb-6">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white">Assignments</h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            All assignments, quizzes, and tests across your courses, sorted by due date.
+          </p>
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+          <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(180px,0.9fr)_minmax(190px,0.9fr)_130px_40px] gap-4 border-b border-slate-200 dark:border-slate-700 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 max-lg:hidden">
+            <span>Title</span>
+            <span>Course</span>
+            <span>Due Date</span>
+            <span>Status</span>
+            <span />
+          </div>
+
+          <div className="divide-y divide-slate-200 dark:divide-slate-700">
+            {ALL_ASSIGNMENTS.map((item) => (
+              <Link
+                key={`${item.courseId}-${item.id}`}
+                to={`/courses/${item.courseId}/assignments/${item.id}`}
+                className="grid gap-3 px-4 py-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/60 lg:grid-cols-[minmax(0,1.4fr)_minmax(180px,0.9fr)_minmax(190px,0.9fr)_130px_40px] lg:items-center"
+              >
+                <div className="min-w-0">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <span className="rounded bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                      {displayType(item.type)}
+                    </span>
+                  </div>
+                  <h2 className="truncate text-base font-bold text-slate-900 dark:text-white">{item.title}</h2>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">{item.courseCode}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{item.courseTitle}</p>
+                </div>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">{item.dueDate}</p>
+                <span
+                  className={cn(
+                    "w-fit rounded px-2.5 py-1 text-xs font-black uppercase tracking-wide",
+                    item.status === "Submitted"
+                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                      : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+                  )}
+                >
+                  {item.status}
+                </span>
+                <ChevronRight className="hidden h-4 w-4 text-slate-400 lg:block" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!course || !assignment) {
     return (
-      <div className="p-8 max-w-[900px] mx-auto h-full flex flex-col items-center justify-center text-center animate-in fade-in duration-500 dark:bg-slate-900">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-10">
+      <div className="p-8 max-w-[900px] mx-auto h-full flex flex-col items-center justify-center text-center animate-in fade-in duration-500 bg-slate-100 dark:bg-slate-950">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-10">
           <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-4">
             Assignment not found
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mb-6">
-            Select an assignment from the course page or calendar to open the correct submission workflow.
+            Select an assignment from the assignments list, course page, or calendar to open the correct submission workflow.
           </p>
           <Link
-            to="/courses"
+            to="/assignment"
             className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all"
           >
-            Browse Courses
+            Browse Assignments
           </Link>
         </div>
       </div>
@@ -66,7 +147,7 @@ export function AssignmentPage() {
     assignmentTitle: assignment.title,
     dueDate: assignment.dueDate,
     className: assignment.classSection,
-    type: assignment.type,
+    type: displayType(assignment.type),
     timeLimit: null as number | null,
     attempts: 3,
   };
@@ -115,13 +196,13 @@ export function AssignmentPage() {
   };
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto animate-in fade-in duration-500 dark:bg-slate-900">
+    <div className="p-8 max-w-[1400px] mx-auto animate-in fade-in duration-500 bg-slate-100 dark:bg-slate-950 min-h-full">
       {/* FR-55: Course Code + Name prominently at top */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-8 rounded-2xl shadow-xl text-white mb-8">
         <div className="flex items-center gap-2 text-sm font-bold mb-1 opacity-90">
           <FileText className="w-4 h-4" />
           {/* FR-55 */}
-          <span>{assignmentExperience.courseCode} — {assignmentExperience.courseName}</span>
+          <span>{assignmentExperience.courseCode} - {assignmentExperience.courseName}</span>
         </div>
         {/* FR-56: Module title as primary heading */}
         <p className="text-white/70 text-sm font-semibold mb-2">{assignmentExperience.moduleTitle}</p>
@@ -158,7 +239,7 @@ export function AssignmentPage() {
           <span className={cn(
             "px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest",
             assignmentExperience.type === "Quiz" ? "bg-yellow-400 text-yellow-900" :
-            assignmentExperience.type === "Exam" ? "bg-red-400 text-red-900" :
+            assignmentExperience.type === "Test" ? "bg-red-400 text-red-900" :
             "bg-white/20 text-white"
           )}>
             {assignmentExperience.type}
@@ -182,9 +263,10 @@ export function AssignmentPage() {
 
             <div className="prose prose-slate dark:prose-invert max-w-none space-y-4">
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                In this assignment, you will conduct a comprehensive volcanic hazard assessment for a specific volcano of your choice.
-                Your research paper should demonstrate a thorough understanding of volcanic processes, risk assessment methodologies,
-                and their real-world applications in disaster preparedness.
+                {assignment.description}
+              </p>
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                {assignment.notes}
               </p>
 
               {/* FR-59: Requirements subsection */}
@@ -194,33 +276,33 @@ export function AssignmentPage() {
                   <div>
                     <h3 className="font-black text-amber-900 dark:text-amber-300 text-sm mb-1">Requirements</h3>
                     <ul className="text-sm text-amber-800 dark:text-amber-400 space-y-1 list-disc list-inside">
-                      <li>8-10 pages (double-spaced, 12pt Times New Roman)</li>
-                      <li>Minimum of 8 peer-reviewed sources</li>
-                      <li>APA citation style required</li>
-                      <li>Include at least 3 data visualizations (charts/graphs)</li>
-                      <li>Submit as PDF format only</li>
+                      <li>Read the module materials before starting.</li>
+                      <li>Include clear evidence for each answer or design choice.</li>
+                      <li>Submit only your own work.</li>
+                      <li>Accepted upload formats: PDF, DOC, or DOCX.</li>
+                      <li>Maximum upload size: {MAX_FILE_SIZE_MB}MB.</li>
                     </ul>
                   </div>
                 </div>
               </div>
 
-              <h3 className="font-black text-slate-900 dark:text-white text-lg mt-8">Paper Structure</h3>
+              <h3 className="font-black text-slate-900 dark:text-white text-lg mt-8">Submission Checklist</h3>
               <ul className="space-y-2 text-slate-600 dark:text-slate-300">
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span><strong>Introduction:</strong> Present your chosen volcano and research question</span>
+                  <span><strong>Review:</strong> Confirm your response matches the instructions above.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span><strong>Literature Review:</strong> Summarize relevant volcanic research and historical eruptions</span>
+                  <span><strong>Format:</strong> Use an accepted file type and keep the file under {MAX_FILE_SIZE_MB}MB.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span><strong>Analysis:</strong> Assess volcanic hazards using data and risk models</span>
+                  <span><strong>Details:</strong> Include your name, course, and assignment title in the document.</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span><strong>Conclusion:</strong> Synthesize findings and propose mitigation strategies</span>
+                  <span><strong>Submit:</strong> Upload your file and confirm the status changes after submission.</span>
                 </li>
               </ul>
             </div>
@@ -321,7 +403,7 @@ export function AssignmentPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                 <span className="text-sm font-bold text-amber-900 dark:text-amber-300">Status</span>
-                <span className="text-sm font-black text-amber-600 dark:text-amber-400">Not Submitted</span>
+                <span className="text-sm font-black text-amber-600 dark:text-amber-400">{getAssignmentStatus(assignment.id)}</span>
               </div>
               {/* FR-62: Attempts shown */}
               <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
@@ -339,9 +421,9 @@ export function AssignmentPage() {
             <h3 className="font-black text-slate-900 dark:text-white mb-4">Resources</h3>
             <div className="space-y-2">
               {[
-                { label: "Assignment Rubric", size: "PDF • 156 KB", color: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" },
-                { label: "APA Format Guide", size: "PDF • 2.4 MB", color: "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400" },
-                { label: "Sample Paper", size: "PDF • 892 KB", color: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" },
+                { label: "Assignment Rubric", size: "PDF - 156 KB", color: "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" },
+                { label: "Submission Guide", size: "PDF - 2.4 MB", color: "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400" },
+                { label: "Sample Response", size: "PDF - 892 KB", color: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" },
               ].map((res) => (
                 <a
                   key={res.label}

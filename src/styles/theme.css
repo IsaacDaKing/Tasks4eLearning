@@ -194,3 +194,51 @@
     border-color: currentColor !important;
   }
 }
+
+@layer utilities {
+  .dark .bg-white {
+    background-color: rgb(30 41 59) !important;
+  }
+
+  .dark .bg-slate-50,
+  .dark .bg-slate-100 {
+    background-color: rgb(15 23 42) !important;
+  }
+
+  .dark .bg-slate-200 {
+    background-color: rgb(51 65 85) !important;
+  }
+
+  .dark .text-slate-900 {
+    color: rgb(248 250 252) !important;
+  }
+
+  .dark .text-slate-800,
+  .dark .text-slate-700 {
+    color: rgb(226 232 240) !important;
+  }
+
+  .dark .text-slate-600,
+  .dark .text-slate-500 {
+    color: rgb(148 163 184) !important;
+  }
+
+  .dark .border-slate-100,
+  .dark .border-slate-200,
+  .dark .border-slate-300 {
+    border-color: rgb(51 65 85) !important;
+  }
+
+  .dark .hover\:bg-slate-50:hover,
+  .dark .hover\:bg-slate-100:hover,
+  .dark .hover\:bg-white:hover {
+    background-color: rgb(51 65 85) !important;
+  }
+
+  .dark .shadow-blue-100,
+  .dark .shadow-blue-200,
+  .dark .shadow-green-200 {
+    --tw-shadow-color: rgb(15 23 42 / 0.6) !important;
+    --tw-shadow: var(--tw-shadow-colored) !important;
+  }
+}

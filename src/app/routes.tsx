@@ -34,11 +34,11 @@ function Layout() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-slate-100 overflow-hidden font-sans selection:bg-slate-200 selection:text-slate-900">
+      <div className="flex h-screen bg-slate-100 dark:bg-slate-950 overflow-hidden font-sans selection:bg-slate-200 selection:text-slate-900">
         <Sidebar />
         <div className="flex-1 flex flex-col h-full overflow-hidden">
           <Header title={getTitle()} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-100">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-100 dark:bg-slate-950">
             <Outlet />
           </main>
         </div>
@@ -49,9 +49,9 @@ function Layout() {
 
 function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center h-full space-y-4">
-      <h1 className="text-4xl font-black text-slate-900">404</h1>
-      <p className="text-slate-500 font-medium italic font-serif">"Not all who wander are lost, but this page definitely is."</p>
+    <div className="flex flex-col items-center justify-center h-full space-y-4 bg-slate-100 dark:bg-slate-950">
+      <h1 className="text-4xl font-black text-slate-900 dark:text-slate-100">404</h1>
+      <p className="text-slate-500 dark:text-slate-400 font-medium italic font-serif">"Not all who wander are lost, but this page definitely is."</p>
       <a href="/" className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all">Go Home</a>
     </div>
   );

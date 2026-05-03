@@ -319,16 +319,15 @@ export function Dashboard() {
           >
             <CalendarIcon className="h-4 w-4" /> Schedule
           </Link>
-          <button
-            type="button"
-            onClick={() => setStudyPlanVisible(true)}
+          <Link
+            to="/ai-assistant"
             className={cn(
               "inline-flex items-center gap-1.5 rounded bg-slate-800 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-slate-900",
               FOCUS_RING,
             )}
           >
             <Zap className="h-4 w-4" /> Generate Study Plan
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -466,6 +465,11 @@ export function Dashboard() {
               icon={Sparkles}
               title="AI Study Recommendations"
               description="Suggestions based on incomplete work and nearby deadlines."
+              action={
+                <Link to="/ai-assistant" className={cn("text-xs font-bold text-slate-600 hover:text-slate-900", FOCUS_RING)}>
+                  Open AI tool
+                </Link>
+              }
             >
               <div className="space-y-3">
                 {STUDY_RECOMMENDATIONS.map((recommendation) => (

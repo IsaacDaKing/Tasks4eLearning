@@ -11,6 +11,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { QuizPage } from "./pages/QuizPage";
 import { MessagesPage } from "./pages/MessagesPage";
+import { AIAssistantPage } from "./pages/AIAssistantPage";
 import { useLocation } from "react-router";
 
 function Layout() {
@@ -26,6 +27,7 @@ function Layout() {
     if (location.pathname === "/assignment") return "Assignment Submission";
     if (location.pathname === "/quiz") return "Quiz";
     if (location.pathname === "/messages") return "Messaging System";
+    if (location.pathname === "/ai-assistant") return "AI Student Success Assistant";
     if (location.pathname === "/settings") return "Account Settings";
     return "LMS Dashboard";
   };
@@ -71,6 +73,7 @@ export const router = createBrowserRouter([
       { path: "assignment", Component: AssignmentPage },
       { path: "quiz", Component: QuizPage },
       { path: "messages", Component: MessagesPage },
+      { path: "ai-assistant", Component: AIAssistantPage },
       { path: "settings", Component: SettingsPage },
       { path: "*", Component: NotFound },
     ],

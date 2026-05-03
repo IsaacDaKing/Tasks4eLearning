@@ -111,7 +111,7 @@ export function Sidebar() {
     { name: "Calendar", icon: CalendarIcon, path: "/calendar" },
     { name: "Grade Calculator", icon: Calculator, path: "/grade-calculator" },
     { name: "Messages", icon: MessageSquare, path: "/messages" },
-    { name: "AI Assistant", icon: Sparkles, path: "/ai-assistant" },
+    { name: "Comet AI", icon: Sparkles, path: "/ai-assistant" },
     { name: "Settings", icon: Settings, path: "/settings" },
   ];
 

@@ -443,11 +443,11 @@ export function Dashboard() {
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
             <Panel
               icon={Sparkles}
-              title="AI Study Recommendations"
+              title="Comet AI Study Recommendations"
               description="Suggestions based on incomplete work and nearby deadlines."
               action={
                 <Link to="/ai-assistant" className={cn("text-xs font-bold text-slate-600 hover:text-slate-900", FOCUS_RING)}>
-                  Open AI tool
+                  Open Comet AI
                 </Link>
               }
             >

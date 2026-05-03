@@ -1,15 +1,18 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import {
   AlertCircle,
   BarChart3,
+  Bot,
   CalendarClock,
   Clock,
   Copy,
+  Download,
   GraduationCap,
   ListChecks,
   RotateCcw,
   Send,
   Sparkles,
+  Star,
   Target,
   TrendingUp,
   type LucideIcon,
@@ -22,10 +25,10 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2";
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2";
 
 interface CoursePlan {
-  id: string;
+  id: CourseId;
   code: string;
   name: string;
   currentGrade: number;
@@ -33,20 +36,35 @@ interface CoursePlan {
   highRange: number;
   weakArea: string;
   deadline: string;
+  dueSignal: string;
   scoreLabel: string;
   projectedScore: number;
   weight: number;
+  nextAssessment: string;
 }
+
+type CourseId = "networks" | "software" | "database";
 
 interface ChatMessage {
   id: string;
-  sender: "You" | "Assistant";
+  sender: "You" | "Comet AI";
   body: string;
+  time: string;
 }
 
 interface AssistantResponse {
   body: string;
   suggestions: string[];
+  generatedPlan?: string;
+  topic?: string;
+  courseId?: CourseId;
+}
+
+interface SessionMemory {
+  lastSelectedTopic?: string;
+  lastCourseId?: CourseId;
+  lastQuickAction?: string;
+  generatedPlan?: string;
 }
 
 const COURSES: CoursePlan[] = [
@@ -57,11 +75,13 @@ const COURSES: CoursePlan[] = [
     currentGrade: 88,
     lowRange: 84,
     highRange: 94,
-    weakArea: "TCP/IP and subnetting",
-    deadline: "Network Protocol Analysis due tonight",
+    weakArea: "TCP/IP, subnetting, DNS, and routing",
+    deadline: "Network Protocol Analysis",
+    dueSignal: "Due tonight",
     scoreLabel: "Protocol analysis score",
     projectedScore: 86,
     weight: 0.22,
+    nextAssessment: "TCP/IP protocol quiz",
   },
   {
     id: "software",
@@ -70,11 +90,13 @@ const COURSES: CoursePlan[] = [
     currentGrade: 91,
     lowRange: 87,
     highRange: 96,
-    weakArea: "UML and traceability",
-    deadline: "Design Patterns Lab due tomorrow",
+    weakArea: "UML, traceability, testing, and sprint planning",
+    deadline: "Design Patterns Lab",
+    dueSignal: "Due tomorrow",
     scoreLabel: "Design lab score",
     projectedScore: 90,
     weight: 0.25,
+    nextAssessment: "Sprint 2 milestone review",
   },
   {
     id: "database",
@@ -83,52 +105,75 @@ const COURSES: CoursePlan[] = [
     currentGrade: 84,
     lowRange: 78,
     highRange: 93,
-    weakArea: "Normalization, joins, and ACID",
-    deadline: "Database Normalization Midterm in 3 days",
+    weakArea: "Normalization, joins, keys, ACID, and indexing",
+    deadline: "Database Normalization Midterm",
+    dueSignal: "In 3 days",
     scoreLabel: "Midterm score",
     projectedScore: 82,
     weight: 0.3,
+    nextAssessment: "Normalization and SQL midterm",
   },
 ];
 
-const TIME_BLOCKS = [
-  "45 minutes Database Systems: normalization, joins, and ACID review.",
-  "30 minutes Software Engineering: project planning and UML sequence diagram cleanup.",
-  "25 minutes Computer Networks: subnetting drills and TCP reliability review.",
+const QUICK_ACTIONS = [
+  "Build Study Plan",
+  "Improve My Grade",
+  "Prioritize This Week",
+  "Prep for Quiz",
+  "Prep for Exam",
+  "Message My Professor",
+  "Explain Weak Topics",
+  "Time Block My Day",
+  "Review Deadlines",
+  "Accessibility Help",
 ];
 
-const QUICK_ACTIONS = ["Grade Path", "Retake Options", "Study Plan", "Priorities"];
+const PROMPT_STARTERS = [
+  "What should I study tonight?",
+  "How can I raise my GPA?",
+  "Make me a study plan for this week.",
+  "Help me prepare for Database Systems.",
+  "Explain what to review for Software Engineering.",
+  "What should I ask my professor?",
+  "I feel overwhelmed. Help me prioritize.",
+];
 
 const DEFAULT_SUGGESTIONS = [
-  "Build my study plan",
   "What should I do next?",
-  "How can I improve my GPA?",
+  "Build Study Plan",
+  "Improve My Grade",
   "Help with Database Systems",
 ];
 
+const HELP_TOPICS = ["grades", "study plans", "deadlines", "quizzes and exams", "course questions", "time management"];
+
 export function AIAssistantPage() {
   const [courses, setCourses] = useState(COURSES);
-  const [studyPlan, setStudyPlan] = useState<string[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [suggestions, setSuggestions] = useState(DEFAULT_SUGGESTIONS);
   const [copyNotice, setCopyNotice] = useState("");
+  const [studyPlan, setStudyPlan] = useState(() => buildStudyPlan(COURSES));
+  const [memory, setMemory] = useState<SessionMemory>({ generatedPlan: buildStudyPlan(COURSES) });
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: "assistant-welcome",
-      sender: "Assistant",
+      id: "comet-welcome",
+      sender: "Comet AI",
+      time: getCurrentTime(),
       body:
-        "Hi! I can help you plan study time, understand your grades, prioritize deadlines, or create a study plan. What would you like to work on?",
+        "Hi, I am Comet AI. I can help you turn your course context into a practical next step.\n\nQuick read\nYour most urgent item is Computer Networks, your biggest grade opportunity is Database Systems, and Software Engineering needs a clean milestone push.\n\nRecommended next steps\n1. Ask what to study tonight.\n2. Build a weekly study plan.\n3. Check what score you need to raise your projected GPA.",
     },
   ]);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
-    };
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, isAssistantTyping]);
+
+  useEffect(() => {
+    return () => clearTypingTimers();
   }, []);
 
   const projectedCourses = useMemo(
@@ -147,13 +192,10 @@ export function AIAssistantPage() {
     return Math.min(4, Math.max(0, averageProjected / 25)).toFixed(2);
   }, [projectedCourses]);
 
-  const attentionCount = projectedCourses.filter(
-    (course) => course.projectedGrade < 86 || course.id === "database",
-  ).length;
-
+  const courseNeedingAttention = projectedCourses.slice().sort((a, b) => a.projectedGrade - b.projectedGrade)[0];
   const alerts = useMemo(() => generateAlerts(projectedCourses), [projectedCourses]);
 
-  const updateProjectedScore = (courseId: string, score: number) => {
+  const updateProjectedScore = (courseId: CourseId, score: number) => {
     setCourses((current) =>
       current.map((course) =>
         course.id === courseId ? { ...course, projectedScore: score } : course,
@@ -161,28 +203,29 @@ export function AIAssistantPage() {
     );
   };
 
-  const generateStudyPlan = () => {
-    const sortedCourses = [...projectedCourses].sort((a, b) => a.projectedGrade - b.projectedGrade);
-    setStudyPlan(
-      sortedCourses.map((course) => {
-        if (course.id === "database") return "Review normalization and joins for Database Systems.";
-        if (course.id === "software") return "Draft UML sequence diagram for Software Engineering.";
-        return "Practice subnetting and TCP/IP review for Computer Networks.";
-      }),
-    );
-  };
-
-  const submitPrompt = (prompt: string) => {
+  const submitPrompt = (prompt: string, quickAction?: string) => {
     const trimmedPrompt = prompt.trim();
     if (!trimmedPrompt || isAssistantTyping) return;
-    const response = getRuleBasedResponse(trimmedPrompt);
+    const response = getRuleBasedResponse(trimmedPrompt, {
+      memory: quickAction ? { ...memory, lastQuickAction: quickAction } : memory,
+      courses: projectedCourses,
+      projectedGpa,
+    });
 
     setMessages((current) => [
       ...current,
-      { id: `user-${Date.now()}`, sender: "You", body: trimmedPrompt },
+      { id: `user-${Date.now()}`, sender: "You", body: trimmedPrompt, time: getCurrentTime() },
     ]);
     setChatInput("");
     setCopyNotice("");
+    setMemory((current) => ({
+      ...current,
+      lastQuickAction: quickAction ?? current.lastQuickAction,
+      lastSelectedTopic: response.topic ?? current.lastSelectedTopic,
+      lastCourseId: response.courseId ?? current.lastCourseId,
+      generatedPlan: response.generatedPlan ?? current.generatedPlan,
+    }));
+    if (response.generatedPlan) setStudyPlan(response.generatedPlan);
     typeAssistantResponse(response);
   };
 
@@ -199,16 +242,20 @@ export function AIAssistantPage() {
   };
 
   const typeAssistantResponse = (response: AssistantResponse) => {
+    clearTypingTimers();
     setIsAssistantTyping(true);
     setSuggestions([]);
 
     typingTimeoutRef.current = setTimeout(() => {
-      const messageId = `assistant-${Date.now()}`;
+      const messageId = `comet-${Date.now()}`;
       let visibleLength = 0;
-      setMessages((current) => [...current, { id: messageId, sender: "Assistant", body: "" }]);
+      setMessages((current) => [
+        ...current,
+        { id: messageId, sender: "Comet AI", body: "", time: getCurrentTime() },
+      ]);
 
       typingIntervalRef.current = setInterval(() => {
-        visibleLength = Math.min(response.body.length, visibleLength + 4);
+        visibleLength = Math.min(response.body.length, visibleLength + 5);
         setMessages((current) =>
           current.map((message) =>
             message.id === messageId ? { ...message, body: response.body.slice(0, visibleLength) } : message,
@@ -216,203 +263,649 @@ export function AIAssistantPage() {
         );
 
         if (visibleLength >= response.body.length) {
-          if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+          clearTypingTimers();
           setIsAssistantTyping(false);
           setSuggestions(response.suggestions);
         }
-      }, 18);
-    }, 450);
+      }, 14);
+    }, 360);
   };
 
   const resetChat = () => {
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+    clearTypingTimers();
+    const freshPlan = buildStudyPlan(courses);
     setIsAssistantTyping(false);
     setSuggestions(DEFAULT_SUGGESTIONS);
     setCopyNotice("");
     setChatInput("");
+    setStudyPlan(freshPlan);
+    setMemory({ generatedPlan: freshPlan });
     setMessages([
       {
-        id: "assistant-welcome-reset",
-        sender: "Assistant",
+        id: "comet-welcome-reset",
+        sender: "Comet AI",
+        time: getCurrentTime(),
         body:
-          "Hi! I can help you plan study time, understand your grades, prioritize deadlines, or create a study plan. What would you like to work on?",
+          "Hi, I am Comet AI. What should we work on first: grades, deadlines, a course topic, or a study plan?",
       },
     ]);
   };
 
-  const copyLatestAssistantResponse = async () => {
-    const latestAssistantMessage = [...messages].reverse().find((message) => message.sender === "Assistant" && message.body.trim());
-    if (!latestAssistantMessage) return;
-    await copyText(latestAssistantMessage.body);
-    setCopyNotice("Latest assistant response copied.");
+  const clearTypingTimers = () => {
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+    typingTimeoutRef.current = null;
+    typingIntervalRef.current = null;
+  };
+
+  const copyLatestResponse = async () => {
+    const latest = [...messages].reverse().find((message) => message.sender === "Comet AI" && message.body.trim());
+    if (!latest) return;
+    await copyText(latest.body);
+    setCopyNotice("Latest Comet AI response copied.");
   };
 
   const copyStudyPlan = async () => {
-    const planText = (studyPlan.length ? studyPlan : TIME_BLOCKS).map((item, index) => `${index + 1}. ${item}`).join("\n");
-    await copyText(planText);
+    await copyText(studyPlan);
     setCopyNotice("Study plan copied.");
   };
 
-  return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-500">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h2 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-slate-900">
-            <Sparkles className="h-6 w-6 text-blue-600" />
-            AI Student Success Assistant
-          </h2>
-          <p className="mt-1 text-sm text-slate-600">
-            Prototype study planning, grade simulation, GPA projection, and success alerts.
-          </p>
-        </div>
-        <div className="rounded border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-900">
-          Prototype assistant: recommendations are generated from local course data and rule-based logic. No external AI API is used.
-        </div>
-      </div>
+  const downloadStudyPlan = () => {
+    const blob = new Blob([studyPlan], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "comet-ai-study-plan.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setCopyNotice("Study plan downloaded.");
+  };
 
-      <section className="grid gap-3 md:grid-cols-4" aria-label="AI assistant overview">
-        <MetricCard icon={GraduationCap} label="Current GPA" value={currentGpa.toFixed(2)} detail="Temporary local calculation" />
-        <MetricCard icon={TrendingUp} label="Projected GPA" value={projectedGpa} detail="Updates from simulated scores" />
-        <MetricCard icon={AlertCircle} label="Courses Needing Attention" value={String(attentionCount)} detail="Supportive priority signals" />
-        <MetricCard icon={CalendarClock} label="High-Priority Deadlines" value="3" detail="Next 72 hours" />
+  return (
+    <div className="mx-auto max-w-[1600px] space-y-6 p-4 animate-in fade-in duration-500 sm:p-6">
+      <section className="overflow-hidden rounded border border-slate-200 bg-slate-950 text-white shadow-sm">
+        <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+          <div>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-white/10 px-3 py-1 text-xs font-bold text-cyan-100">
+              <Sparkles className="h-3.5 w-3.5" />
+              Comet AI uses local course context in this prototype.
+            </div>
+            <h2 className="flex items-center gap-3 text-3xl font-black tracking-tight sm:text-4xl">
+              <span className="flex h-11 w-11 items-center justify-center rounded bg-cyan-400 text-slate-950">
+                <Star className="h-6 w-6 fill-slate-950" />
+              </span>
+              Comet AI
+            </h2>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-200">
+              Your course planning and study strategy assistant.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2" aria-label="Comet AI capabilities">
+              {HELP_TOPICS.map((topic) => (
+                <span key={topic} className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-slate-100">
+                  {topic}
+                </span>
+              ))}
+            </div>
+          </div>
+          <CometContextCard
+            projectedGpa={projectedGpa}
+            courseNeedingAttention={courseNeedingAttention.name}
+            highestPriorityDeadline={`${COURSES[0].deadline} - ${COURSES[0].dueSignal}`}
+            nextAssessment={COURSES[2].nextAssessment}
+          />
+        </div>
       </section>
 
-      <div className="grid gap-6">
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div>
-            <AssistantChatPanel
-              messages={messages}
-              isAssistantTyping={isAssistantTyping}
-              suggestions={suggestions}
-              chatInput={chatInput}
-              copyNotice={copyNotice}
-              setChatInput={setChatInput}
-              submitPrompt={submitPrompt}
-              sendMessage={sendMessage}
-              handleChatKeyDown={handleChatKeyDown}
-              copyLatestAssistantResponse={copyLatestAssistantResponse}
-              resetChat={resetChat}
-            />
-          </div>
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <CometChatPanel
+          messages={messages}
+          isAssistantTyping={isAssistantTyping}
+          suggestions={suggestions}
+          chatInput={chatInput}
+          copyNotice={copyNotice}
+          setChatInput={setChatInput}
+          submitPrompt={submitPrompt}
+          sendMessage={sendMessage}
+          handleChatKeyDown={handleChatKeyDown}
+          copyLatestResponse={copyLatestResponse}
+          copyStudyPlan={copyStudyPlan}
+          downloadStudyPlan={downloadStudyPlan}
+          resetChat={resetChat}
+          chatEndRef={chatEndRef}
+        />
 
-          <Panel icon={Target} title="What To Study Next" description="Priority order from local rules.">
-            <div className="space-y-3">
-              {projectedCourses
-                .slice()
-                .sort((a, b) => a.projectedGrade - b.projectedGrade)
-                .map((course) => (
-                  <div key={course.id} className="rounded border border-slate-200 p-3">
-                    <p className="text-sm font-bold text-slate-900">{course.name}</p>
-                    <p className="mt-1 text-xs text-slate-600">{course.weakArea}</p>
-                    <p className="mt-2 text-xs font-bold text-blue-700">{course.deadline}</p>
-                  </div>
-                ))}
-            </div>
-          </Panel>
-        </section>
-
-        <main className="space-y-6">
-          <Panel icon={BarChart3} title="Course Grade Planner" description="Adjust projected assignment or exam scores to simulate final course grades.">
-            <div className="grid gap-4 lg:grid-cols-3">
-              {projectedCourses.map((course) => (
-                <article key={course.id} className="rounded border border-slate-200 bg-slate-50 p-4">
-                  <div className="mb-4">
-                    <p className="text-xs font-black uppercase tracking-wide text-slate-500">{course.code}</p>
-                    <h3 className="text-lg font-bold text-slate-900">{course.name}</h3>
-                    <p className="mt-1 text-xs text-slate-600">Potential range: {course.lowRange}% - {course.highRange}%</p>
-                  </div>
-
-                  <div className="mb-4 grid grid-cols-2 gap-3">
-                    <div className="rounded bg-white p-3">
-                      <p className="text-xs font-bold text-slate-500">Current</p>
-                      <p className="text-2xl font-black text-slate-900">{course.currentGrade}%</p>
-                    </div>
-                    <div className="rounded bg-white p-3">
-                      <p className="text-xs font-bold text-slate-500">Projected</p>
-                      <p className="text-2xl font-black text-blue-700">{course.projectedGrade}%</p>
-                    </div>
-                  </div>
-
-                  <label className="text-sm font-bold text-slate-700" htmlFor={`${course.id}-score`}>
-                    {course.scoreLabel}: {course.projectedScore}%
-                  </label>
-                  <input
-                    id={`${course.id}-score`}
-                    type="range"
-                    min="50"
-                    max="100"
-                    value={course.projectedScore}
-                    onChange={(event) => updateProjectedScore(course.id, Number(event.target.value))}
-                    className={cn("mt-2 w-full accent-blue-600", FOCUS_RING)}
-                  />
-                  <input
-                    aria-label={`${course.name} projected score`}
-                    type="number"
-                    min="50"
-                    max="100"
-                    value={course.projectedScore}
-                    onChange={(event) => updateProjectedScore(course.id, clampScore(Number(event.target.value)))}
-                    className={cn("mt-3 w-full rounded border border-slate-200 px-3 py-2 text-sm", FOCUS_RING)}
-                  />
-                </article>
+        <aside className="space-y-6">
+          <Panel icon={Sparkles} title="Prompt Starters" description="Click one to send it to Comet AI.">
+            <div className="space-y-2">
+              {PROMPT_STARTERS.map((starter) => (
+                <button
+                  key={starter}
+                  type="button"
+                  onClick={() => submitPrompt(starter)}
+                  disabled={isAssistantTyping}
+                  className={cn(
+                    "w-full rounded border border-slate-200 bg-white px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60",
+                    FOCUS_RING,
+                  )}
+                >
+                  {starter}
+                </button>
               ))}
             </div>
           </Panel>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Panel icon={AlertCircle} title="Rule-Based Success Alerts" description="Supportive alerts from local mock conditions.">
-              <div className="space-y-3">
-                {alerts.map((alert) => (
-                  <div key={alert} className="rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-                    <p className="font-bold">{alert}</p>
-                  </div>
-                ))}
-              </div>
-            </Panel>
+          <Panel icon={Target} title="Current Context" description="Local course signals Comet AI can reference.">
+            <div className="space-y-3">
+              <ContextRow label="Highest priority" value={`${COURSES[0].deadline} (${COURSES[0].dueSignal})`} />
+              <ContextRow label="Needs attention" value={`${courseNeedingAttention.name}: ${courseNeedingAttention.projectedGrade}% projected`} />
+              <ContextRow label="Projected GPA" value={projectedGpa} />
+              <ContextRow label="Next quiz or exam" value={COURSES[2].nextAssessment} />
+              <ContextRow label="Unread signal" value="2 new feedback/message items" />
+            </div>
+          </Panel>
+        </aside>
+      </section>
 
-            <Panel icon={ListChecks} title="Study Plan Generator" description="Curates tasks from upcoming deadlines and weaker areas.">
-              <button
-                type="button"
-                onClick={generateStudyPlan}
-                className={cn("inline-flex items-center gap-2 rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700", FOCUS_RING)}
-              >
-                <Sparkles className="h-4 w-4" />
-                Generate Study Plan
-              </button>
-              <button
-                type="button"
-                onClick={copyStudyPlan}
-                className={cn("ml-2 mt-2 inline-flex items-center gap-2 rounded border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 sm:mt-0", FOCUS_RING)}
-              >
-                <Copy className="h-4 w-4" />
-                Copy Study Plan
-              </button>
-              <ol className="mt-4 space-y-2 text-sm text-slate-700" aria-live="polite">
-                {(studyPlan.length ? studyPlan : ["Generate a playlist to see recommended tasks."]).map((task, index) => (
-                  <li key={task} className="flex gap-2 rounded border border-slate-200 bg-slate-50 p-3">
-                    {studyPlan.length > 0 && <span className="font-black text-slate-900">{index + 1}.</span>}
-                    <span>{task}</span>
-                  </li>
-                ))}
-              </ol>
-            </Panel>
+      <section className="grid gap-3 md:grid-cols-4" aria-label="Comet AI overview">
+        <MetricCard icon={GraduationCap} label="Current GPA" value={currentGpa.toFixed(2)} detail="Mock academic snapshot" />
+        <MetricCard icon={TrendingUp} label="Projected GPA" value={projectedGpa} detail="Updates from local sliders" />
+        <MetricCard icon={AlertCircle} label="Courses To Watch" value="2" detail="Database and Networks" />
+        <MetricCard icon={CalendarClock} label="High Priority" value="3" detail="Next 72 hours" />
+      </section>
+
+      <main className="space-y-6">
+        <Panel icon={ListChecks} title="Generated Study Plan" description="Structured plan from Comet AI's local rules.">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => submitPrompt("Build Study Plan", "Build Study Plan")}
+              className={cn("inline-flex items-center gap-2 rounded bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800", FOCUS_RING)}
+            >
+              <Sparkles className="h-4 w-4" />
+              Build Study Plan
+            </button>
+            <button
+              type="button"
+              onClick={copyStudyPlan}
+              className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}
+            >
+              <Copy className="h-4 w-4" />
+              Copy Study Plan
+            </button>
+            <button
+              type="button"
+              onClick={downloadStudyPlan}
+              className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}
+            >
+              <Download className="h-4 w-4" />
+              Download .txt
+            </button>
           </div>
+          <pre className="mt-4 max-h-[420px] overflow-auto whitespace-pre-wrap rounded border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+            {studyPlan}
+          </pre>
+        </Panel>
 
-          <Panel icon={Clock} title="Time Management Strategies" description="Suggested study blocks for the next focused session.">
-            <div className="grid gap-3 md:grid-cols-3">
-              {TIME_BLOCKS.map((block) => (
+        <Panel icon={BarChart3} title="Course Grade Planner" description="Adjust mock scores to see local projected course grades.">
+          <div className="grid gap-4 lg:grid-cols-3">
+            {projectedCourses.map((course) => (
+              <article key={course.id} className="rounded border border-slate-200 bg-slate-50 p-4">
+                <div className="mb-4">
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">{course.code}</p>
+                  <h3 className="text-lg font-bold text-slate-900">{course.name}</h3>
+                  <p className="mt-1 text-xs text-slate-600">Potential range: {course.lowRange}% - {course.highRange}%</p>
+                </div>
+
+                <div className="mb-4 grid grid-cols-2 gap-3">
+                  <div className="rounded bg-white p-3">
+                    <p className="text-xs font-bold text-slate-500">Current</p>
+                    <p className="text-2xl font-black text-slate-900">{course.currentGrade}%</p>
+                  </div>
+                  <div className="rounded bg-white p-3">
+                    <p className="text-xs font-bold text-slate-500">Projected</p>
+                    <p className="text-2xl font-black text-cyan-700">{course.projectedGrade}%</p>
+                  </div>
+                </div>
+
+                <label className="text-sm font-bold text-slate-700" htmlFor={`${course.id}-score`}>
+                  {course.scoreLabel}: {course.projectedScore}%
+                </label>
+                <input
+                  id={`${course.id}-score`}
+                  type="range"
+                  min="50"
+                  max="100"
+                  value={course.projectedScore}
+                  onChange={(event) => updateProjectedScore(course.id, Number(event.target.value))}
+                  className={cn("mt-2 w-full accent-cyan-600", FOCUS_RING)}
+                />
+                <input
+                  aria-label={`${course.name} projected score`}
+                  type="number"
+                  min="50"
+                  max="100"
+                  value={course.projectedScore}
+                  onChange={(event) => updateProjectedScore(course.id, clampScore(Number(event.target.value)))}
+                  className={cn("mt-3 w-full rounded border border-slate-200 px-3 py-2 text-sm", FOCUS_RING)}
+                />
+              </article>
+            ))}
+          </div>
+        </Panel>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Panel icon={AlertCircle} title="Planning Alerts" description="Supportive signals from local mock conditions.">
+            <div className="space-y-3">
+              {alerts.map((alert) => (
+                <div key={alert} className="rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+                  <p className="font-bold">{alert}</p>
+                </div>
+              ))}
+            </div>
+          </Panel>
+
+          <Panel icon={Clock} title="Time Blocks" description="Short focused sessions for the next study window.">
+            <div className="space-y-3">
+              {[
+                "45 minutes: Database Systems normalization, joins, and ACID practice.",
+                "30 minutes: Software Engineering UML sequence diagram and traceability cleanup.",
+                "25 minutes: Computer Networks subnetting drills and TCP reliability review.",
+              ].map((block) => (
                 <div key={block} className="rounded border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-700">
                   {block}
                 </div>
               ))}
             </div>
           </Panel>
-        </main>
-
-      </div>
+        </div>
+      </main>
     </div>
   );
+}
+
+function CometChatPanel({
+  messages,
+  isAssistantTyping,
+  suggestions,
+  chatInput,
+  copyNotice,
+  setChatInput,
+  submitPrompt,
+  sendMessage,
+  handleChatKeyDown,
+  copyLatestResponse,
+  copyStudyPlan,
+  downloadStudyPlan,
+  resetChat,
+  chatEndRef,
+}: {
+  messages: ChatMessage[];
+  isAssistantTyping: boolean;
+  suggestions: string[];
+  chatInput: string;
+  copyNotice: string;
+  setChatInput: (value: string) => void;
+  submitPrompt: (prompt: string, quickAction?: string) => void;
+  sendMessage: (event: FormEvent) => void;
+  handleChatKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
+  copyLatestResponse: () => void;
+  copyStudyPlan: () => void;
+  downloadStudyPlan: () => void;
+  resetChat: () => void;
+  chatEndRef: RefObject<HTMLDivElement>;
+}) {
+  return (
+    <section className="rounded border border-slate-200 bg-white shadow-sm" aria-labelledby="comet-chat-title">
+      <div className="border-b border-slate-200 p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded bg-slate-950 text-cyan-300">
+              <Bot className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 id="comet-chat-title" className="text-xl font-black text-slate-950">Chat With Comet AI</h3>
+              <p className="text-xs font-semibold text-slate-500">
+                {isAssistantTyping ? "Comet AI is thinking..." : "Ready with local course context"}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={copyLatestResponse} className={iconButtonClass()} title="Copy latest response" aria-label="Copy latest response">
+              <Copy className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={resetChat} className={iconButtonClass()} title="Reset chat" aria-label="Reset chat">
+              <RotateCcw className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2" aria-label="Comet AI quick actions">
+          {QUICK_ACTIONS.map((action) => (
+            <button
+              key={action}
+              type="button"
+              onClick={() => submitPrompt(action, action)}
+              disabled={isAssistantTyping}
+              className={cn(
+                "rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:border-cyan-200 hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60",
+                FOCUS_RING,
+              )}
+            >
+              {action}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div
+        className="h-[560px] overflow-y-auto bg-gradient-to-b from-slate-50 to-white p-4 sm:p-5"
+        aria-live="polite"
+        aria-label="Comet AI chat history"
+      >
+        <div className="space-y-4">
+          {messages.map((message) => {
+            const isUser = message.sender === "You";
+            return (
+              <article key={message.id} className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
+                {!isUser && (
+                  <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-slate-950 text-cyan-300">
+                    <Sparkles className="h-4 w-4" />
+                  </div>
+                )}
+                <div className={cn("max-w-[86%] sm:max-w-[74%]", isUser && "text-right")}>
+                  <div
+                    className={cn(
+                      "rounded px-4 py-3 text-left text-sm leading-relaxed shadow-sm",
+                      isUser
+                        ? "bg-cyan-600 text-white"
+                        : "border border-slate-200 bg-white text-slate-700",
+                    )}
+                  >
+                    <p className="mb-1 text-xs font-black opacity-80">{message.sender}</p>
+                    <p className="whitespace-pre-line">{message.body}</p>
+                  </div>
+                  <p className="mt-1 text-xs font-medium text-slate-500">{message.time}</p>
+                </div>
+              </article>
+            );
+          })}
+          {isAssistantTyping && messages[messages.length - 1]?.sender !== "Comet AI" && (
+            <div className="flex gap-3" role="status" aria-live="polite">
+              <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-slate-950 text-cyan-300">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div className="rounded border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+                <p className="mb-2 text-xs font-black">Comet AI</p>
+                <span className="inline-flex items-center gap-1" aria-label="Comet AI is typing">
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-600" />
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-600 [animation-delay:120ms]" />
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-600 [animation-delay:240ms]" />
+                </span>
+              </div>
+            </div>
+          )}
+          <div ref={chatEndRef} />
+        </div>
+      </div>
+
+      <div className="border-t border-slate-200 p-4 sm:p-5">
+        {suggestions.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2" aria-label="Suggested follow-up prompts">
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                onClick={() => submitPrompt(suggestion)}
+                disabled={isAssistantTyping}
+                className={cn("rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-bold text-cyan-900 hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-60", FOCUS_RING)}
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={sendMessage}>
+          <label className="sr-only" htmlFor="comet-chat-input">Ask Comet AI</label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <textarea
+              id="comet-chat-input"
+              value={chatInput}
+              onChange={(event) => setChatInput(event.target.value)}
+              onKeyDown={handleChatKeyDown}
+              placeholder="Ask about grades, deadlines, quizzes, course topics, or what to do next..."
+              rows={3}
+              className={cn("min-w-0 flex-1 resize-none rounded border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400", FOCUS_RING)}
+            />
+            <button
+              type="submit"
+              disabled={!chatInput.trim() || isAssistantTyping}
+              className={cn(
+                "inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm font-black sm:w-32",
+                FOCUS_RING,
+                chatInput.trim() && !isAssistantTyping
+                  ? "bg-slate-950 text-white hover:bg-slate-800"
+                  : "cursor-not-allowed bg-slate-200 text-slate-400",
+              )}
+            >
+              <Send className="h-4 w-4" />
+              Send
+            </button>
+          </div>
+        </form>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" onClick={copyStudyPlan} className={smallButtonClass()}>
+            <Copy className="h-3.5 w-3.5" />
+            Copy Study Plan
+          </button>
+          <button type="button" onClick={downloadStudyPlan} className={smallButtonClass()}>
+            <Download className="h-3.5 w-3.5" />
+            Download Study Plan
+          </button>
+        </div>
+        {copyNotice && (
+          <p className="mt-2 text-xs font-bold text-emerald-700" role="status" aria-live="polite">
+            {copyNotice}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function getRuleBasedResponse(
+  prompt: string,
+  context: { memory: SessionMemory; courses: Array<CoursePlan & { projectedGrade: number }>; projectedGpa: string },
+): AssistantResponse {
+  const normalized = prompt.toLowerCase();
+  const courseId = detectCourse(normalized) ?? context.memory.lastCourseId;
+  const course = courseId ? context.courses.find((item) => item.id === courseId) : undefined;
+  const isShorterFollowUp = /\b(shorter|simpler|condense|brief|quick version|make it shorter)\b/.test(normalized);
+
+  if (isShorterFollowUp && context.memory.lastSelectedTopic) {
+    return {
+      body: `Quick read\nHere is the shorter version for ${course?.name ?? context.memory.lastSelectedTopic}: do the nearest deadline first, then one targeted practice block, then send one question if you are still stuck.\n\nRecommended next steps\n1. Work 25 minutes on the highest-risk topic.\n2. Mark one thing you still cannot explain.\n3. Ask Comet AI for a drill or message draft.\n\nSuggested follow-up\nWant a 25-minute checklist or a professor message draft?`,
+      suggestions: ["Make a 25-minute checklist", "Message My Professor", "Explain Weak Topics", "Build Study Plan"],
+      topic: context.memory.lastSelectedTopic,
+      courseId,
+    };
+  }
+
+  if (/\b(hi|hello|hey|howdy|good morning|good afternoon|good evening)\b/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nHi, I am Comet AI. I can help you decide what to study, plan your week, understand grades, prepare for quizzes and exams, or draft a message to an instructor.\n\nRecommended next steps\n1. Start with the closest deadline if you are short on time.\n2. Start with Database Systems if your goal is grade improvement.\n3. Start with a weekly plan if everything feels scattered.\n\nSuggested follow-up\nAsk: What should I study tonight?",
+      suggestions: ["What should I study tonight?", "Build Study Plan", "Improve My Grade", "What can you do?"],
+      topic: "greeting",
+    };
+  }
+
+  if (/(what can you do|how do you work|what do you help)/.test(normalized) || /^(help|i need help)[.!?\s]*$/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nI help with local LMS-style course planning: grades, deadlines, quizzes, exams, course topics, communication, accessibility settings, and time management.\n\nRecommended next steps\n1. Tell me your goal: raise a grade, prepare for an exam, finish due work, or get unstuck.\n2. Mention a course if you have one in mind.\n3. I will turn that into a short, practical plan.\n\nWhy this matters\nA useful assistant should reduce choices, not add another dashboard to manage.\n\nSuggested follow-up\nTry: Prioritize This Week.",
+      suggestions: ["Prioritize This Week", "Review Deadlines", "Prep for Exam", "Accessibility Help"],
+      topic: "help",
+    };
+  }
+
+  if (/(overwhelmed|confused|stuck|panic|anxious|too much|motivation|unmotivated|burned out)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nYou do not need to solve the whole week right now. The next useful move is one small task that removes pressure.\n\nRecommended next steps\n1. Set a 25-minute timer.\n2. Work only on Network Protocol Analysis if the deadline is still open.\n3. If that is blocked, switch to Database Systems and do five normalization questions.\n4. Write one question for office hours or a classmate.\n\nWhy this matters\nOverwhelm usually gets worse when every task has equal weight. We are shrinking the field to one visible action.\n\nSuggested follow-up\nAsk me to time block your day or draft a professor message.",
+      suggestions: ["Time Block My Day", "Message My Professor", "What should I do next?", "Make it shorter"],
+      topic: "overwhelm",
+    };
+  }
+
+  if (/(study plan|make a plan|build study plan|plan for this week|schedule|time block|study tonight|prioritize|what should i do next|summarize my week|this week)/.test(normalized)) {
+    const plan = buildStudyPlan(context.courses);
+    return {
+      body: `${plan}\n\nWhy this matters\nThis order protects the nearest deadline, then moves to the highest grade-risk course, then keeps Software Engineering from becoming a last-minute scramble.\n\nSuggested follow-up\nI can make this shorter, turn it into a 25-minute checklist, or draft a message to your professor.`,
+      suggestions: ["Make it shorter", "Improve My Grade", "Message My Professor", "Prep for Exam"],
+      generatedPlan: plan,
+      topic: "study plan",
+    };
+  }
+
+  if (/(grade|gpa|projected gpa|final grade|what do i need|need to get an a|score do i need|improve my grade|lowest grade|grade risk|raise my gpa)/.test(normalized)) {
+    const database = context.courses.find((item) => item.id === "database");
+    return {
+      body: `Quick read\nYour projected GPA is ${context.projectedGpa}. The best grade-improvement target is Database Systems because it has the lowest projected course grade and a high-weight midterm.\n\nRecommended next steps\n1. Aim for 88% or higher on the Database Systems midterm to move the course toward the A range.\n2. Protect Computer Networks by submitting the protocol analysis before extra review work.\n3. Keep Software Engineering above 90% by finishing the UML and traceability pieces early.\n\nWhy this matters\nThe fastest GPA lift usually comes from the course with the biggest score gap and the highest remaining assessment weight.\n\nSuggested follow-up\nAsk what score you need in ${database?.name ?? "Database Systems"} or use the sliders below to test outcomes.`,
+      suggestions: ["What score do I need for an A?", "Help with Database Systems", "Build Study Plan", "Lowest grade risk"],
+      topic: "grades",
+      courseId: "database",
+    };
+  }
+
+  if (/(deadline|due|overdue|today|tomorrow|upcoming assignments|calendar|review deadlines)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nThe highest priority deadline is Network Protocol Analysis due tonight. Tomorrow belongs to Software Engineering, and Database Systems needs steady exam prep over the next three days.\n\nRecommended next steps\n1. Finish Computer Networks submission work first.\n2. Put a 30-minute Software Engineering block on tomorrow's calendar.\n3. Reserve two Database Systems practice sessions before the midterm.\n\nWhy this matters\nDeadline planning works best when due work and exam prep are both visible.\n\nSuggested follow-up\nAsk me to time block your day.",
+      suggestions: ["Time Block My Day", "Build Study Plan", "Prep for Exam", "Message My Professor"],
+      topic: "deadlines",
+    };
+  }
+
+  if (/(quiz|exam|midterm|final|time limit|attempts|focus mode|study for quiz|prepare for exam|prep for quiz|prep for exam)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nPrep should start with retrieval practice, not rereading. Database Systems is the nearest exam target, while Computer Networks is the likely quiz target.\n\nRecommended next steps\n1. Database Systems: practice normalization, joins, keys, transactions, ACID, and indexing.\n2. Computer Networks: drill TCP vs UDP, IP addressing, DNS, subnetting, OSI layers, routing, packets, and protocols.\n3. Use focus mode habits: one tab, timer visible, scratch notes ready.\n\nWhy this matters\nTimed assessments reward fast recall and error correction more than passive review.\n\nSuggested follow-up\nAsk for a Database Systems practice order or a Computer Networks quiz drill.",
+      suggestions: ["Help with Database Systems", "Help with Computer Networks", "Time Block My Day", "Improve My Grade"],
+      topic: "quiz and exam prep",
+      courseId: courseId ?? "database",
+    };
+  }
+
+  if (courseId) {
+    return buildCourseResponse(courseId);
+  }
+
+  if (/(message professor|ask professor|ask instructor|study group|classmates|help desk|office hours|email professor)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nA good academic message is specific, short, and easy to answer.\n\nRecommended next steps\n1. Name the course and assignment or topic.\n2. Say what you already tried.\n3. Ask one concrete question.\n4. Include your availability for office hours or study group work.\n\nSuggested message\nHello Professor, I am working on the current assignment and got stuck on one part after reviewing the notes. Could you clarify the expected approach for [topic]? I can attend office hours or send my current draft if helpful.\n\nSuggested follow-up\nTell me the course and I will tailor the message.",
+      suggestions: ["Tailor for Database Systems", "Tailor for Software Engineering", "Tailor for Computer Networks", "Review Deadlines"],
+      topic: "communication",
+    };
+  }
+
+  if (/(high contrast|dyslexia font|font size|focus|keyboard|captions|accessibility|settings)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nAccessibility support is about reducing friction before the study session starts.\n\nRecommended next steps\n1. Use high contrast if text or status colors feel hard to scan.\n2. Increase font size for long readings and quiz review.\n3. Use keyboard navigation for repeated LMS actions.\n4. Turn on captions or transcripts for recorded lectures when available.\n5. Use focus mode habits: one task, timer, and notifications minimized.\n\nWhy this matters\nSmall settings changes can lower fatigue and improve accuracy during quizzes, reading, and submissions.\n\nSuggested follow-up\nAsk me for a focus-mode setup for tonight.",
+      suggestions: ["Focus-mode setup", "Time Block My Day", "Prep for Quiz", "What should I do next?"],
+      topic: "accessibility",
+    };
+  }
+
+  if (/(weak topic|weak area|explain weak|what am i weak)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nYour weak-topic map points to three different study modes: practice problems for Database Systems, diagram cleanup for Software Engineering, and drills for Computer Networks.\n\nRecommended next steps\n1. Database Systems: normalization, joins, keys, ACID, and indexing.\n2. Software Engineering: requirements, user stories, UML, testing, traceability, and sprint artifacts.\n3. Computer Networks: TCP, UDP, IP, DNS, subnetting, OSI, routing, packets, and protocols.\n\nWhy this matters\nWeak topics improve faster when you choose the right practice format instead of rereading everything.\n\nSuggested follow-up\nPick one course and I will make a short drill.",
+      suggestions: ["Help with Database Systems", "Help with Software Engineering", "Help with Computer Networks", "Build Study Plan"],
+      topic: "weak topics",
+    };
+  }
+
+  return {
+    body:
+      "Quick read\nI can help with grades, deadlines, quizzes, course topics, communication, accessibility, or study planning.\n\nRecommended next steps\n1. Pick one area: grades, deadlines, quizzes, or a course.\n2. If you are unsure, start with: What should I do next?\n3. If you have a course in mind, mention Computer Networks, Software Engineering, or Database Systems.\n\nSuggested follow-up\nWhich one should we work on first?",
+    suggestions: ["What should I do next?", "Help with Database Systems", "Improve My Grade", "Review Deadlines"],
+    topic: "fallback",
+  };
+}
+
+function buildCourseResponse(courseId: CourseId): AssistantResponse {
+  if (courseId === "database") {
+    return {
+      body:
+        "Quick read\nDatabase Systems should be your main grade-improvement course right now.\n\nRecommended next steps\n1. Review normalization in order: 1NF, 2NF, then 3NF.\n2. Practice joins with expected row counts before writing SQL from memory.\n3. Recheck keys, ER diagrams, transactions, ACID, and indexing.\n4. End with a short mixed quiz so you can find weak spots.\n\nWhy this matters\nDatabase questions often combine definitions with applied schema reasoning, so practice order matters.\n\nSuggested follow-up\nAsk for a 30-minute Database Systems drill.",
+      suggestions: ["30-minute Database drill", "Prep for Exam", "Improve My Grade", "Make it shorter"],
+      topic: "Database Systems",
+      courseId: "database",
+    };
+  }
+
+  if (courseId === "software") {
+    return {
+      body:
+        "Quick read\nSoftware Engineering needs a clean milestone workflow more than raw memorization.\n\nRecommended next steps\n1. Confirm requirements and user stories.\n2. Sketch the UML or sequence diagram before polishing text.\n3. Link each story to acceptance criteria and testing notes.\n4. Check traceability before submission.\n\nWhy this matters\nAgile, scrum, architecture, testing, and traceability questions usually reward clear relationships between artifacts.\n\nSuggested follow-up\nAsk me to turn one user story into a traceability checklist.",
+      suggestions: ["Traceability checklist", "Message My Professor", "Build Study Plan", "Review Deadlines"],
+      topic: "Software Engineering",
+      courseId: "software",
+    };
+  }
+
+  return {
+    body:
+      "Quick read\nComputer Networks is your urgent deadline course right now.\n\nRecommended next steps\n1. Finish the packet/protocol analysis before optional review.\n2. Drill TCP vs UDP, IP, DNS, subnetting, OSI, routing, packets, and protocols.\n3. For subnetting, write each step instead of doing it mentally.\n4. For TCP, focus on reliability, retransmission, and ordering.\n\nWhy this matters\nNetwork topics become easier when you connect packet behavior to protocol purpose.\n\nSuggested follow-up\nAsk for a subnetting drill or TCP vs UDP comparison.",
+    suggestions: ["Subnetting drill", "TCP vs UDP comparison", "Review Deadlines", "Prep for Quiz"],
+    topic: "Computer Networks",
+    courseId: "networks",
+  };
+}
+
+function detectCourse(normalized: string): CourseId | undefined {
+  if (/(database|sql|normalization|1nf|2nf|3nf|joins?|keys?|er diagram|transaction|acid|indexing)/.test(normalized)) return "database";
+  if (/(software engineering|requirements?|user stor|agile|scrum|uml|sequence diagram|architecture|testing|traceability|sprint)/.test(normalized)) return "software";
+  if (/(computer networks|networks|tcp|udp|ip\b|dns|subnet|osi|routing|packet|protocol)/.test(normalized)) return "networks";
+  return undefined;
+}
+
+function buildStudyPlan(courses: Array<CoursePlan & Partial<{ projectedGrade: number }>>) {
+  const database = courses.find((course) => course.id === "database") ?? COURSES[2];
+  const software = courses.find((course) => course.id === "software") ?? COURSES[1];
+  const networks = courses.find((course) => course.id === "networks") ?? COURSES[0];
+
+  return `Quick read
+This plan protects urgent work first, then shifts into high-value exam and grade improvement.
+
+Today
+- Course focus: ${networks.name}
+- Estimated time: 25-45 minutes
+- Deliverable: finish ${networks.deadline}; review TCP/IP, DNS, packets, protocols, and subnetting notes.
+
+Tomorrow
+- Course focus: ${software.name}
+- Estimated time: 30-45 minutes
+- Deliverable: complete UML or sequence diagram cleanup and connect requirements to testing or traceability.
+
+This week
+- Course focus: ${database.name}
+- Estimated time: 2 focused blocks of 45 minutes
+- Deliverable: practice normalization from 1NF to 3NF, SQL joins, keys, ER diagrams, transactions, ACID, and indexing.
+
+Course focus order
+1. ${networks.name}: nearest deadline.
+2. ${database.name}: strongest grade-improvement opportunity.
+3. ${software.name}: project quality and milestone polish.
+
+Suggested follow-up
+Ask Comet AI to make this shorter, time block your day, or prep you for the Database Systems exam.`;
 }
 
 function calculateProjectedGrade(course: CoursePlan) {
@@ -428,10 +921,10 @@ function generateAlerts(courses: Array<CoursePlan & { projectedGrade: number }>)
   const alerts: string[] = [];
   const database = courses.find((course) => course.id === "database");
   if (database && database.projectedGrade < 86) {
-    alerts.push("Database Systems may benefit from an extra review block before the midterm.");
+    alerts.push("Database Systems is the strongest grade-risk signal; schedule an extra review block before the midterm.");
   }
-  alerts.push("Software Engineering has a project milestone soon; schedule UML and traceability work before final polishing.");
-  alerts.push("Computer Networks has an immediate deadline; finish protocol analysis before starting lower-priority review.");
+  alerts.push("Computer Networks has the nearest deadline; finish protocol analysis before lower-priority review.");
+  alerts.push("Software Engineering has a milestone soon; handle UML and traceability before final polishing.");
   return alerts;
 }
 
@@ -452,110 +945,52 @@ async function copyText(text: string) {
   document.body.removeChild(textArea);
 }
 
-function getRuleBasedResponse(prompt: string): AssistantResponse {
-  const normalized = prompt.toLowerCase();
+function getCurrentTime() {
+  return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date());
+}
 
-  if (/\b(hi|hello|hey|howdy|good morning|good afternoon)\b/.test(normalized)) {
-    return {
-      body:
-        "Hi! I can help you plan your study time, understand your grades, prioritize deadlines, or create a study plan.\n\nNext step:\n- Tell me which course or deadline you want to work on first.",
-      suggestions: ["Build my study plan", "What should I do next?", "How can I improve my GPA?", "Prioritize this week"],
-    };
-  }
+function iconButtonClass() {
+  return cn("inline-flex h-9 w-9 items-center justify-center rounded border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950", FOCUS_RING);
+}
 
-  if (/(grade|gpa|projection|projected|score|improve my gpa)/.test(normalized)) {
-    return {
-      body:
-        "Here’s what I recommend for your grade path:\n- Protect the high-weight Database Systems midterm by aiming for 85% or higher.\n- Finish the Computer Networks protocol analysis before lower-priority review.\n- Use the grade sliders to test best-case and realistic outcomes.\n\nNext step:\n- Simulate one course at a time, starting with Database Systems.",
-      suggestions: ["Prioritize this week", "Retake Options", "Help with Database Systems", "Build my study plan"],
-    };
-  }
+function smallButtonClass() {
+  return cn("inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50", FOCUS_RING);
+}
 
-  if (/(study plan|playlist|schedule|plan my study|study time)/.test(normalized)) {
-    return {
-      body:
-        "Study plan:\n1. Database Systems: review normalization and joins for 45 minutes.\n2. Software Engineering: draft the UML sequence diagram for 30 minutes.\n3. Computer Networks: practice subnetting and TCP/IP review for 25 minutes.\n\nNext step:\n- Generate the playlist so it appears in the study plan panel.",
-      suggestions: ["What should I do next?", "Help with Database Systems", "Help with Software Engineering", "Help with Computer Networks"],
-    };
-  }
+function CometContextCard({
+  projectedGpa,
+  courseNeedingAttention,
+  highestPriorityDeadline,
+  nextAssessment,
+}: {
+  projectedGpa: string;
+  courseNeedingAttention: string;
+  highestPriorityDeadline: string;
+  nextAssessment: string;
+}) {
+  return (
+    <div className="rounded border border-white/15 bg-white/10 p-4">
+      <h3 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wide text-cyan-100">
+        <Target className="h-4 w-4" />
+        Comet Context
+      </h3>
+      <div className="space-y-3">
+        <ContextRow inverted label="Highest priority" value={highestPriorityDeadline} />
+        <ContextRow inverted label="Course needing attention" value={courseNeedingAttention} />
+        <ContextRow inverted label="Current projected GPA" value={projectedGpa} />
+        <ContextRow inverted label="Next quiz or exam" value={nextAssessment} />
+      </div>
+    </div>
+  );
+}
 
-  if (/(priority|priorities|what should i do next|next|focus|this week)/.test(normalized)) {
-    return {
-      body:
-        "Priority order:\n1. Finish urgent due work first: Computer Networks protocol analysis.\n2. Review Database Systems normalization and joins before the exam.\n3. Polish Software Engineering UML and traceability notes.\n\nNext step:\n- Start with one 25-minute Networks block, then switch courses.",
-      suggestions: ["Build my study plan", "Deadlines this week", "How can I improve my GPA?", "I feel overwhelmed"],
-    };
-  }
-
-  if (/(deadline|due|late|calendar|upcoming)/.test(normalized)) {
-    return {
-      body:
-        "Upcoming deadline check:\n- Computer Networks analysis is the most urgent.\n- Software Engineering lab is next and needs UML work.\n- Database Systems midterm is soon, so review should start before the night before.\n\nNext step:\n- Reserve one block today for the closest deadline.",
-      suggestions: ["Prioritize this week", "Build my study plan", "Help with Computer Networks", "Help with Software Engineering"],
-    };
-  }
-
-  if (/(database|sql|normalization|normalisation|join|joins|acid|index|keys?)/.test(normalized)) {
-    return {
-      body:
-        "Database Systems focus:\n- Review 2NF and 3NF using one small schema.\n- Practice INNER JOIN vs LEFT JOIN with expected row counts.\n- Recheck keys, indexes, and ACID definitions.\n\nNext step:\n- Do 3 join questions before reading more notes.",
-      suggestions: ["Quiz or exam prep", "How can I improve my GPA?", "Build my study plan", "What should I do next?"],
-    };
-  }
-
-  if (/(software|uml|user stor|testing|requirement|scrum|agile|traceability)/.test(normalized)) {
-    return {
-      body:
-        "Software Engineering focus:\n- Draft the UML sequence diagram first.\n- Map each interaction to a user story and acceptance criteria.\n- Add a short testing note for the riskiest requirement.\n\nNext step:\n- Pick one user story and trace it from requirement to test.",
-      suggestions: ["Assignment help", "Prioritize this week", "Build my study plan", "How can I improve my GPA?"],
-    };
-  }
-
-  if (/(network|tcp|ip|subnet|subnetting|dns|packet|udp|protocol)/.test(normalized)) {
-    return {
-      body:
-        "Computer Networks focus:\n- Review TCP reliability, duplicate ACKs, and retransmissions.\n- Practice subnet-mask examples until the steps feel automatic.\n- Recheck DNS and transport-layer protocol differences.\n\nNext step:\n- Annotate the packet capture before polishing the written answer.",
-      suggestions: ["Assignment help", "Quiz or exam prep", "Prioritize this week", "Build my study plan"],
-    };
-  }
-
-  if (/(stress|overwhelmed|confused|stuck|panic|anxious|too much)/.test(normalized)) {
-    return {
-      body:
-        "Let’s make this smaller:\n1. Pick the nearest deadline only.\n2. Work for 20 minutes, then stop and reassess.\n3. Write down one question to ask your instructor or group.\n\nNext step:\n- Start with the task that removes the most immediate pressure.",
-      suggestions: ["What should I do next?", "Prioritize this week", "Build my study plan", "Deadlines this week"],
-    };
-  }
-
-  if (/(retake|redo|make up|makeup|attempt)/.test(normalized)) {
-    return {
-      body:
-        "Retake options:\n- Check each course policy before counting on a retake.\n- If a retake exists, use it where the assessment weight and score gap are largest.\n- Practice the missed topic before attempting again.\n\nNext step:\n- Compare the course with the lowest projected grade first.",
-      suggestions: ["Grade Path", "How can I improve my GPA?", "Quiz or exam prep", "Help with Database Systems"],
-    };
-  }
-
-  if (/(assignment|homework|project|lab|submit|submission)/.test(normalized)) {
-    return {
-      body:
-        "Assignment help:\n- Confirm the rubric and required format first.\n- Work backward from the due date into one drafting block and one review block.\n- Submit early enough to fix upload or formatting issues.\n\nNext step:\n- Tell me the course or assignment title you want to break down.",
-      suggestions: ["Help with Software Engineering", "Help with Computer Networks", "Deadlines this week", "Build my study plan"],
-    };
-  }
-
-  if (/(quiz|exam|test|midterm|final|prepare|prep)/.test(normalized)) {
-    return {
-      body:
-        "Quiz or exam prep:\n- Spend the first block on retrieval practice, not rereading.\n- Make a short miss list of topics you get wrong.\n- End with 5 minutes of formula or definition review.\n\nNext step:\n- Start with Database Systems if the midterm is your nearest exam.",
-      suggestions: ["Help with Database Systems", "How can I improve my GPA?", "Build my study plan", "What should I do next?"],
-    };
-  }
-
-  return {
-    body:
-      "Here’s a general way to move forward:\n- Do one urgent deadline block.\n- Do one weak-area review block.\n- Do one short confidence-building practice block.\n\nNext step:\n- Ask me about a course, GPA, deadlines, or a study plan.",
-    suggestions: DEFAULT_SUGGESTIONS,
-  };
+function ContextRow({ label, value, inverted = false }: { label: string; value: string; inverted?: boolean }) {
+  return (
+    <div className={cn("rounded border p-3", inverted ? "border-white/10 bg-slate-950/30" : "border-slate-200 bg-slate-50")}>
+      <p className={cn("text-xs font-black uppercase tracking-wide", inverted ? "text-cyan-100" : "text-slate-500")}>{label}</p>
+      <p className={cn("mt-1 text-sm font-semibold", inverted ? "text-white" : "text-slate-800")}>{value}</p>
+    </div>
+  );
 }
 
 function MetricCard({
@@ -571,143 +1006,13 @@ function MetricCard({
 }) {
   return (
     <article className="rounded border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded bg-slate-800 text-white">
+      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded bg-slate-900 text-cyan-300">
         <Icon className="h-4 w-4" />
       </div>
       <p className="text-xs font-black uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-2 text-3xl font-black text-slate-900">{value}</p>
       <p className="mt-1 text-xs text-slate-600">{detail}</p>
     </article>
-  );
-}
-
-function AssistantChatPanel({
-  messages,
-  isAssistantTyping,
-  suggestions,
-  chatInput,
-  copyNotice,
-  setChatInput,
-  submitPrompt,
-  sendMessage,
-  handleChatKeyDown,
-  copyLatestAssistantResponse,
-  resetChat,
-}: {
-  messages: ChatMessage[];
-  isAssistantTyping: boolean;
-  suggestions: string[];
-  chatInput: string;
-  copyNotice: string;
-  setChatInput: (value: string) => void;
-  submitPrompt: (prompt: string) => void;
-  sendMessage: (event: FormEvent) => void;
-  handleChatKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
-  copyLatestAssistantResponse: () => void;
-  resetChat: () => void;
-}) {
-  return (
-    <Panel icon={Sparkles} title="Mock Assistant Chat" description="Rule-based responses, no external model.">
-      <div className="mb-4 flex flex-wrap gap-2" aria-label="Assistant quick actions">
-        {QUICK_ACTIONS.map((action) => (
-          <button
-            key={action}
-            type="button"
-            onClick={() => submitPrompt(action)}
-            disabled={isAssistantTyping}
-            className={cn("rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}
-          >
-            {action}
-          </button>
-        ))}
-      </div>
-
-      <div className="h-[460px] overflow-y-auto rounded border border-slate-200 bg-slate-50 p-3" aria-live="polite" aria-label="Assistant chat history">
-        <div className="space-y-3">
-          {messages.map((message) => (
-            <article
-              key={message.id}
-              className={cn(
-                "rounded border p-3 text-sm",
-                message.sender === "You"
-                  ? "ml-8 border-blue-200 bg-blue-600 text-white"
-                  : "mr-8 border-slate-200 bg-white text-slate-700",
-              )}
-            >
-              <p className="mb-1 text-xs font-black">{message.sender}</p>
-              <p className="whitespace-pre-line leading-relaxed">{message.body}</p>
-            </article>
-          ))}
-          {isAssistantTyping && messages[messages.length - 1]?.sender !== "Assistant" && (
-            <div className="mr-8 rounded border border-slate-200 bg-white p-3 text-sm text-slate-700" role="status" aria-live="polite">
-              <p className="mb-1 text-xs font-black">Assistant</p>
-              <p>Assistant is typing...</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {suggestions.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2" aria-label="Follow-up suggestions">
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion}
-              type="button"
-              onClick={() => submitPrompt(suggestion)}
-              disabled={isAssistantTyping}
-              className={cn("rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-800 hover:bg-blue-100", FOCUS_RING)}
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button type="button" onClick={copyLatestAssistantResponse} className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}>
-          <Copy className="h-3.5 w-3.5" />
-          Copy latest response
-        </button>
-        <button type="button" onClick={resetChat} className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}>
-          <RotateCcw className="h-3.5 w-3.5" />
-          Reset chat
-        </button>
-      </div>
-      {copyNotice && (
-        <p className="mt-2 text-xs font-bold text-emerald-700" role="status" aria-live="polite">
-          {copyNotice}
-        </p>
-      )}
-
-      <form onSubmit={sendMessage} className="mt-4">
-        <label className="sr-only" htmlFor="ai-chat-input">Ask the student success assistant</label>
-        <div className="flex gap-2">
-          <textarea
-            id="ai-chat-input"
-            value={chatInput}
-            onChange={(event) => setChatInput(event.target.value)}
-            onKeyDown={handleChatKeyDown}
-            placeholder="Ask about grades, deadlines, study plans, or a course..."
-            rows={2}
-            className={cn("min-w-0 flex-1 resize-none rounded border border-slate-200 px-3 py-2 text-sm", FOCUS_RING)}
-          />
-          <button
-            type="submit"
-            disabled={!chatInput.trim() || isAssistantTyping}
-            className={cn(
-              "inline-flex items-center gap-2 rounded px-3 py-2 text-sm font-black",
-              FOCUS_RING,
-              chatInput.trim() && !isAssistantTyping
-                ? "bg-slate-800 text-white hover:bg-slate-900"
-                : "cursor-not-allowed bg-slate-200 text-slate-400",
-            )}
-          >
-            <Send className="h-4 w-4" />
-            Send
-          </button>
-        </div>
-      </form>
-    </Panel>
   );
 }
 

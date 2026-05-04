@@ -5,6 +5,7 @@ import {
   Bold,
   BookOpen,
   CheckCircle2,
+  Copy,
   FileText,
   GitBranch,
   Italic,
@@ -14,8 +15,11 @@ import {
   Printer,
   Send,
   ShieldCheck,
+  Upload,
   Users,
   Vote,
+  Lock,
+  Link as LinkIcon,
   type LucideIcon,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -68,12 +72,76 @@ const branchingChoices = [
   { choice: "Map assumptions as a team", outcome: "Opens the decision log checkpoint" },
 ];
 
+const uploadedFiles = [
+  { name: "Module-1-Slides.pdf", size: "4.2 MB", uploadedAt: "Today, 2:15 PM" },
+  { name: "Requirements-Template.docx", size: "1.8 MB", uploadedAt: "Yesterday, 11:30 AM" },
+  { name: "Assessment-Rubric.xlsx", size: "256 KB", uploadedAt: "May 1, 3:45 PM" },
+];
+
+const peerReviewAssignments = [
+  { assignment: "Sprint Retrospective", reviewer: "Jordan Patel", reviewee: "Maya Chen", status: "Pending" },
+  { assignment: "Design Document", reviewer: "Noah Williams", reviewee: "Avery Johnson", status: "Submitted" },
+  { assignment: "Test Plan Review", reviewer: "Sofia Garcia", reviewee: "Ethan Brooks", status: "Pending" },
+  { assignment: "Code Architecture", reviewer: "Maya Chen", reviewee: "Jordan Patel", status: "Submitted" },
+];
+
+const conditionalItems = [
+  { id: "item-1", name: "Requirements Kickoff", unlocks: [], type: "Module" },
+  { id: "item-2", name: "User Stories Exercise", unlocks: ["item-3"], type: "Assignment", unlockedBy: "item-1" },
+  { id: "item-3", name: "Acceptance Criteria Workshop", unlocks: ["item-4"], type: "Module", unlockedBy: "item-2" },
+  { id: "item-4", name: "Final Requirements Document", unlocks: [], type: "Assignment", unlockedBy: "item-3" },
+];
+
+const previousCourses = [
+  { name: "CS 3354.001 - Fall 2025", modules: 8, lastOffered: "Fall 2025" },
+  { name: "CS 3354.002 - Spring 2025", modules: 8, lastOffered: "Spring 2025" },
+  { name: "CS 2340 - Software Engineering - Fall 2024", modules: 12, lastOffered: "Fall 2024" },
+];
+
 export function InstructorDashboardPage() {
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [badgeColor, setBadgeColor] = useState("bg-blue-600");
+  const [uploadedFileList, setUploadedFileList] = useState(uploadedFiles);
+  const [dragActive, setDragActive] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<typeof previousCourses[0] | null>(null);
 
   const formatEditor = (command: "bold" | "italic" | "insertUnorderedList") => {
     document.execCommand(command);
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const files = Array.from(e.dataTransfer.files);
+      files.forEach((file) => {
+        const newFile = {
+          name: file.name,
+          size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+          uploadedAt: "Just now",
+        };
+        setUploadedFileList((prev) => [newFile, ...prev]);
+      });
+    }
+  };
+
+  const cloneCourse = () => {
+    if (selectedCourse) {
+      alert(`Cloning "${selectedCourse.name}" with ${selectedCourse.modules} modules. This will copy all materials to the new semester.`);
+      setSelectedCourse(null);
+    }
   };
 
   return (
@@ -233,6 +301,38 @@ export function InstructorDashboardPage() {
               </div>
             </div>
           </FeatureCard>
+
+          <FeatureCard icon={Upload} title="FR-31 Drag-and-Drop File Uploader" eyebrow="Module materials">
+            <div className="space-y-4">
+              <div
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+                className={cn(
+                  "rounded border-2 border-dashed p-8 text-center transition-colors",
+                  dragActive
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
+                    : "border-slate-300 bg-slate-50 dark:border-slate-700 dark:bg-slate-800"
+                )}
+              >
+                <Upload className={cn("mx-auto h-8 w-8 mb-2", dragActive ? "text-blue-600" : "text-slate-400")} aria-hidden="true" />
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Drag and drop files here</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">or click to browse</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-black uppercase tracking-wide text-slate-500">Recent uploads</p>
+                {uploadedFileList.map((file) => (
+                  <div key={file.name} className="flex items-center justify-between rounded border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800">
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{file.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{file.size} • {file.uploadedAt}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FeatureCard>
         </div>
 
         <FeatureCard icon={Users} title="FR-27 Printable Rosters" eyebrow="Class list">
@@ -258,6 +358,121 @@ export function InstructorDashboardPage() {
             ))}
           </div>
         </FeatureCard>
+
+        <div className="grid gap-6 xl:grid-cols-2">
+          <FeatureCard icon={LinkIcon} title="FR-20 Conditional Availability" eyebrow="Item unlocking">
+            <div className="space-y-4">
+              <p className="text-sm text-slate-600 dark:text-slate-400">Set prerequisites: students must complete Item A to unlock Item B.</p>
+              <div className="space-y-3">
+                {conditionalItems.map((item) => (
+                  <div key={item.id} className="rounded border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-slate-200 dark:bg-slate-700">
+                        {item.unlockedBy ? <Lock className="h-4 w-4 text-slate-600 dark:text-slate-400" /> : <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{item.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{item.type}</p>
+                        {item.unlockedBy && (
+                          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 flex items-center gap-1">
+                            <Lock className="h-3 w-3" /> Unlocked by: {conditionalItems.find(i => i.id === item.unlockedBy)?.name}
+                          </p>
+                        )}
+                        {item.unlocks.length > 0 && (
+                          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
+                            <LinkIcon className="h-3 w-3" /> Unlocks: {item.unlocks.map(id => conditionalItems.find(i => i.id === id)?.name).join(", ")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </FeatureCard>
+
+          <FeatureCard icon={Users} title="FR-22 Peer Review Assignments" eyebrow="Random allocation">
+            <div className="space-y-4">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">
+                Assignment
+                <select className={inputClass}>
+                  <option>Sprint Retrospective</option>
+                  <option>Design Document</option>
+                  <option>Test Plan Review</option>
+                </select>
+              </label>
+              <button type="button" className={primaryButton}>
+                <Users className="h-4 w-4" aria-hidden="true" />
+                Auto-allocate Reviewers
+              </button>
+              <div className="overflow-hidden rounded border border-slate-200 dark:border-slate-700">
+                <table className="w-full min-w-[28rem] text-left text-sm">
+                  <thead className="bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-800">
+                    <tr>
+                      <th className="px-3 py-2">Reviewer</th>
+                      <th className="px-3 py-2">Reviewee</th>
+                      <th className="px-3 py-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    {peerReviewAssignments.map((row) => (
+                      <tr key={`${row.reviewer}-${row.reviewee}`}>
+                        <td className="px-3 py-3 font-semibold text-slate-900 dark:text-white">{row.reviewer}</td>
+                        <td className="px-3 py-3 text-slate-600 dark:text-slate-300">{row.reviewee}</td>
+                        <td className="px-3 py-3">
+                          <span className={cn(
+                            "inline-flex items-center rounded px-2 py-1 text-xs font-black",
+                            row.status === "Submitted"
+                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                              : "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+                          )}>
+                            {row.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </FeatureCard>
+
+          <FeatureCard icon={Copy} title="FR-26 Course Cloning Tool" eyebrow="Reuse content">
+            <div className="space-y-4">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">
+                Select previous course
+                <select 
+                  className={inputClass}
+                  value={selectedCourse ? previousCourses.indexOf(selectedCourse) : ""}
+                  onChange={(e) => setSelectedCourse(e.target.value ? previousCourses[parseInt(e.target.value)] : null)}
+                >
+                  <option value="">Choose a course to clone...</option>
+                  {previousCourses.map((course, idx) => (
+                    <option key={course.name} value={idx}>
+                      {course.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {selectedCourse && (
+                <div className="rounded border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/60 dark:bg-blue-950/30">
+                  <p className="text-sm text-blue-900 dark:text-blue-200">
+                    <span className="font-bold">{selectedCourse.modules}</span> modules will be cloned from <span className="font-bold">{selectedCourse.lastOffered}</span>
+                  </p>
+                </div>
+              )}
+              <button 
+                type="button" 
+                className={primaryButton}
+                onClick={cloneCourse}
+                disabled={!selectedCourse}
+              >
+                <Copy className="h-4 w-4" aria-hidden="true" />
+                Clone Course Content
+              </button>
+            </div>
+          </FeatureCard>
+        </div>
 
         <div className="grid gap-6 xl:grid-cols-2">
           <FeatureCard icon={GitBranch} title="FR-28 Branching Modules" eyebrow="Scenario builder">

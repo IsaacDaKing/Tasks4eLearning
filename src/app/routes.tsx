@@ -15,6 +15,7 @@ import { AIAssistantPage } from "./pages/AIAssistantPage";
 import { InstructorClassesPage } from "./pages/InstructorClassesPage";
 import { InstructorCourseDetailPage } from "./pages/InstructorCourseDetailPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
+import { PhoneViewPage } from "./pages/PhoneViewPage";
 import { useLocation } from "react-router";
 
 function Layout() {
@@ -66,6 +67,7 @@ function NotFound() {
 export const router = createBrowserRouter([
   { path: "/", Component: LoginPage },
   { path: "/login", Component: LoginPage },
+  { path: "/phone", Component: PhoneViewPage },
   {
     path: "/",
     Component: Layout,

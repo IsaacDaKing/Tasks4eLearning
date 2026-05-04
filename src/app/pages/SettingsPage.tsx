@@ -7,6 +7,7 @@ import {
   Palette,
   Volume2,
   Bell,
+  Clock,
   Shield,
   User,
   Mail,
@@ -33,6 +34,39 @@ export function SettingsPage() {
     dyslexiaFont,
     toggleDyslexiaFont,
   } = useTheme();
+  const [quietHoursEnabled, setQuietHoursEnabled] = useState(() => localStorage.getItem("lms-quiet-hours-enabled") === "true");
+  const [quietHoursStart, setQuietHoursStart] = useState(() => localStorage.getItem("lms-quiet-hours-start") || "22:00");
+  const [quietHoursEnd, setQuietHoursEnd] = useState(() => localStorage.getItem("lms-quiet-hours-end") || "07:00");
+  const [notificationPrefs, setNotificationPrefs] = useState(() => {
+    try {
+      const saved = localStorage.getItem("lms-notification-preferences");
+      return saved
+        ? { ...DEFAULT_NOTIFICATION_PREFS, ...JSON.parse(saved) }
+        : DEFAULT_NOTIFICATION_PREFS;
+    } catch {
+      return DEFAULT_NOTIFICATION_PREFS;
+    }
+  });
+
+  const updateQuietHours = (next: { enabled?: boolean; start?: string; end?: string }) => {
+    const enabled = next.enabled ?? quietHoursEnabled;
+    const start = next.start ?? quietHoursStart;
+    const end = next.end ?? quietHoursEnd;
+    setQuietHoursEnabled(enabled);
+    setQuietHoursStart(start);
+    setQuietHoursEnd(end);
+    localStorage.setItem("lms-quiet-hours-enabled", String(enabled));
+    localStorage.setItem("lms-quiet-hours-start", start);
+    localStorage.setItem("lms-quiet-hours-end", end);
+    window.dispatchEvent(new Event("lms-notification-settings-updated"));
+  };
+
+  const toggleNotificationPref = (key: keyof typeof DEFAULT_NOTIFICATION_PREFS) => {
+    const nextPrefs = { ...notificationPrefs, [key]: !notificationPrefs[key] };
+    setNotificationPrefs(nextPrefs);
+    localStorage.setItem("lms-notification-preferences", JSON.stringify(nextPrefs));
+    window.dispatchEvent(new Event("lms-notification-settings-updated"));
+  };
 
   return (
     <div className="p-8 space-y-8 max-w-[1400px] mx-auto animate-in fade-in duration-500 dark:bg-slate-900">
@@ -190,29 +224,82 @@ export function SettingsPage() {
               <h3 className="text-2xl font-black text-slate-900 dark:text-white">Notification Preferences</h3>
             </div>
 
+            <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <Clock className="mt-1 h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white">Quiet Hours</h4>
+                    <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                      Mute non-critical assignment, grade, message, and study reminders during the selected time block. Important alerts still appear.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => updateQuietHours({ enabled: !quietHoursEnabled })}
+                  className={cn(
+                    "relative h-6 w-12 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2",
+                    quietHoursEnabled ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-700",
+                  )}
+                  aria-label={quietHoursEnabled ? "Disable Quiet Hours" : "Enable Quiet Hours"}
+                  aria-pressed={quietHoursEnabled}
+                >
+                  <span
+                    className={cn(
+                      "absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform",
+                      quietHoursEnabled && "translate-x-6",
+                    )}
+                  />
+                </button>
+              </div>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                  Start time
+                  <input
+                    type="time"
+                    value={quietHoursStart}
+                    onChange={(event) => updateQuietHours({ start: event.target.value })}
+                    className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  />
+                </label>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                  End time
+                  <input
+                    type="time"
+                    value={quietHoursEnd}
+                    onChange={(event) => updateQuietHours({ end: event.target.value })}
+                    className="mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  />
+                </label>
+              </div>
+              <p className="mt-3 text-xs font-semibold text-blue-800 dark:text-blue-300" role="status">
+                Quiet Hours are {quietHoursEnabled ? `on from ${quietHoursStart} to ${quietHoursEnd}` : "off"}.
+              </p>
+            </div>
+
             <div className="space-y-4">
-              {[
-                { label: "Assignment Reminders", description: "Get notified 24 hours before deadlines", enabled: true },
-                { label: "Grade Updates", description: "Receive alerts when grades are posted", enabled: true },
-                { label: "Course Announcements", description: "Stay updated with important course news", enabled: true },
-                { label: "Discussion Replies", description: "Notifications for replies to your posts", enabled: false },
-              ].map((pref, i) => (
-                <div key={i} className="p-4 rounded-xl border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+              {NOTIFICATION_PREF_OPTIONS.map((pref) => (
+                <div key={pref.key} className="p-4 rounded-xl border border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-bold text-slate-900 dark:text-white">{pref.label}</h4>
                       <p className="text-xs text-slate-500 dark:text-slate-400">{pref.description}</p>
                     </div>
                     <button
+                      type="button"
+                      onClick={() => toggleNotificationPref(pref.key)}
                       className={cn(
                         "relative w-12 h-6 rounded-full transition-colors",
-                        pref.enabled ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-700"
+                        notificationPrefs[pref.key] ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-700"
                       )}
+                      aria-label={`${notificationPrefs[pref.key] ? "Disable" : "Enable"} ${pref.label}`}
+                      aria-pressed={notificationPrefs[pref.key]}
                     >
                       <div
                         className={cn(
                           "absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform",
-                          pref.enabled && "translate-x-6"
+                          notificationPrefs[pref.key] && "translate-x-6"
                         )}
                       />
                     </button>
@@ -261,3 +348,21 @@ export function SettingsPage() {
     </div>
   );
 }
+
+const DEFAULT_NOTIFICATION_PREFS = {
+  assignments: true,
+  grades: true,
+  messages: true,
+  studyReminders: true,
+};
+
+const NOTIFICATION_PREF_OPTIONS: Array<{
+  key: keyof typeof DEFAULT_NOTIFICATION_PREFS;
+  label: string;
+  description: string;
+}> = [
+  { key: "assignments", label: "Assignment Notifications", description: "New postings, due-date reminders, and submission updates." },
+  { key: "grades", label: "Grade Feedback", description: "Alerts when grades or instructor feedback are available." },
+  { key: "messages", label: "Messages", description: "Instructor, classmate, study group, and support message alerts." },
+  { key: "studyReminders", label: "Study Reminders", description: "Comet AI planning nudges and quiz preparation reminders." },
+];

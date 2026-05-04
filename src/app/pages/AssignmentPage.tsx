@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useParams } from "react-router";
 import {
   Upload,
@@ -25,6 +25,8 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const MAX_FILE_SIZE_MB = 25;
+const AUTOSAVE_INTERVAL_MS = 30_000;
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
 
 function parseDueDate(dueDate: string) {
   return new Date(dueDate.replace(" at ", " "));
@@ -53,6 +55,12 @@ export function AssignmentPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [fileSizeError, setFileSizeError] = useState<string | null>(null);
+  const [draftNotes, setDraftNotes] = useState("");
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [recoveredDraftNotice, setRecoveredDraftNotice] = useState("");
+  const [recoveredFileMeta, setRecoveredFileMeta] = useState<FileMetadata | null>(null);
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const lastActivityRef = useRef(Date.now());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const params = useParams();
@@ -60,6 +68,64 @@ export function AssignmentPage() {
   const assignmentId = params.assignmentId ?? null;
   const course = courseId ? getCourseById(courseId) : null;
   const assignment = assignmentId && course ? getAssignmentById(course.id, assignmentId) : null;
+  const draftKey = courseId && assignmentId ? getAssignmentDraftKey(courseId, assignmentId) : null;
+
+  useEffect(() => {
+    setDraftNotes("");
+    setLastSavedAt(null);
+    setRecoveredDraftNotice("");
+    setRecoveredFileMeta(null);
+    if (!draftKey) return;
+
+    try {
+      const saved = localStorage.getItem(draftKey);
+      if (!saved) return;
+      const draft = JSON.parse(saved) as AssignmentDraft;
+      setDraftNotes(draft.notes ?? "");
+      setRecoveredFileMeta(draft.file ?? null);
+      setLastSavedAt(draft.savedAt ?? null);
+      setRecoveredDraftNotice(`Recovered draft from ${formatSavedTime(draft.savedAt)}.`);
+    } catch {
+      setRecoveredDraftNotice("");
+    }
+  }, [draftKey]);
+
+  useEffect(() => {
+    if (!draftKey || !course || !assignment) return;
+    const saveDraft = () => {
+      const savedAt = new Date().toISOString();
+      const draft: AssignmentDraft = {
+        courseId: course.id,
+        assignmentId: assignment.id,
+        notes: draftNotes,
+        file: uploadedFile ? toFileMetadata(uploadedFile) : recoveredFileMeta,
+        savedAt,
+      };
+      localStorage.setItem(draftKey, JSON.stringify(draft));
+      setLastSavedAt(savedAt);
+    };
+
+    const autosaveId = window.setInterval(saveDraft, AUTOSAVE_INTERVAL_MS);
+    return () => window.clearInterval(autosaveId);
+  }, [assignment, course, draftKey, draftNotes, recoveredFileMeta, uploadedFile]);
+
+  useEffect(() => {
+    const markActivity = () => {
+      lastActivityRef.current = Date.now();
+      setShowTimeoutWarning(false);
+    };
+    const events: Array<keyof WindowEventMap> = ["keydown", "mousedown", "mousemove", "touchstart", "scroll"];
+    events.forEach((eventName) => window.addEventListener(eventName, markActivity, { passive: true }));
+    const timeoutCheck = window.setInterval(() => {
+      if (Date.now() - lastActivityRef.current >= INACTIVITY_TIMEOUT_MS) {
+        setShowTimeoutWarning(true);
+      }
+    }, 60_000);
+    return () => {
+      events.forEach((eventName) => window.removeEventListener(eventName, markActivity));
+      window.clearInterval(timeoutCheck);
+    };
+  }, []);
 
   if (!courseId && !assignmentId) {
     return (
@@ -177,6 +243,7 @@ export function AssignmentPage() {
     const files = e.dataTransfer.files;
     if (files.length > 0 && validateFile(files[0])) {
       setUploadedFile(files[0]);
+      setRecoveredFileMeta(null);
     }
   };
 
@@ -184,6 +251,7 @@ export function AssignmentPage() {
     const files = e.target.files;
     if (files && files.length > 0 && validateFile(files[0])) {
       setUploadedFile(files[0]);
+      setRecoveredFileMeta(null);
     }
     // Reset input so same file can be re-selected after removal
     e.target.value = "";
@@ -191,8 +259,17 @@ export function AssignmentPage() {
 
   const handleSubmit = () => {
     if (uploadedFile) {
+      if (draftKey) localStorage.removeItem(draftKey);
       alert("Assignment submitted successfully!");
     }
+  };
+
+  const clearDraft = () => {
+    if (draftKey) localStorage.removeItem(draftKey);
+    setDraftNotes("");
+    setLastSavedAt(null);
+    setRecoveredDraftNotice("");
+    setRecoveredFileMeta(null);
   };
 
   return (
@@ -258,6 +335,48 @@ export function AssignmentPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
+          {showTimeoutWarning && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200" role="alert">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-black">Session timeout warning</p>
+                  <p className="mt-1">You have been inactive for about 30 minutes. Your draft is preserved locally and you can continue working.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    lastActivityRef.current = Date.now();
+                    setShowTimeoutWarning(false);
+                  }}
+                  className="rounded bg-amber-700 px-4 py-2 text-sm font-bold text-white hover:bg-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2"
+                >
+                  Continue working
+                </button>
+              </div>
+            </div>
+          )}
+
+          {(recoveredDraftNotice || lastSavedAt) && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-200" role="status">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-black">{recoveredDraftNotice || "Draft saved"}</p>
+                  <p className="mt-1">
+                    {lastSavedAt ? `Last saved ${formatSavedTime(lastSavedAt)}.` : "Autosave runs every 30 seconds."}
+                    {recoveredFileMeta && !uploadedFile ? ` Recovered file reference: ${recoveredFileMeta.name} (${formatFileSize(recoveredFileMeta.size)}). Please reattach it before submitting.` : ""}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearDraft}
+                  className="rounded border border-blue-300 px-4 py-2 text-sm font-bold text-blue-800 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2 dark:border-blue-700 dark:text-blue-200 dark:hover:bg-blue-950"
+                >
+                  Clear draft
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6">Assignment Instructions</h2>
 
@@ -310,6 +429,16 @@ export function AssignmentPage() {
 
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6">Submit Your Work</h2>
+            <label className="mb-5 block text-sm font-bold text-slate-700 dark:text-slate-200">
+              Draft comments
+              <textarea
+                value={draftNotes}
+                onChange={(event) => setDraftNotes(event.target.value)}
+                rows={4}
+                placeholder="Optional notes for yourself before submitting..."
+                className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+              />
+            </label>
 
             {/* NFR-28: File size validation error */}
             {fileSizeError && (
@@ -460,4 +589,46 @@ export function AssignmentPage() {
       </div>
     </div>
   );
+}
+
+interface FileMetadata {
+  name: string;
+  size: number;
+  type: string;
+  lastModified: number;
+}
+
+interface AssignmentDraft {
+  courseId: string;
+  assignmentId: string;
+  notes: string;
+  file: FileMetadata | null;
+  savedAt: string;
+}
+
+function getAssignmentDraftKey(courseId: string, assignmentId: string) {
+  return `lms-assignment-draft:${courseId}:${assignmentId}`;
+}
+
+function toFileMetadata(file: File): FileMetadata {
+  return {
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    lastModified: file.lastModified,
+  };
+}
+
+function formatSavedTime(value?: string | null) {
+  if (!value) return "an earlier session";
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function formatFileSize(size: number) {
+  return `${(size / 1024 / 1024).toFixed(2)} MB`;
 }

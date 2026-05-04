@@ -27,8 +27,9 @@ type AssessmentType = "Quiz" | "Exam";
 type QuestionType = "multiple-choice" | "true-false" | "fill-blank" | "short-answer" | "matching" | "ordering";
 type AnswerValue = number | string | string[] | null;
 
-interface Question {
+interface BaseQuestion {
   id: number;
+  questionType: QuestionType;
   text: string;
   questionType?: QuestionType;
   options?: string[];
@@ -36,6 +37,42 @@ interface Question {
   correct?: number | string | string[];
   reviewNote?: string;
 }
+
+interface TrueFalseQuestion extends BaseQuestion {
+  questionType: "trueFalse";
+  correct: boolean;
+}
+
+interface FillBlankQuestion extends BaseQuestion {
+  questionType: "fillBlank";
+  acceptedAnswers: string[];
+}
+
+interface ShortAnswerQuestion extends BaseQuestion {
+  questionType: "shortAnswer";
+  keywords: string[];
+  manualReview?: boolean;
+}
+
+interface MatchingQuestion extends BaseQuestion {
+  questionType: "matching";
+  pairs: Array<{ prompt: string; answer: string }>;
+  choices: string[];
+}
+
+interface OrderingQuestion extends BaseQuestion {
+  questionType: "ordering";
+  items: string[];
+  correctOrder: string[];
+}
+
+type Question =
+  | MultipleChoiceQuestion
+  | TrueFalseQuestion
+  | FillBlankQuestion
+  | ShortAnswerQuestion
+  | MatchingQuestion
+  | OrderingQuestion;
 
 interface Assessment {
   id: string;
@@ -98,9 +135,9 @@ const ASSESSMENTS: Assessment[] = [
       },
       {
         id: 3,
+        questionType: "fillBlank",
         text: "Which protocol is used to translate domain names to IP addresses?",
-        options: ["DHCP", "DNS", "HTTP", "FTP"],
-        correct: 1,
+        acceptedAnswers: ["DNS", "Domain Name System"],
       },
       {
         id: 4,
@@ -185,8 +222,7 @@ const ASSESSMENTS: Assessment[] = [
         id: 3,
         questionType: "multiple-choice",
         text: "Which UML diagram is most appropriate for showing object interactions over time?",
-        options: ["Class diagram", "Sequence diagram", "Deployment diagram", "Package diagram"],
-        correct: 1,
+        acceptedAnswers: ["sequence diagram", "UML sequence diagram"],
       },
       {
         id: 4,
@@ -328,6 +364,8 @@ export function QuizPage() {
   const sessionIdRef = useRef(`quiz-session-${Date.now()}-${Math.random().toString(16).slice(2)}`);
 
   useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    releaseExamLock();
     setStarted(false);
     setSubmitted(false);
     setCurrentQ(0);
@@ -335,7 +373,11 @@ export function QuizPage() {
     setTimeLeft(assessment.timeLimitMinutes * 60);
     setFocusMode(true);
     setLockMessage("");
-  }, [assessment]);
+  }, [selectedAssessmentId]);
+
+  useEffect(() => {
+    setCurrentQ((questionIndex) => clampQuestionIndex(questionIndex, assessment.questions.length));
+  }, [assessment.questions.length]);
 
   useEffect(() => {
     if (started && !submitted) {
@@ -570,7 +612,7 @@ export function QuizPage() {
               <InfoTile label="Due Date" value={assessment.dueDate} highContrast={highContrast} />
               <InfoTile label="Time Limit" value={`${assessment.timeLimitMinutes} minutes`} highContrast={highContrast} />
               <InfoTile label="Allowed Attempts" value={`${assessment.attemptsUsed} of ${assessment.attemptsAllowed} used`} highContrast={highContrast} />
-              <InfoTile label="Questions" value={`${assessment.questions.length} sample questions`} highContrast={highContrast} />
+              <InfoTile label="Questions" value={`${assessment.questions.length} mixed questions`} highContrast={highContrast} />
             </section>
 
             <div className="grid gap-4 lg:grid-cols-2">
@@ -618,7 +660,22 @@ export function QuizPage() {
     );
   }
 
-  const currentQuestion = assessment.questions[currentQ];
+  const safeCurrentQ = clampQuestionIndex(currentQ, assessment.questions.length);
+  const currentQuestion = assessment.questions[safeCurrentQ];
+
+  if (!currentQuestion) {
+    return (
+      <div className={shellClasses} style={pageStyle}>
+        <div className={cn("mx-auto max-w-3xl rounded border p-6 text-center shadow-sm", highContrast ? "border-white bg-black" : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800")}>
+          <h1 className={cn("mb-2 text-2xl font-black", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>Assessment unavailable</h1>
+          <p className={cn("mb-6 text-sm", highContrast ? "text-white" : "text-slate-500 dark:text-slate-400")}>This assessment does not have any questions to display.</p>
+          <button type="button" onClick={resetAssessment} className={cn("rounded bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700", FOCUS_RING)}>
+            Back to assessment setup
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={shellClasses} style={pageStyle}>
@@ -662,7 +719,7 @@ export function QuizPage() {
           </div>
 
           <div className={cn("h-1.5", highContrast ? "bg-white" : "bg-slate-100 dark:bg-slate-700")}>
-            <div className={cn("h-full transition-all duration-300", highContrast ? "bg-yellow-300" : "bg-blue-600")} style={{ width: `${((currentQ + 1) / assessment.questions.length) * 100}%` }} />
+            <div className={cn("h-full transition-all duration-300", highContrast ? "bg-yellow-300" : "bg-blue-600")} style={{ width: `${((safeCurrentQ + 1) / assessment.questions.length) * 100}%` }} />
           </div>
 
           <div className="p-6 sm:p-8">
@@ -687,8 +744,8 @@ export function QuizPage() {
           <div className="flex flex-col gap-4 px-6 pb-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
             <button
               type="button"
-              onClick={() => setCurrentQ(Math.max(0, currentQ - 1))}
-              disabled={currentQ === 0}
+              onClick={() => setCurrentQ(Math.max(0, safeCurrentQ - 1))}
+              disabled={safeCurrentQ === 0}
               className={cn("flex items-center justify-center gap-2 rounded border px-4 py-2.5 text-sm font-bold transition-all disabled:opacity-40", FOCUS_RING, highContrast ? "border-white text-white hover:bg-white hover:text-black" : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700")}
             >
               <ChevronLeft className="h-4 w-4" /> Previous
@@ -703,9 +760,9 @@ export function QuizPage() {
                   className={cn(
                     "h-8 w-8 rounded text-xs font-black transition-all",
                     FOCUS_RING,
-                    index === currentQ
+                    index === safeCurrentQ
                       ? "bg-blue-600 text-white"
-                      : answers[index] !== null
+                    : hasAnswer(answers[index])
                         ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
                         : highContrast
                           ? "border border-white bg-black text-white"
@@ -718,8 +775,8 @@ export function QuizPage() {
               ))}
             </div>
 
-            {currentQ < assessment.questions.length - 1 ? (
-              <button type="button" onClick={() => setCurrentQ(currentQ + 1)} className={cn("flex items-center justify-center gap-2 rounded bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700", FOCUS_RING)}>
+            {safeCurrentQ < assessment.questions.length - 1 ? (
+              <button type="button" onClick={() => setCurrentQ(safeCurrentQ + 1)} className={cn("flex items-center justify-center gap-2 rounded bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700", FOCUS_RING)}>
                 Next <ChevronRight className="h-4 w-4" />
               </button>
             ) : (
@@ -873,6 +930,224 @@ function QuestionAnswerControl({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function questionTypeLabel(questionType: QuestionType) {
+  const labels: Record<QuestionType, string> = {
+    multipleChoice: "Multiple choice",
+    trueFalse: "True/False",
+    fillBlank: "Fill blank",
+    shortAnswer: "Short answer",
+    matching: "Matching",
+    ordering: "Ordering",
+  };
+  return labels[questionType];
+}
+
+function clampQuestionIndex(index: number, questionCount: number) {
+  if (questionCount <= 0) return 0;
+  return Math.min(Math.max(index, 0), questionCount - 1);
+}
+
+function isManualReview(question?: Question | null) {
+  return Boolean(question && question.questionType === "shortAnswer" && question.manualReview);
+}
+
+function normalizeText(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function isAnswerCorrect(question?: Question | null, answer?: AnswerValue) {
+  if (!question || answer === null || answer === undefined) return false;
+  if (isManualReview(question)) return false;
+
+  switch (question.questionType) {
+    case "multipleChoice":
+      return typeof answer === "number" && answer === question.correct;
+    case "trueFalse":
+      return typeof answer === "boolean" && answer === question.correct;
+    case "fillBlank":
+      return typeof answer === "string" && question.acceptedAnswers.some((item) => normalizeText(item) === normalizeText(answer));
+    case "shortAnswer":
+      return typeof answer === "string" && question.keywords.every((keyword) => normalizeText(answer).includes(normalizeText(keyword)));
+    case "matching":
+      return isAnswerMap(answer) && question.pairs.every((pair) => answer[pair.prompt] === pair.answer);
+    case "ordering":
+      return Array.isArray(answer) && question.correctOrder.every((item, index) => answer[index] === item);
+    default:
+      return false;
+  }
+}
+
+function getCorrectAnswerLabel(question: Question) {
+  switch (question.questionType) {
+    case "multipleChoice":
+      return question.options[question.correct];
+    case "trueFalse":
+      return question.correct ? "True" : "False";
+    case "fillBlank":
+      return question.acceptedAnswers[0];
+    case "shortAnswer":
+      return `Include: ${question.keywords.join(", ")}`;
+    case "matching":
+      return question.pairs.map((pair) => `${pair.prompt} -> ${pair.answer}`).join("; ");
+    case "ordering":
+      return question.correctOrder.join(" -> ");
+    default:
+      return "";
+  }
+}
+
+function hasAnswer(answer: AnswerValue) {
+  if (answer === null) return false;
+  if (typeof answer === "string") return answer.trim().length > 0;
+  if (Array.isArray(answer)) return answer.some(Boolean);
+  if (typeof answer === "object") return Object.values(answer).some(Boolean);
+  return true;
+}
+
+function isAnswerMap(answer: AnswerValue): answer is Record<string, string> {
+  return Boolean(answer) && typeof answer === "object" && !Array.isArray(answer);
+}
+
+function QuestionTypeBadge({ questionType, highContrast }: { questionType: QuestionType; highContrast: boolean }) {
+  return (
+    <span className={cn("rounded px-2 py-0.5 text-[10px] font-black uppercase tracking-wide", highContrast ? "bg-white text-black" : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-200")}>
+      {questionTypeLabel(questionType)}
+    </span>
+  );
+}
+
+function QuestionResponse({
+  question,
+  answer,
+  setAnswer,
+  highContrast,
+}: {
+  question: Question;
+  answer: AnswerValue;
+  setAnswer: (answer: AnswerValue) => void;
+  highContrast: boolean;
+}) {
+  const optionButtonClass = (selected: boolean) =>
+    cn(
+      "w-full rounded border-2 p-3 text-left text-sm font-medium transition-all",
+      FOCUS_RING,
+      selected
+        ? highContrast
+          ? "border-yellow-300 bg-white text-black"
+          : "border-blue-600 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-200"
+        : highContrast
+          ? "border-white bg-black text-white hover:bg-white hover:text-black"
+          : "border-slate-200 text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-600",
+    );
+
+  if (question.questionType === "multipleChoice") {
+    return (
+      <div className="space-y-2" role="radiogroup" aria-label="Multiple choice answer choices">
+        {question.options.map((option, index) => {
+          const selected = answer === index;
+          return (
+            <button key={option} type="button" role="radio" aria-checked={selected} onClick={() => setAnswer(index)} className={optionButtonClass(selected)}>
+              <span className="flex items-center gap-3">
+                {selected ? <CheckCircle className="h-4 w-4 flex-shrink-0 text-blue-600" /> : <Circle className="h-4 w-4 flex-shrink-0 text-slate-300 dark:text-slate-600" />}
+                {option}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (question.questionType === "trueFalse") {
+    return (
+      <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="True or false choices">
+        {[true, false].map((value) => {
+          const selected = answer === value;
+          return (
+            <button key={String(value)} type="button" role="radio" aria-checked={selected} onClick={() => setAnswer(value)} className={optionButtonClass(selected)}>
+              <span className="flex items-center gap-3">
+                {selected ? <CheckCircle className="h-4 w-4 flex-shrink-0 text-blue-600" /> : <Circle className="h-4 w-4 flex-shrink-0 text-slate-300 dark:text-slate-600" />}
+                {value ? "True" : "False"}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  if (question.questionType === "fillBlank" || question.questionType === "shortAnswer") {
+    return (
+      <label className={cn("block text-sm font-bold", highContrast ? "text-white" : "text-slate-700 dark:text-slate-200")}>
+        Your answer
+        {question.questionType === "shortAnswer" ? (
+          <textarea
+            value={typeof answer === "string" ? answer : ""}
+            onChange={(event) => setAnswer(event.target.value)}
+            rows={4}
+            className={cn("mt-2 w-full resize-none rounded border px-3 py-2 text-sm", FOCUS_RING, highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}
+          />
+        ) : (
+          <input
+            type="text"
+            value={typeof answer === "string" ? answer : ""}
+            onChange={(event) => setAnswer(event.target.value)}
+            className={cn("mt-2 w-full rounded border px-3 py-2 text-sm", FOCUS_RING, highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}
+          />
+        )}
+      </label>
+    );
+  }
+
+  if (question.questionType === "matching") {
+    const answerMap = isAnswerMap(answer) ? answer : {};
+    return (
+      <div className="space-y-3">
+        {question.pairs.map((pair) => (
+          <label key={pair.prompt} className={cn("grid gap-2 rounded border p-3 text-sm font-bold sm:grid-cols-[160px_minmax(0,1fr)] sm:items-center", highContrast ? "border-white text-white" : "border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200")}>
+            <span>{pair.prompt}</span>
+            <select
+              value={answerMap[pair.prompt] ?? ""}
+              onChange={(event) => setAnswer({ ...answerMap, [pair.prompt]: event.target.value })}
+              className={cn("rounded border px-3 py-2 text-sm", FOCUS_RING, highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}
+            >
+              <option value="">Select a match</option>
+              {question.choices.map((choice) => (
+                <option key={choice} value={choice}>{choice}</option>
+              ))}
+            </select>
+          </label>
+        ))}
+      </div>
+    );
+  }
+
+  const orderedAnswer = Array.isArray(answer) ? answer : new Array(question.items.length).fill("");
+  return (
+    <div className="space-y-3">
+      {question.correctOrder.map((_, index) => (
+        <label key={index} className={cn("grid gap-2 rounded border p-3 text-sm font-bold sm:grid-cols-[80px_minmax(0,1fr)] sm:items-center", highContrast ? "border-white text-white" : "border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200")}>
+          <span>Step {index + 1}</span>
+          <select
+            value={orderedAnswer[index] ?? ""}
+            onChange={(event) => {
+              const nextAnswer = [...orderedAnswer];
+              nextAnswer[index] = event.target.value;
+              setAnswer(nextAnswer);
+            }}
+            className={cn("rounded border px-3 py-2 text-sm", FOCUS_RING, highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}
+          >
+            <option value="">Select item</option>
+            {question.items.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
+        </label>
+      ))}
     </div>
   );
 }

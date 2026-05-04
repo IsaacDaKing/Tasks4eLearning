@@ -43,6 +43,8 @@ interface CoursePlan {
 }
 
 type CourseId = "networks" | "software" | "database";
+type CourseSelection = "all" | CourseId;
+type ResponseMode = "quick" | "steps" | "coach";
 
 interface ChatMessage {
   id: string;
@@ -120,7 +122,11 @@ const QUICK_ACTIONS = [
   "Prioritize This Week",
   "Prep for Quiz",
   "Prep for Exam",
+  "Mixed Question Practice",
   "Message My Professor",
+  "Plan Study Group",
+  "Choose Tonight's Study",
+  "Shorter Study Plan",
   "Explain Weak Topics",
   "Time Block My Day",
   "Review Deadlines",
@@ -134,9 +140,27 @@ const PROMPT_STARTERS = [
   "Make me a study plan for this week.",
   "Help me prepare for Database Systems.",
   "Explain what to review for Software Engineering.",
+  "How should I ask Professor Klyne Smith for Software Engineering project feedback?",
+  "I am stressed before my Database Systems exam. What should I do first?",
+  "Help me practice for a quiz with mixed question types.",
+  "I am confused about UML sequence diagrams.",
+  "Give me a shorter study plan for tonight.",
+  "Help me use Focus Mode and accessibility settings before a quiz.",
+  "Can you make a study group plan for SQL joins and normalization?",
+  "Help me with TCP/IP, subnetting, and DNS.",
   "What should I ask my professor?",
   "What is the Whoosh?",
   "I feel overwhelmed. Help me prioritize.",
+];
+
+const SCENARIO_EXAMPLES = [
+  "Stressed before a Database Systems exam",
+  "Improve GPA with one high-value study block",
+  "Message Professor Klyne Smith about project feedback",
+  "Choose what to study tonight",
+  "Untangle a UML sequence diagram",
+  "Prepare for mixed question types",
+  "Set up Focus Mode and accessibility controls",
 ];
 
 const DEFAULT_SUGGESTIONS = [
@@ -147,6 +171,24 @@ const DEFAULT_SUGGESTIONS = [
 ];
 
 const HELP_TOPICS = ["grades", "study plans", "deadlines", "quizzes and exams", "course questions", "time management"];
+const COURSE_OPTIONS: Array<{ value: CourseSelection; label: string }> = [
+  { value: "all", label: "All courses" },
+  { value: "networks", label: "Computer Networks" },
+  { value: "software", label: "Software Engineering" },
+  { value: "database", label: "Database Systems" },
+];
+const RESPONSE_MODES: Array<{ value: ResponseMode; label: string }> = [
+  { value: "quick", label: "Quick answer" },
+  { value: "steps", label: "Step-by-step" },
+  { value: "coach", label: "Study coach" },
+];
+const SMART_ACTIONS = [
+  "Generate weekly plan",
+  "Create professor message",
+  "Explain like I'm new",
+  "Practice me",
+  "Summarize my week",
+];
 
 export function AIAssistantPage() {
   const [courses] = useState(COURSES);
@@ -155,6 +197,8 @@ export function AIAssistantPage() {
   const [suggestions, setSuggestions] = useState(DEFAULT_SUGGESTIONS);
   const [copyNotice, setCopyNotice] = useState("");
   const [studyPlan, setStudyPlan] = useState(() => buildStudyPlan(COURSES));
+  const [selectedCourse, setSelectedCourse] = useState<CourseSelection>("all");
+  const [responseMode, setResponseMode] = useState<ResponseMode>("steps");
   const [memory, setMemory] = useState<SessionMemory>({ generatedPlan: buildStudyPlan(COURSES) });
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -199,10 +243,13 @@ export function AIAssistantPage() {
   const submitPrompt = (prompt: string, quickAction?: string) => {
     const trimmedPrompt = prompt.trim();
     if (!trimmedPrompt || isAssistantTyping) return;
-    const response = getRuleBasedResponse(trimmedPrompt, {
+    const coursePrefix = selectedCourse === "all" ? "" : `${COURSE_OPTIONS.find((item) => item.value === selectedCourse)?.label}: `;
+    const response = getRuleBasedResponse(`${coursePrefix}${trimmedPrompt}`, {
       memory: quickAction ? { ...memory, lastQuickAction: quickAction } : memory,
       courses: projectedCourses,
       projectedGpa,
+      selectedCourse,
+      responseMode,
     });
 
     setMessages((current) => [
@@ -279,7 +326,7 @@ export function AIAssistantPage() {
         sender: "Comet AI",
         time: getCurrentTime(),
         body:
-          "Hi, I am Comet AI. What should we work on first: grades, deadlines, a course topic, or a study plan?",
+          "Ask Comet AI about grades, deadlines, quizzes, exams, messages, or course topics.\n\nPick a course context and response mode, then try a weekly plan, professor message, beginner explanation, or practice drill.",
       },
     ]);
   };
@@ -343,22 +390,18 @@ export function AIAssistantPage() {
               ))}
             </div>
           </div>
-          <CometContextCard
-            projectedGpa={projectedGpa}
-            courseNeedingAttention={courseNeedingAttention.name}
-            highestPriorityDeadline={`${COURSES[0].deadline} - ${COURSES[0].dueSignal}`}
-            nextAssessment={COURSES[2].nextAssessment}
-          />
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="mx-auto max-w-5xl">
         <CometChatPanel
           messages={messages}
           isAssistantTyping={isAssistantTyping}
           suggestions={suggestions}
           chatInput={chatInput}
           copyNotice={copyNotice}
+          selectedCourse={selectedCourse}
+          responseMode={responseMode}
           setChatInput={setChatInput}
           submitPrompt={submitPrompt}
           sendMessage={sendMessage}
@@ -369,37 +412,6 @@ export function AIAssistantPage() {
           resetChat={resetChat}
           chatEndRef={chatEndRef}
         />
-
-        <aside className="space-y-6">
-          <Panel icon={Sparkles} title="Prompt Starters" description="Click one to send it to Comet AI.">
-            <div className="space-y-2">
-              {PROMPT_STARTERS.map((starter) => (
-                <button
-                  key={starter}
-                  type="button"
-                  onClick={() => submitPrompt(starter)}
-                  disabled={isAssistantTyping}
-                  className={cn(
-                    "w-full rounded border border-slate-200 bg-white px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60",
-                    FOCUS_RING,
-                  )}
-                >
-                  {starter}
-                </button>
-              ))}
-            </div>
-          </Panel>
-
-          <Panel icon={Target} title="Current Context" description="Local course signals Comet AI can reference.">
-            <div className="space-y-3">
-              <ContextRow label="Highest priority" value={`${COURSES[0].deadline} (${COURSES[0].dueSignal})`} />
-              <ContextRow label="Needs attention" value={`${courseNeedingAttention.name}: ${courseNeedingAttention.projectedGrade}% projected`} />
-              <ContextRow label="Projected GPA" value={projectedGpa} />
-              <ContextRow label="Next quiz or exam" value={COURSES[2].nextAssessment} />
-              <ContextRow label="Unread signal" value="2 new feedback/message items" />
-            </div>
-          </Panel>
-        </aside>
       </section>
 
       <section className="grid gap-3 md:grid-cols-4" aria-label="Comet AI overview">
@@ -409,7 +421,7 @@ export function AIAssistantPage() {
         <MetricCard icon={CalendarClock} label="High Priority" value="3" detail="Next 72 hours" />
       </section>
 
-      <main className="space-y-6">
+      <main className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <Panel icon={ListChecks} title="Generated Study Plan" description="Structured plan from Comet AI's local rules.">
           <div className="flex flex-wrap gap-2">
             <button
@@ -423,7 +435,7 @@ export function AIAssistantPage() {
             <button
               type="button"
               onClick={copyStudyPlan}
-              className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}
+              className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800", FOCUS_RING)}
             >
               <Copy className="h-4 w-4" />
               Copy Study Plan
@@ -431,13 +443,13 @@ export function AIAssistantPage() {
             <button
               type="button"
               onClick={downloadStudyPlan}
-              className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50", FOCUS_RING)}
+              className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800", FOCUS_RING)}
             >
               <Download className="h-4 w-4" />
               Download .txt
             </button>
           </div>
-          <pre className="mt-4 max-h-[420px] overflow-auto whitespace-pre-wrap rounded border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+          <pre className="mt-4 max-h-[420px] overflow-auto whitespace-pre-wrap rounded border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
             {studyPlan}
           </pre>
         </Panel>
@@ -446,7 +458,7 @@ export function AIAssistantPage() {
           <Panel icon={AlertCircle} title="Planning Alerts" description="Supportive signals from local mock conditions.">
             <div className="space-y-3">
               {alerts.map((alert) => (
-                <div key={alert} className="rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+                <div key={alert} className="rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
                   <p className="font-bold">{alert}</p>
                 </div>
               ))}
@@ -460,7 +472,7 @@ export function AIAssistantPage() {
                 "30 minutes: Software Engineering UML sequence diagram and traceability cleanup.",
                 "25 minutes: Computer Networks subnetting drills and TCP reliability review.",
               ].map((block) => (
-                <div key={block} className="rounded border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-700">
+                <div key={block} className="rounded border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
                   {block}
                 </div>
               ))}
@@ -478,6 +490,8 @@ function CometChatPanel({
   suggestions,
   chatInput,
   copyNotice,
+  selectedCourse,
+  responseMode,
   setChatInput,
   submitPrompt,
   sendMessage,
@@ -493,6 +507,8 @@ function CometChatPanel({
   suggestions: string[];
   chatInput: string;
   copyNotice: string;
+  selectedCourse: CourseSelection;
+  responseMode: ResponseMode;
   setChatInput: (value: string) => void;
   submitPrompt: (prompt: string, quickAction?: string) => void;
   sendMessage: (event: FormEvent) => void;
@@ -504,17 +520,19 @@ function CometChatPanel({
   chatEndRef: RefObject<HTMLDivElement>;
 }) {
   return (
-    <section className="rounded border border-slate-200 bg-white shadow-sm" aria-labelledby="comet-chat-title">
-      <div className="border-b border-slate-200 p-4 sm:p-5">
+    <section className="overflow-hidden rounded border border-slate-200 bg-white shadow-lg shadow-slate-200/50 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/40" aria-labelledby="comet-chat-title">
+      <div className="border-b border-slate-200 p-4 dark:border-slate-700 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded bg-slate-950 text-cyan-300">
               <Bot className="h-6 w-6" />
             </div>
             <div>
-              <h3 id="comet-chat-title" className="text-xl font-black text-slate-950">Chat With Comet AI</h3>
-              <p className="text-xs font-semibold text-slate-500">
-                {isAssistantTyping ? "Comet AI is thinking..." : "Ready with local course context"}
+              <h3 id="comet-chat-title" className="text-xl font-black text-slate-950 dark:text-white">Chat With Comet AI</h3>
+              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {isAssistantTyping
+                  ? "Comet AI is thinking..."
+                  : `${COURSE_OPTIONS.find((item) => item.value === selectedCourse)?.label ?? "All courses"} - ${RESPONSE_MODES.find((item) => item.value === responseMode)?.label ?? "Step-by-step"}`}
               </p>
             </div>
           </div>
@@ -528,15 +546,15 @@ function CometChatPanel({
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2" aria-label="Comet AI quick actions">
-          {QUICK_ACTIONS.map((action) => (
+        <div className="mt-4 flex flex-wrap gap-2" aria-label="Comet AI smart actions">
+          {SMART_ACTIONS.map((action) => (
             <button
               key={action}
               type="button"
               onClick={() => submitPrompt(action, action)}
               disabled={isAssistantTyping}
               className={cn(
-                "rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:border-cyan-200 hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60",
+                "rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:border-cyan-200 hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white",
                 FOCUS_RING,
               )}
             >
@@ -544,18 +562,57 @@ function CometChatPanel({
             </button>
           ))}
         </div>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
+            More quick actions
+          </summary>
+          <div className="mt-3 flex flex-wrap gap-2" aria-label="Additional Comet AI quick actions">
+            {QUICK_ACTIONS.slice(0, 8).map((action) => (
+              <button
+                key={action}
+                type="button"
+                onClick={() => submitPrompt(action, action)}
+                disabled={isAssistantTyping}
+                className={cn(
+                  "rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:border-cyan-200 hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white",
+                  FOCUS_RING,
+                )}
+              >
+                {action}
+              </button>
+            ))}
+          </div>
+        </details>
       </div>
 
       <div
-        className="h-[560px] overflow-y-auto bg-gradient-to-b from-slate-50 to-white p-4 sm:p-5"
+        className="min-h-[420px] bg-gradient-to-b from-slate-50 to-white p-4 dark:from-slate-950 dark:to-slate-900 sm:p-5"
         aria-live="polite"
         aria-label="Comet AI chat history"
       >
         <div className="space-y-4">
+          {messages.length <= 1 && (
+            <div className="mx-auto mb-4 max-w-2xl rounded border border-dashed border-cyan-200 bg-cyan-50/70 p-4 text-center text-sm text-cyan-950 dark:border-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-100">
+              <p className="font-black">Ask Comet AI about grades, deadlines, quizzes, exams, messages, or course topics.</p>
+              <div className="mt-3 flex flex-wrap justify-center gap-2" aria-label="Prompt starters">
+                {PROMPT_STARTERS.slice(0, 4).map((starter) => (
+                  <button
+                    key={starter}
+                    type="button"
+                    onClick={() => submitPrompt(starter)}
+                    disabled={isAssistantTyping}
+                    className={cn("rounded-full bg-white px-3 py-1.5 text-xs font-bold text-cyan-900 shadow-sm hover:bg-cyan-100 dark:bg-slate-800 dark:text-cyan-200 dark:hover:bg-slate-700", FOCUS_RING)}
+                  >
+                    {starter}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {messages.map((message) => {
             const isUser = message.sender === "You";
             return (
-              <article key={message.id} className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
+              <article key={message.id} className={cn("flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200", isUser ? "justify-end" : "justify-start")}>
                 {!isUser && (
                   <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-slate-950 text-cyan-300">
                     <Sparkles className="h-4 w-4" />
@@ -567,13 +624,13 @@ function CometChatPanel({
                       "rounded px-4 py-3 text-left text-sm leading-relaxed shadow-sm",
                       isUser
                         ? "bg-cyan-600 text-white"
-                        : "border border-slate-200 bg-white text-slate-700",
+                        : "border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200",
                     )}
                   >
                     <p className="mb-1 text-xs font-black opacity-80">{message.sender}</p>
-                    <p className="whitespace-pre-line">{message.body}</p>
+                    <MessageBody body={message.body} />
                   </div>
-                  <p className="mt-1 text-xs font-medium text-slate-500">{message.time}</p>
+                  <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">{message.time}</p>
                 </div>
               </article>
             );
@@ -583,7 +640,7 @@ function CometChatPanel({
               <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-slate-950 text-cyan-300">
                 <Sparkles className="h-4 w-4" />
               </div>
-              <div className="rounded border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+              <div className="rounded border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
                 <p className="mb-2 text-xs font-black">Comet AI</p>
                 <span className="inline-flex items-center gap-1" aria-label="Comet AI is typing">
                   <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-600" />
@@ -597,7 +654,7 @@ function CometChatPanel({
         </div>
       </div>
 
-      <div className="border-t border-slate-200 p-4 sm:p-5">
+      <div className="border-t border-slate-200 p-4 dark:border-slate-700 sm:p-5">
         {suggestions.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2" aria-label="Suggested follow-up prompts">
             {suggestions.map((suggestion) => (
@@ -606,7 +663,7 @@ function CometChatPanel({
                 type="button"
                 onClick={() => submitPrompt(suggestion)}
                 disabled={isAssistantTyping}
-                className={cn("rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-bold text-cyan-900 hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-60", FOCUS_RING)}
+                className={cn("rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-bold text-cyan-900 hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-200 dark:hover:bg-cyan-900/50", FOCUS_RING)}
               >
                 {suggestion}
               </button>
@@ -624,7 +681,7 @@ function CometChatPanel({
               onKeyDown={handleChatKeyDown}
               placeholder="Ask about grades, deadlines, quizzes, course topics, or what to do next..."
               rows={3}
-              className={cn("min-w-0 flex-1 resize-none rounded border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400", FOCUS_RING)}
+              className={cn("min-w-0 flex-1 resize-none rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white", FOCUS_RING)}
             />
             <button
               type="submit"
@@ -633,8 +690,8 @@ function CometChatPanel({
                 "inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm font-black sm:w-32",
                 FOCUS_RING,
                 chatInput.trim() && !isAssistantTyping
-                  ? "bg-slate-950 text-white hover:bg-slate-800"
-                  : "cursor-not-allowed bg-slate-200 text-slate-400",
+                  ? "bg-slate-950 text-white hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700"
+                  : "cursor-not-allowed bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-500",
               )}
             >
               <Send className="h-4 w-4" />
@@ -663,14 +720,88 @@ function CometChatPanel({
   );
 }
 
+function MessageBody({ body }: { body: string }) {
+  return (
+    <div className="space-y-2">
+      {body.split("\n").map((line, index) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <div key={index} className="h-1" />;
+        const isNumbered = /^\d+\.\s/.test(trimmed);
+        const isBullet = /^-\s/.test(trimmed);
+        const isHeading = !isNumbered && !isBullet && trimmed.length < 42 && !trimmed.endsWith(".") && !trimmed.endsWith("?");
+
+        if (isHeading) {
+          return <p key={index} className="pt-1 text-xs font-black uppercase tracking-wide opacity-80">{trimmed}</p>;
+        }
+
+        if (isNumbered || isBullet) {
+          return (
+            <p key={index} className="pl-3 leading-6">
+              <span className="font-black">{isNumbered ? trimmed.split(" ")[0] : "-"}</span>{" "}
+              {isNumbered ? trimmed.replace(/^\d+\.\s/, "") : trimmed.replace(/^-\s/, "")}
+            </p>
+          );
+        }
+
+        return <p key={index} className="leading-6">{trimmed}</p>;
+      })}
+    </div>
+  );
+}
+
 function getRuleBasedResponse(
   prompt: string,
-  context: { memory: SessionMemory; courses: Array<CoursePlan & { projectedGrade: number }>; projectedGpa: string },
+  context: {
+    memory: SessionMemory;
+    courses: Array<CoursePlan & { projectedGrade: number }>;
+    projectedGpa: string;
+    selectedCourse: CourseSelection;
+    responseMode: ResponseMode;
+  },
 ): AssistantResponse {
   const normalized = prompt.toLowerCase();
-  const courseId = detectCourse(normalized) ?? context.memory.lastCourseId;
+  const courseId = detectCourse(normalized) ?? (context.selectedCourse === "all" ? undefined : context.selectedCourse) ?? context.memory.lastCourseId;
   const course = courseId ? context.courses.find((item) => item.id === courseId) : undefined;
   const isShorterFollowUp = /\b(shorter|simpler|condense|brief|quick version|make it shorter)\b/.test(normalized);
+  const modeIntro =
+    context.responseMode === "quick"
+      ? "Quick answer mode\n"
+      : context.responseMode === "coach"
+        ? "Study coach mode\n"
+        : "";
+
+  if (/(generate weekly plan|weekly plan|build study plan|make a plan|plan for this week)/.test(normalized)) {
+    const plan = buildStudyPlan(context.courses);
+    return {
+      body: `${modeIntro}${plan}\n\nSuggested follow-up\nAsk Comet to make this shorter, turn it into practice questions, or draft a professor message.`,
+      suggestions: ["Practice me", "Create professor message", "Summarize my week", "Make it shorter"],
+      generatedPlan: plan,
+      topic: "weekly plan",
+      courseId,
+    };
+  }
+
+  if (/(create professor message|professor message|message my professor|klyne smith|professor smith|prof\. smith)/.test(normalized)) {
+    return buildProfessorMessageResponse();
+  }
+
+  if (/(explain like i'm new|explain like i am new|beginner|new to|eli5|explain sql joins|explain subnetting|explain uml)/.test(normalized)) {
+    return buildBeginnerExplanation(courseId ?? "database", context.responseMode);
+  }
+
+  if (/(practice me|practice questions|quiz me|drill me|make.*drill|30-minute.*drill)/.test(normalized)) {
+    return buildPracticeResponse(courseId ?? "database");
+  }
+
+  if (/(summarize my week|weekly summary|what matters this week|this week)/.test(normalized)) {
+    return {
+      body:
+        `${modeIntro}Quick read\nThis week has three signals: an urgent Computer Networks submission, a Software Engineering milestone that needs traceability cleanup, and Database Systems exam prep.\n\nToday\n1. Finish Network Protocol Analysis.\n2. Check the Computer Networks subnetting notes from Jordan.\n\nTomorrow\n1. Review Software Engineering project feedback from Professor Klyne Smith.\n2. Update requirements traceability and UML before polishing.\n\nThis Week\n1. Do two Database Systems blocks on normalization and SQL joins.\n2. Use Grade Calculator projections to test the midterm score you need.\n3. Keep Focus Mode ready for quizzes or timed review.`,
+      suggestions: ["Generate weekly plan", "Practice me", "Create professor message", "Improve My Grade"],
+      topic: "weekly summary",
+      courseId,
+    };
+  }
 
   if (isShorterFollowUp && context.memory.lastSelectedTopic) {
     return {
@@ -678,6 +809,46 @@ function getRuleBasedResponse(
       suggestions: ["Make a 25-minute checklist", "Message My Professor", "Explain Weak Topics", "Build Study Plan"],
       topic: context.memory.lastSelectedTopic,
       courseId,
+    };
+  }
+
+  if (/(klyne smith|professor smith|prof\. smith)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nFor Professor Klyne Smith, keep the message respectful, specific, and connected to your Software Engineering project artifacts. In this prototype profile, he has experience with IBM, the Olympics, and Macy's, so you can naturally frame the feedback request around practical project quality without making the message sound forced.\n\nSuggested message\nHello Professor Klyne Smith,\n\nI am working on the Software Engineering project and would appreciate your feedback on our requirements, UML sequence diagram, and testing plan. I am especially trying to understand whether our design choices would hold up in a real industry setting. Given your experience with IBM, the Olympics, and Macy's, I would value any guidance on making the project clearer, more practical, and easier to evaluate.\n\nCould I send you our current draft or ask one focused question during office hours?\n\nThank you,\nZabisaq\n\nRecommended next steps\n1. Attach the current UML or requirements draft.\n2. Ask for feedback on one or two specific areas.\n3. Mention your deadline so the professor can calibrate the response.",
+      suggestions: ["Make it shorter", "UML sequence diagram help", "Traceability checklist", "Plan Study Group"],
+      topic: "Professor Klyne Smith message",
+      courseId: "software",
+    };
+  }
+
+  if (/(mixed question|mixed quiz|question types|fill in|matching|ordering|true false)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nMixed question prep works best when you switch formats on purpose instead of practicing only recognition-style multiple choice.\n\nRecommended next steps\n1. Multiple choice: explain why the wrong options are wrong.\n2. True/False: rewrite false statements into true ones.\n3. Fill in the blank: practice exact vocabulary such as DNS, 2NF, or sequence diagram.\n4. Matching: pair terms with purposes, then cover the answers and repeat.\n5. Ordering: rehearse process flows such as TCP setup, SQL clause order, or feature delivery steps.\n\nPractice prompt\nGive yourself six questions: one MCQ, one True/False, one fill blank, one short answer, one matching set, and one ordering sequence.\n\nSuggested follow-up\nPick Computer Networks, Software Engineering, or Database Systems and I will make a focused drill.",
+      suggestions: ["Help with Computer Networks", "Help with Software Engineering", "Help with Database Systems", "Make it shorter"],
+      topic: "mixed question prep",
+      courseId,
+    };
+  }
+
+  if (/(study group|classmates|group plan|review group)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nA useful study group needs roles, a narrow topic, and a visible finish line.\n\nRecommended next steps\n1. Set a 45-minute session with one topic: normalization and joins, subnetting, or UML sequence diagrams.\n2. Assign roles: one person explains, one writes examples, one checks answers, one tracks confusing points.\n3. End with a five-question mixed drill so everyone leaves with evidence of progress.\n\nSample invite\nCan we meet for 45 minutes tonight to review SQL joins and normalization? I can bring two practice schemas. Let's spend 20 minutes on examples, 15 minutes on questions we missed, and 10 minutes making a mini checklist for the exam.\n\nSuggested follow-up\nAsk me for a Database Systems, Networks, or Software Engineering group agenda.",
+      suggestions: ["Database group agenda", "Subnetting group agenda", "UML group agenda", "Prep for Exam"],
+      topic: "study group planning",
+      courseId,
+    };
+  }
+
+  if (/(stressed|stress|anxious|panic).*(database|exam|midterm)|database.*(stressed|stress|anxious|panic)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nFor Database Systems exam stress, your job is not to review everything. Your job is to create a short confidence loop.\n\nRecommended next steps\n1. Spend 10 minutes listing the exact weak spots: normalization, joins, keys, ACID, or indexing.\n2. Do 25 minutes of joins and normalization because those are high-yield and easy to check.\n3. Take a 5-minute break, then explain 1NF, 2NF, and 3NF out loud.\n4. Stop after one more short drill so you do not turn review into late-night guessing.\n\nTonight's target\nLeave with three corrected mistakes and one professor or study group question if anything still feels muddy.",
+      suggestions: ["30-minute Database drill", "Make it shorter", "Improve My Grade", "Plan Study Group"],
+      topic: "Database exam stress",
+      courseId: "database",
     };
   }
 
@@ -746,6 +917,15 @@ function getRuleBasedResponse(
     };
   }
 
+  if (/(high contrast|dyslexia font|font size|focus|keyboard|captions|accessibility|settings)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nBefore a quiz, set up the environment so the assessment itself gets your attention.\n\nRecommended next steps\n1. Turn on Focus Mode when you start so non-essential navigation stays out of the way.\n2. Increase font size if long questions feel tiring to scan.\n3. Use high contrast if answer states or timer colors are hard to distinguish.\n4. Use the dyslexia-friendly font option if it improves reading comfort.\n5. Keep keyboard focus visible and move through controls in order: prompt, answer, next, submit.\n\nWhy this matters\nAccessibility settings are not extra polish; they reduce avoidable mistakes during timed work.",
+      suggestions: ["Prep for Quiz", "Time Block My Day", "Mixed Question Practice", "What should I do next?"],
+      topic: "accessibility",
+    };
+  }
+
   if (/(quiz|exam|midterm|final|time limit|attempts|focus mode|study for quiz|prepare for exam|prep for quiz|prep for exam)/.test(normalized)) {
     return {
       body:
@@ -753,6 +933,16 @@ function getRuleBasedResponse(
       suggestions: ["Help with Database Systems", "Help with Computer Networks", "Time Block My Day", "Improve My Grade"],
       topic: "quiz and exam prep",
       courseId: courseId ?? "database",
+    };
+  }
+
+  if (/(uml|sequence diagram)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nA UML sequence diagram should show who talks to whom, in what order, and where responsibility changes.\n\nRecommended next steps\n1. Put actors or systems across the top as lifelines.\n2. Read the user story and list the messages in time order.\n3. Use activation bars only where an object is doing work.\n4. Check that every message supports a requirement or acceptance criterion.\n5. Add one test case that follows the same path as the diagram.\n\nCommon check\nIf your diagram has classes but no time-ordered messages, you may be drawing a class diagram instead of a sequence diagram.",
+      suggestions: ["Traceability checklist", "Message Professor Klyne Smith", "Make it shorter", "Prep for Quiz"],
+      topic: "UML sequence diagrams",
+      courseId: "software",
     };
   }
 
@@ -924,11 +1114,81 @@ function getCurrentTime() {
 }
 
 function iconButtonClass() {
-  return cn("inline-flex h-9 w-9 items-center justify-center rounded border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950", FOCUS_RING);
+  return cn("inline-flex h-9 w-9 items-center justify-center rounded border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white", FOCUS_RING);
+}
+
+function buildProfessorMessageResponse(): AssistantResponse {
+  return {
+    body:
+      "Quick read\nHere is a respectful draft for Professor Klyne Smith about Software Engineering project feedback.\n\nSuggested message\nHello Professor Klyne Smith,\n\nI am working on our Software Engineering project and would appreciate feedback on our requirements traceability, UML sequence diagram, and architecture direction. We are treating SOD as software design and want to make sure the design choices support the project requirements clearly.\n\nGiven your experience with IBM, the Olympics, and Macy's, I would value your perspective on whether our draft reflects realistic system expectations and where we should tighten the project before the milestone.\n\nCould I send the current draft and one or two focused questions before office hours?\n\nThank you,\nZabisaq\n\nRecommended next steps\n1. Attach the requirements traceability matrix or UML draft.\n2. Ask for feedback on one specific design decision.\n3. Include the milestone date so the request is easy to prioritize.",
+    suggestions: ["Make it shorter", "Traceability checklist", "Explain UML like I'm new", "Generate weekly plan"],
+    topic: "Professor Klyne Smith message",
+    courseId: "software",
+  };
+}
+
+function buildBeginnerExplanation(courseId: CourseId, mode: ResponseMode): AssistantResponse {
+  if (courseId === "software") {
+    return {
+      body:
+        `${mode === "coach" ? "Study coach mode\n" : ""}Quick read\nA UML sequence diagram is a timeline of how parts of a system talk to each other.\n\nBeginner version\n1. Put the people or systems across the top.\n2. Draw messages downward in the order they happen.\n3. Use each arrow to show one responsibility moving from one part to another.\n4. Check every arrow against a requirement so the diagram is not just decoration.\n\nSimple check\nIf you cannot point to the user story that caused a message, that message probably needs to be removed or explained.`,
+      suggestions: ["Practice me", "Create professor message", "Traceability checklist", "Generate weekly plan"],
+      topic: "beginner UML explanation",
+      courseId: "software",
+    };
+  }
+
+  if (courseId === "networks") {
+    return {
+      body:
+        `${mode === "coach" ? "Study coach mode\n" : ""}Quick read\nSubnetting is just dividing one large network into smaller address groups.\n\nBeginner version\n1. Start with the network address.\n2. Use the subnet mask to decide how many bits belong to the network.\n3. The remaining bits create host addresses.\n4. The first address names the subnet and the last address is the broadcast address.\n5. Usable hosts live between those two.\n\nSimple check\nWrite the range out every time. Most mistakes happen when the broadcast address is counted as a usable host.`,
+      suggestions: ["Practice me", "TCP vs UDP comparison", "Generate weekly plan", "Make it shorter"],
+      topic: "beginner subnetting explanation",
+      courseId: "networks",
+    };
+  }
+
+  return {
+    body:
+      `${mode === "coach" ? "Study coach mode\n" : ""}Quick read\nSQL joins combine rows from two tables when related values match.\n\nBeginner version\n1. INNER JOIN keeps only rows that match in both tables.\n2. LEFT JOIN keeps every row from the left table and fills missing right-side values with blanks.\n3. The ON clause tells SQL how the tables are connected.\n4. Start by predicting the number of rows before writing the query.\n\nSimple check\nIf a join result surprises you, inspect the matching key values before changing the SELECT list.`,
+    suggestions: ["Practice me", "30-minute Database drill", "Generate weekly plan", "Improve My Grade"],
+    topic: "beginner SQL joins explanation",
+    courseId: "database",
+  };
+}
+
+function buildPracticeResponse(courseId: CourseId): AssistantResponse {
+  if (courseId === "software") {
+    return {
+      body:
+        "Practice me\n1. A user story says students can submit an assignment draft. Name two requirements that should trace to that story.\n2. In a UML sequence diagram, what does an arrow from Controller to Service usually represent?\n3. Your architecture has UI, service, and database layers. Where should validation logic usually begin, and why?",
+      suggestions: ["Show answers", "Explain like I'm new", "Create professor message", "Generate weekly plan"],
+      topic: "Software Engineering practice",
+      courseId: "software",
+    };
+  }
+
+  if (courseId === "networks") {
+    return {
+      body:
+        "Practice me\n1. What is the difference between a network address and a broadcast address?\n2. TCP retransmits a segment after packet loss. What reliability goal does that support?\n3. If DNS fails but an IP address still connects, which layer of the problem would you inspect first?",
+      suggestions: ["Explain subnetting", "TCP vs UDP comparison", "Generate weekly plan", "Make it shorter"],
+      topic: "Computer Networks practice",
+      courseId: "networks",
+    };
+  }
+
+  return {
+    body:
+      "Practice me\n1. A table has a composite key. What kind of dependency can violate 2NF?\n2. Write one sentence explaining the difference between INNER JOIN and LEFT JOIN.\n3. In ACID, which property prevents a half-finished transaction from being saved?",
+    suggestions: ["Explain SQL joins", "30-minute Database drill", "Improve My Grade", "Generate weekly plan"],
+    topic: "Database Systems practice",
+    courseId: "database",
+  };
 }
 
 function smallButtonClass() {
-  return cn("inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50", FOCUS_RING);
+  return cn("inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800", FOCUS_RING);
 }
 
 function CometContextCard({
@@ -960,9 +1220,9 @@ function CometContextCard({
 
 function ContextRow({ label, value, inverted = false }: { label: string; value: string; inverted?: boolean }) {
   return (
-    <div className={cn("rounded border p-3", inverted ? "border-white/10 bg-slate-950/30" : "border-slate-200 bg-slate-50")}>
+    <div className={cn("rounded border p-3", inverted ? "border-white/10 bg-slate-950/30" : "border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800")}>
       <p className={cn("text-xs font-black uppercase tracking-wide", inverted ? "text-cyan-100" : "text-slate-500")}>{label}</p>
-      <p className={cn("mt-1 text-sm font-semibold", inverted ? "text-white" : "text-slate-800")}>{value}</p>
+      <p className={cn("mt-1 text-sm font-semibold", inverted ? "text-white" : "text-slate-800 dark:text-slate-200")}>{value}</p>
     </div>
   );
 }
@@ -979,13 +1239,13 @@ function MetricCard({
   detail: string;
 }) {
   return (
-    <article className="rounded border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="rounded border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <div className="mb-3 flex h-9 w-9 items-center justify-center rounded bg-slate-900 text-cyan-300">
         <Icon className="h-4 w-4" />
       </div>
       <p className="text-xs font-black uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-black text-slate-900">{value}</p>
-      <p className="mt-1 text-xs text-slate-600">{detail}</p>
+      <p className="mt-2 text-3xl font-black text-slate-900 dark:text-white">{value}</p>
+      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{detail}</p>
     </article>
   );
 }
@@ -1002,13 +1262,13 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="rounded border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <div className="mb-4">
-        <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
+        <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
           <Icon className="h-4 w-4" />
           {title}
         </h3>
-        {description && <p className="mt-0.5 text-xs text-slate-600">{description}</p>}
+        {description && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{description}</p>}
       </div>
       {children}
     </section>

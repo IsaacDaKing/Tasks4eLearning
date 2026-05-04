@@ -241,4 +241,87 @@
     --tw-shadow-color: rgb(15 23 42 / 0.6) !important;
     --tw-shadow: var(--tw-shadow-colored) !important;
   }
+
+  .login-page,
+  .dark .login-page {
+    background-color: rgb(241 245 249) !important;
+    color: rgb(15 23 42) !important;
+  }
+
+  .dark .login-page .bg-white {
+    background-color: rgb(255 255 255) !important;
+  }
+
+  .dark .login-page .bg-slate-50 {
+    background-color: rgb(248 250 252) !important;
+  }
+
+  .dark .login-page .bg-slate-100 {
+    background-color: rgb(241 245 249) !important;
+  }
+
+  .dark .login-page .text-slate-900 {
+    color: rgb(15 23 42) !important;
+  }
+
+  .dark .login-page .text-slate-800,
+  .dark .login-page .text-slate-700 {
+    color: rgb(51 65 85) !important;
+  }
+
+  .dark .login-page .text-slate-600,
+  .dark .login-page .text-slate-500 {
+    color: rgb(71 85 105) !important;
+  }
+
+  .dark .login-page .border-slate-100,
+  .dark .login-page .border-slate-200,
+  .dark .login-page .border-slate-300 {
+    border-color: rgb(226 232 240) !important;
+  }
+
+  .dark .login-page input {
+    background-color: rgb(255 255 255) !important;
+    color: rgb(15 23 42) !important;
+  }
+
+  button,
+  a {
+    transition-duration: 150ms;
+  }
+
+  button:active,
+  a:active {
+    transform: scale(0.99);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .comet-drift {
+    animation: comet-drift 9s ease-in-out infinite;
+  }
+
+  @keyframes comet-drift {
+    0% {
+      transform: translateX(-16px) translateY(4px);
+      opacity: 0.45;
+    }
+    45% {
+      transform: translateX(80px) translateY(-10px);
+      opacity: 0.95;
+    }
+    100% {
+      transform: translateX(160px) translateY(2px);
+      opacity: 0;
+    }
+  }
 }

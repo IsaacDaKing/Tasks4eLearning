@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type KeyboardE
 import { Link, useLocation, useNavigate } from "react-router";
 import {
   LayoutDashboard,
+  Presentation,
   BookOpen,
   Calendar as CalendarIcon,
   GraduationCap,
@@ -90,6 +91,7 @@ export function useSidebar() {
 function normalizePinnedItems(items: unknown[]) {
   const validPaths = new Set([
     "/dashboard",
+    "/instructor-dashboard",
     "/courses",
     "/quiz",
     "/assignment",
@@ -111,9 +113,12 @@ export function Sidebar() {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const role = typeof window === "undefined" ? "student" : window.localStorage.getItem("lms-role");
+  const isInstructor = role === "instructor";
 
   const handleLogout = () => {
     window.localStorage.removeItem("lms-prototype-session");
+    window.localStorage.removeItem("lms-role");
     navigate("/");
   };
 
@@ -125,6 +130,9 @@ export function Sidebar() {
     previewLabel?: string;
   }> = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+    ...(isInstructor
+      ? [{ name: "Instructor Dashboard", icon: Presentation, path: "/instructor-dashboard" }]
+      : []),
     { name: "Courses", icon: BookOpen, path: "/courses" },
     { name: "Quiz", icon: Bell, path: "/quiz" },
     { name: "Assignment", icon: ClipboardList, path: "/assignment" },
@@ -138,12 +146,10 @@ export function Sidebar() {
 
   const pinnedNavItems = allNavItems.filter((item) => pinnedItems.includes(item.path));
   const unpinnedNavItems = allNavItems.filter((item) => !pinnedItems.includes(item.path));
-  const displayedGroups = isCollapsed
-    ? [{ label: "Pinned", items: pinnedNavItems }]
-    : [
-        { label: "Pinned", items: pinnedNavItems },
-        { label: "All Tools", items: unpinnedNavItems },
-      ].filter((group) => group.items.length > 0);
+  const displayedGroups = [
+    { label: "Pinned", items: pinnedNavItems },
+    { label: "All Tools", items: unpinnedNavItems },
+  ].filter((group) => group.items.length > 0);
 
   return (
     <div className={cn(
@@ -289,6 +295,8 @@ function SidebarNavItem({
 
 export function Header({ title }: { title: string }) {
   const navigate = useNavigate();
+  const role = typeof window === "undefined" ? "student" : window.localStorage.getItem("lms-role");
+  const isInstructor = role === "instructor";
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [highlightedResult, setHighlightedResult] = useState(0);
@@ -467,8 +475,12 @@ export function Header({ title }: { title: string }) {
 
           <div className="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-700">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">Zabisaq Tasharmapandyasan</p>
-              <p className="text-xs text-slate-500">Student ID: ZXT220067</p>
+              <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">
+                {isInstructor ? "Dr. Priya Raman" : "Zabisaq Tasharmapandyasan"}
+              </p>
+              <p className="text-xs text-slate-500">
+                {isInstructor ? "Instructor Demo" : "Student ID: ZXT220067"}
+              </p>
             </div>
             <div className="w-8 h-8 rounded bg-slate-200 border border-slate-300 flex items-center justify-center overflow-hidden flex-shrink-0">
                <User className="w-4 h-4 text-slate-500" />

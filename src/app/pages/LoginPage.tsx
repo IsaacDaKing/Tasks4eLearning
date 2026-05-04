@@ -29,6 +29,9 @@ type LoginErrors = {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const demoEmail = "student@university.edu";
 const demoPassword = "LearnReady2026!";
+const instructorDemoEmail = "instructor@utd.edu";
+const instructorDemoPassword = "instructor123";
+type DemoRole = "student" | "instructor";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -62,10 +65,23 @@ export function LoginPage() {
     localStorage.removeItem("lms-saved-email");
   };
 
-  const finishPrototypeLogin = (nextEmail: string) => {
+  const detectDemoRole = (nextEmail: string, nextPassword: string): DemoRole => {
+    if (
+      nextEmail.toLowerCase() === instructorDemoEmail &&
+      nextPassword === instructorDemoPassword
+    ) {
+      return "instructor";
+    }
+
+    return "student";
+  };
+
+  const finishPrototypeLogin = (nextEmail: string, nextPassword: string, forcedRole?: DemoRole) => {
+    const role = forcedRole ?? detectDemoRole(nextEmail, nextPassword);
     persistRememberedEmail(nextEmail);
     localStorage.setItem("lms-prototype-session", "true");
-    navigate("/dashboard");
+    localStorage.setItem("lms-role", role);
+    navigate(role === "instructor" ? "/instructor-dashboard" : "/dashboard");
   };
 
   const validateLogin = () => {
@@ -92,13 +108,13 @@ export function LoginPage() {
 
     if (!validateLogin()) return;
 
-    finishPrototypeLogin(email.trim());
+    finishPrototypeLogin(email.trim(), password);
   };
 
   const handleSsoLogin = () => {
     setLoginErrors({});
     setLoginNotice("University SSO accepted for this session.");
-    finishPrototypeLogin(email.trim() || demoEmail);
+    finishPrototypeLogin(email.trim() || demoEmail, password, "student");
   };
 
   const handleDemoAccount = () => {
@@ -106,6 +122,13 @@ export function LoginPage() {
     setPassword(demoPassword);
     setLoginErrors({});
     setLoginNotice("Sample account filled. Submit the form to continue.");
+  };
+
+  const handleDemoInstructorAccount = () => {
+    setEmail(instructorDemoEmail);
+    setPassword(instructorDemoPassword);
+    setLoginErrors({});
+    setLoginNotice("Instructor account filled. Submit the form to continue.");
   };
 
   const handleForgot = (e: FormEvent<HTMLFormElement>) => {
@@ -133,7 +156,7 @@ export function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+    <main className="login-page min-h-screen bg-slate-100 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col justify-center gap-6">
         <header className="flex items-center justify-center gap-3">
           <img
@@ -289,6 +312,14 @@ export function LoginPage() {
                     >
                       <Sparkles className="h-4 w-4" aria-hidden="true" />
                       Fill sample account
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDemoInstructorAccount}
+                      className={cn("flex w-full items-center justify-center gap-2 rounded border border-orange-200 bg-orange-50 px-4 py-2.5 text-sm font-bold text-orange-800 transition-colors hover:bg-orange-100", focusClass)}
+                    >
+                      <GraduationCap className="h-4 w-4" aria-hidden="true" />
+                      Fill instructor account
                     </button>
                   </div>
 

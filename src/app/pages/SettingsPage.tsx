@@ -356,7 +356,7 @@ export function SettingsPage() {
 
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
             <h3 className="font-black text-slate-900 dark:text-white mb-2">{accountPanelTitle(activeAccountPanel)}</h3>
-            <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">Frontend-only account controls for the LMS prototype.</p>
+            <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">These account controls are local-only and do not change authentication records.</p>
             <AccountMockPanel activePanel={activeAccountPanel} onSave={saveAccountPanel} />
             {accountNotice && (
               <p className="mt-4 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300" role="status">
@@ -390,7 +390,7 @@ export function SettingsPage() {
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-xl font-black text-slate-900 dark:text-white">Contact Support</h3>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Send a frontend-only support request for review.</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Send a local support request for review.</p>
               </div>
               <button
                 type="button"
@@ -530,7 +530,7 @@ function AccountMockPanel({ activePanel, onSave }: { activePanel: AccountPanel; 
       <div className="space-y-3">
         <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">
           Current password
-          <input type="password" placeholder="Not stored in this prototype" className={accountInputClass()} />
+          <input type="password" placeholder="This field is local only" className={accountInputClass()} />
         </label>
         <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">
           New password

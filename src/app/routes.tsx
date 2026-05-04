@@ -12,12 +12,14 @@ import { LoginPage } from "./pages/LoginPage";
 import { QuizPage } from "./pages/QuizPage";
 import { MessagesPage } from "./pages/MessagesPage";
 import { AIAssistantPage } from "./pages/AIAssistantPage";
+import { InstructorDashboardPage } from "./pages/InstructorDashboardPage";
 import { useLocation } from "react-router";
 
 function Layout() {
   const location = useLocation();
   const getTitle = () => {
     if (location.pathname === "/dashboard") return "Dashboard Overview";
+    if (location.pathname === "/instructor-dashboard") return "Instructor Dashboard";
     if (location.pathname === "/calendar") return "Academic Calendar";
     if (location.pathname === "/grades") return "Grade Audit Logs";
     if (location.pathname === "/courses") return "Your Enrolled Courses";
@@ -65,6 +67,7 @@ export const router = createBrowserRouter([
     Component: Layout,
     children: [
       { path: "dashboard", Component: Dashboard },
+      { path: "instructor-dashboard", Component: InstructorDashboardPage },
       { path: "calendar", Component: CalendarPage },
       { path: "grades", Component: GradesPage },
       { path: "courses", Component: CoursesPage },

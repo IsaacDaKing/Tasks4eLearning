@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Plus,
   TrendingUp,
   Calculator,
   Trash2,
+  RotateCcw,
+  HelpCircle,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -127,14 +129,16 @@ export function GradeCalculator() {
   const [courses, setCourses] =
     useState<Course[]>(INITIAL_COURSES);
   const [simulationMode, setSimulationMode] = useState(true);
+  const [targetCourseId, setTargetCourseId] = useState(INITIAL_COURSES[0].id);
+  const [targetGrade, setTargetGrade] = useState(90);
 
-  const calculateCourseGrade = (course: Course): number => {
+  const calculateCourseGrade = (course: Course, useProjection = simulationMode): number => {
     let totalWeight = 0;
     let weightedScore = 0;
 
     course.assignments.forEach((assignment) => {
       const score =
-        simulationMode && assignment.projectedScore !== null
+        useProjection && assignment.projectedScore !== null
           ? assignment.projectedScore
           : assignment.currentScore;
 
@@ -149,12 +153,12 @@ export function GradeCalculator() {
       : 0;
   };
 
-  const calculateGPA = (): number => {
+  const calculateGPA = (useProjection = simulationMode): number => {
     let totalCredits = 0;
     let totalPoints = 0;
 
     courses.forEach((course) => {
-      const grade = calculateCourseGrade(course);
+      const grade = calculateCourseGrade(course, useProjection);
       let gradePoint = 0;
 
       if (grade >= 93) gradePoint = 4.0;
@@ -175,6 +179,13 @@ export function GradeCalculator() {
 
     return totalCredits > 0 ? totalPoints / totalCredits : 0;
   };
+
+  const currentGpa = useMemo(() => calculateGPA(false), [courses]);
+  const projectedGpa = useMemo(() => calculateGPA(true), [courses]);
+  const projectedAverage = useMemo(
+    () => courses.reduce((sum, course) => sum + calculateCourseGrade(course, true), 0) / courses.length,
+    [courses],
+  );
 
   const getLetterGrade = (score: number): string => {
     if (score >= 93) return "A";
@@ -253,8 +264,15 @@ export function GradeCalculator() {
     );
   };
 
+  const resetProjections = () => {
+    setCourses(INITIAL_COURSES);
+  };
+
+  const selectedTargetCourse = courses.find((course) => course.id === targetCourseId) ?? courses[0];
+  const targetHelper = selectedTargetCourse ? calculateNeededScore(selectedTargetCourse, targetGrade) : null;
+
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-[1500px] mx-auto animate-in fade-in duration-500 dark:bg-slate-900">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1500px] mx-auto animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
@@ -262,11 +280,10 @@ export function GradeCalculator() {
             Grade Calculator
           </h2>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
-            Calculate your current and projected course grades
-            and GPA
+            Simulation mode lets you test future assignment scores without changing saved grades.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={() => setSimulationMode(!simulationMode)}
@@ -281,10 +298,18 @@ export function GradeCalculator() {
               ? "Simulation Mode: ON"
               : "Simulation Mode: OFF"}
           </button>
+          <button
+            type="button"
+            onClick={resetProjections}
+            className={cn("inline-flex items-center gap-2 rounded border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700")}
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset projections
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -293,15 +318,14 @@ export function GradeCalculator() {
           <div className="flex items-center gap-3 mb-2">
             <TrendingUp className="w-5 h-5" />
             <p className="text-sm font-bold opacity-90">
-              Projected GPA
+              Current GPA
             </p>
           </div>
           <h3 className="text-4xl font-black">
-            {calculateGPA().toFixed(2)}
+            {currentGpa.toFixed(2)}
           </h3>
           <p className="text-xs opacity-75 mt-2">
-            Based on {simulationMode ? "projected" : "current"}{" "}
-            scores
+            Uses only saved/current scores
           </p>
         </motion.div>
 
@@ -309,19 +333,16 @@ export function GradeCalculator() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-slate-800 p-5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"
+          className="bg-blue-600 p-5 rounded-lg border border-blue-500 shadow-sm text-white"
         >
-          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">
-            Total Credits
+          <p className="text-sm font-bold text-blue-100 mb-2">
+            Projected GPA
           </p>
-          <h3 className="text-4xl font-black text-slate-900 dark:text-white">
-            {courses.reduce(
-              (sum, course) => sum + course.credits,
-              0,
-            )}
+          <h3 className="text-4xl font-black">
+            {projectedGpa.toFixed(2)}
           </h3>
-          <p className="text-xs text-slate-400 mt-2">
-            Across {courses.length} courses
+          <p className="text-xs text-blue-100 mt-2">
+            Uses projected scores where entered
           </p>
         </motion.div>
 
@@ -332,28 +353,78 @@ export function GradeCalculator() {
           className="bg-white dark:bg-slate-800 p-5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"
         >
           <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">
-            Average Grade
+            Projected Average
           </p>
           <h3 className="text-4xl font-black text-slate-900 dark:text-white">
-            {(
-              courses.reduce(
-                (sum, course) =>
-                  sum + calculateCourseGrade(course),
-                0,
-              ) / courses.length
-            ).toFixed(1)}
+            {projectedAverage.toFixed(1)}
             %
           </h3>
           <p className="text-xs text-slate-400 mt-2">
-            Overall performance
+            Across {courses.length} courses
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white dark:bg-slate-800 p-5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm"
+        >
+          <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-2">
+            Credits
+          </p>
+          <h3 className="text-4xl font-black text-slate-900 dark:text-white">
+            {courses.reduce((sum, course) => sum + course.credits, 0)}
+          </h3>
+          <p className="text-xs text-slate-400 mt-2">
+            Included in GPA calculation
           </p>
         </motion.div>
       </div>
 
+      <section className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+        <div className="flex items-start gap-3">
+          <HelpCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-700 dark:text-blue-300" />
+          <div className="flex-1">
+            <h3 className="font-black text-blue-950 dark:text-blue-200">What score do I need?</h3>
+            <p className="mt-1 text-sm text-blue-900 dark:text-blue-300">
+              Choose a course and target grade. The helper estimates the average needed across ungraded/projected work.
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_160px_minmax(0,1fr)]">
+              <label className="text-sm font-bold text-blue-950 dark:text-blue-200">
+                Course
+                <select value={targetCourseId} onChange={(event) => setTargetCourseId(event.target.value)} className="mt-2 w-full rounded border border-blue-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-blue-800 dark:bg-slate-900 dark:text-white">
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>{course.name}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-sm font-bold text-blue-950 dark:text-blue-200">
+                Target %
+                <input type="number" min="0" max="100" value={targetGrade} onChange={(event) => setTargetGrade(Number(event.target.value))} className="mt-2 w-full rounded border border-blue-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-blue-800 dark:bg-slate-900 dark:text-white" />
+              </label>
+              <div className="rounded border border-blue-200 bg-white p-3 text-sm dark:border-blue-800 dark:bg-slate-900">
+                <p className="font-black text-slate-900 dark:text-white">
+                  {targetHelper === null
+                    ? "No remaining projected work"
+                    : targetHelper > 100
+                      ? `Need ${targetHelper.toFixed(1)}% average, which is above 100%.`
+                      : `Need about ${targetHelper.toFixed(1)}% on remaining work.`}
+                </p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">This is a planning estimate, not a saved grade change.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="space-y-6">
         {courses.map((course, i) => {
-          const courseGrade = calculateCourseGrade(course);
+          const currentCourseGrade = calculateCourseGrade(course, false);
+          const projectedCourseGrade = calculateCourseGrade(course, true);
+          const courseGrade = simulationMode ? projectedCourseGrade : currentCourseGrade;
           const letterGrade = getLetterGrade(courseGrade);
+          const weightTotal = course.assignments.reduce((sum, assignment) => sum + assignment.weight, 0);
 
           return (
             <motion.div
@@ -361,10 +432,10 @@ export function GradeCalculator() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden"
+              className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-md"
             >
               <div className="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <h3 className="text-xl font-black text-slate-900 dark:text-white">
                       {course.name}
@@ -372,13 +443,24 @@ export function GradeCalculator() {
                     <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                       {course.code} • {course.credits} Credits
                     </p>
+                    {weightTotal !== 100 && (
+                      <p className="mt-2 rounded border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                        Weights total {weightTotal}%, not 100%. Calculations normalize entered weights.
+                      </p>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <div className="text-4xl font-black text-blue-600">
-                      {letterGrade}
+                  <div className="grid grid-cols-3 gap-3 text-center sm:min-w-[360px]">
+                    <div className="rounded bg-white p-3 dark:bg-slate-800">
+                      <p className="text-xs font-black uppercase tracking-wide text-slate-500">Current</p>
+                      <p className="text-xl font-black text-slate-900 dark:text-white">{currentCourseGrade.toFixed(1)}%</p>
                     </div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400 font-bold">
-                      {courseGrade.toFixed(1)}%
+                    <div className="rounded bg-white p-3 dark:bg-slate-800">
+                      <p className="text-xs font-black uppercase tracking-wide text-slate-500">Projected</p>
+                      <p className="text-xl font-black text-blue-600 dark:text-blue-300">{projectedCourseGrade.toFixed(1)}%</p>
+                    </div>
+                    <div className="rounded bg-white p-3 dark:bg-slate-800">
+                      <p className="text-xs font-black uppercase tracking-wide text-slate-500">{simulationMode ? "Sim" : "Saved"}</p>
+                      <p className="text-xl font-black text-slate-900 dark:text-white">{letterGrade}</p>
                     </div>
                   </div>
                 </div>
@@ -501,4 +583,20 @@ export function GradeCalculator() {
       </div>
     </div>
   );
+}
+
+function calculateNeededScore(course: Course, targetGrade: number) {
+  let completedWeighted = 0;
+  let remainingWeight = 0;
+
+  course.assignments.forEach((assignment) => {
+    if (assignment.currentScore !== null && assignment.projectedScore === null) {
+      completedWeighted += (assignment.currentScore * assignment.weight) / 100;
+      return;
+    }
+    remainingWeight += assignment.weight;
+  });
+
+  if (remainingWeight <= 0) return null;
+  return ((targetGrade - completedWeighted) * 100) / remainingWeight;
 }

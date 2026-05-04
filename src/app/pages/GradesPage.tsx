@@ -109,6 +109,65 @@ const GRADE_LOGS = [
   },
 ];
 
+const CLASS_COMPARISONS = [
+  {
+    code: "CS 4390.0W1",
+    name: "Computer Networks",
+    studentGrade: 88,
+    classAverage: 82,
+    classMedian: 84,
+    percentile: 76,
+    buckets: [
+      { label: "A range", range: "90-100", count: 9 },
+      { label: "B range", range: "80-89", count: 17 },
+      { label: "C range", range: "70-79", count: 8 },
+      { label: "D/F range", range: "Below 70", count: 4 },
+    ],
+  },
+  {
+    code: "CS 3354.012",
+    name: "Software Engineering",
+    studentGrade: 92,
+    classAverage: 86,
+    classMedian: 87,
+    percentile: 82,
+    buckets: [
+      { label: "A range", range: "90-100", count: 16 },
+      { label: "B range", range: "80-89", count: 21 },
+      { label: "C range", range: "70-79", count: 8 },
+      { label: "D/F range", range: "Below 70", count: 3 },
+    ],
+  },
+  {
+    code: "CS 4347.002",
+    name: "Database Systems",
+    studentGrade: 84,
+    classAverage: 79,
+    classMedian: 80,
+    percentile: 68,
+    buckets: [
+      { label: "A range", range: "90-100", count: 7 },
+      { label: "B range", range: "80-89", count: 18 },
+      { label: "C range", range: "70-79", count: 12 },
+      { label: "D/F range", range: "Below 70", count: 5 },
+    ],
+  },
+  {
+    code: "CS 4337.005",
+    name: "Programming Language Paradigms",
+    studentGrade: 87,
+    classAverage: 81,
+    classMedian: 82,
+    percentile: 73,
+    buckets: [
+      { label: "A range", range: "90-100", count: 8 },
+      { label: "B range", range: "80-89", count: 15 },
+      { label: "C range", range: "70-79", count: 9 },
+      { label: "D/F range", range: "Below 70", count: 4 },
+    ],
+  },
+];
+
 const STATUS_CLASS: Record<string, string> = {
   Graded: "bg-emerald-50 text-emerald-700 border-emerald-200",
   Submitted: "bg-blue-50 text-blue-700 border-blue-200",
@@ -194,6 +253,68 @@ export function GradesPage() {
         ))}
       </div>
 
+      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Anonymous Class Grade Distribution</h3>
+            <p className="text-sm text-slate-600">Compare your grade with aggregate class averages. No other student names or individual scores are shown.</p>
+          </div>
+          <span className="w-fit rounded border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-600">Mock aggregate data</span>
+        </div>
+        <div className="grid gap-4 xl:grid-cols-2">
+          {CLASS_COMPARISONS.map((course) => {
+            const total = course.buckets.reduce((sum, bucket) => sum + bucket.count, 0);
+            const difference = course.studentGrade - course.classAverage;
+            return (
+              <article key={course.code} className="rounded border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-slate-500">{course.code}</p>
+                    <h4 className="text-base font-black text-slate-900">{course.name}</h4>
+                    <p className="mt-1 text-sm font-semibold text-slate-700">
+                      You are {Math.abs(difference)} points {difference >= 0 ? "above" : "below"} the class average.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm sm:min-w-64">
+                    <StatTile label="Your grade" value={`${course.studentGrade}%`} />
+                    <StatTile label="Class average" value={`${course.classAverage}%`} />
+                    <StatTile label="Class median" value={`${course.classMedian}%`} />
+                    <StatTile label="Percentile" value={`${course.percentile}th`} />
+                  </div>
+                </div>
+                <div className="mt-4" aria-label={`${course.name} anonymous grade distribution`}>
+                  <div className="mb-2 flex items-center justify-between text-xs font-bold text-slate-600">
+                    <span>Grade buckets</span>
+                    <span>{total} students represented anonymously</span>
+                  </div>
+                  <div className="grid grid-cols-4 overflow-hidden rounded border border-slate-200 bg-white" role="img" aria-label={`${course.name} distribution: ${course.buckets.map((bucket) => `${bucket.label} ${bucket.count}`).join(", ")}`}>
+                    {course.buckets.map((bucket, bucketIndex) => (
+                      <div
+                        key={bucket.label}
+                        className={cn(
+                          "min-h-16 border-r border-white px-2 py-2 text-center last:border-r-0",
+                          bucketIndex === 0 && "bg-emerald-100",
+                          bucketIndex === 1 && "bg-blue-100",
+                          bucketIndex === 2 && "bg-amber-100",
+                          bucketIndex === 3 && "bg-rose-100",
+                        )}
+                        style={{ flexBasis: `${(bucket.count / total) * 100}%` }}
+                      >
+                        <div className="mx-auto flex h-10 items-end justify-center">
+                          <div className="w-6 rounded-t bg-slate-800" style={{ height: `${Math.max(18, (bucket.count / total) * 64)}px` }} />
+                        </div>
+                        <p className="mt-2 text-xs font-black text-slate-900">{bucket.label}</p>
+                        <p className="text-[11px] font-semibold text-slate-600">{bucket.range} - {bucket.count}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
       <section className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3">
           <div>
@@ -233,6 +354,15 @@ export function GradesPage() {
           </table>
         </div>
       </section>
+    </div>
+  );
+}
+
+function StatTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded border border-slate-200 bg-white p-2">
+      <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="text-lg font-black text-slate-900">{value}</p>
     </div>
   );
 }

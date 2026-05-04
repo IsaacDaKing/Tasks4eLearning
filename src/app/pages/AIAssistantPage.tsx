@@ -118,6 +118,8 @@ const COURSES: CoursePlan[] = [
 
 const QUICK_ACTIONS = [
   "Build Study Plan",
+  "Time Management Strategies",
+  "Time Block My Day",
   "Improve My Grade",
   "Prioritize This Week",
   "Prep for Quiz",
@@ -128,13 +130,17 @@ const QUICK_ACTIONS = [
   "Choose Tonight's Study",
   "Shorter Study Plan",
   "Explain Weak Topics",
-  "Time Block My Day",
   "Review Deadlines",
   "Accessibility Help",
   "Explain the Whoosh",
 ];
 
 const PROMPT_STARTERS = [
+  "How should I manage my time?",
+  "I am overwhelmed.",
+  "What should I do tonight?",
+  "Make me a study schedule.",
+  "Prioritize my week.",
   "What should I study tonight?",
   "How can I raise my GPA?",
   "Make me a study plan for this week.",
@@ -184,6 +190,7 @@ const RESPONSE_MODES: Array<{ value: ResponseMode; label: string }> = [
 ];
 const SMART_ACTIONS = [
   "Generate weekly plan",
+  "Time Management Strategies",
   "Create professor message",
   "Explain like I'm new",
   "Practice me",
@@ -467,17 +474,26 @@ export function AIAssistantPage() {
             </div>
           </Panel>
 
-          <Panel icon={Clock} title="Time Blocks" description="Short focused sessions for the next study window.">
+          <Panel icon={Clock} title="Time Management Strategies" description="Local Comet strategy cards for the next study windows.">
             <div className="space-y-3">
               {[
-                "45 minutes: Database Systems normalization, joins, and ACID practice.",
-                "30 minutes: Software Engineering UML sequence diagram and traceability cleanup.",
-                "25 minutes: Computer Networks subnetting drills and TCP reliability review.",
+                { label: "Today's focus block", detail: "25 minutes on Computer Networks protocol analysis, then a 5-minute break." },
+                { label: "Tomorrow's review block", detail: "30 minutes on Software Engineering UML and traceability cleanup." },
+                { label: "This week's checkpoint", detail: "Two 45-minute Database Systems blocks for normalization, joins, ACID, and indexing." },
               ].map((block) => (
-                <div key={block} className="rounded border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                  {block}
+                <div key={block.label} className="rounded border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  <p className="font-black text-slate-900 dark:text-white">{block.label}</p>
+                  <p className="mt-1 font-medium">{block.detail}</p>
                 </div>
               ))}
+              <button
+                type="button"
+                onClick={() => submitPrompt("How should I manage my time?", "Time Management Strategies")}
+                className={cn("inline-flex w-full items-center justify-center gap-2 rounded bg-cyan-600 px-4 py-2 text-sm font-black text-white hover:bg-cyan-700", FOCUS_RING)}
+              >
+                <Clock className="h-4 w-4" />
+                Ask Comet for time strategies
+              </button>
             </div>
           </Panel>
         </div>
@@ -569,7 +585,7 @@ function CometChatPanel({
             More quick actions
           </summary>
           <div className="mt-3 flex flex-wrap gap-2" aria-label="Additional Comet AI quick actions">
-            {QUICK_ACTIONS.slice(0, 8).map((action) => (
+            {QUICK_ACTIONS.slice(0, 10).map((action) => (
               <button
                 key={action}
                 type="button"
@@ -779,6 +795,17 @@ function getRuleBasedResponse(
       suggestions: ["Practice me", "Create professor message", "Summarize my week", "Make it shorter"],
       generatedPlan: plan,
       topic: "weekly plan",
+      courseId,
+    };
+  }
+
+  if (/(time management strategies|manage my time|time block my day|study schedule|what should i do tonight|prioritize my week|prioritize this week|overwhelmed|i am overwhelmed|too much|tonight)/.test(normalized)) {
+    const plan = buildTimeManagementResponse(context.courses, modeIntro);
+    return {
+      body: plan.body,
+      suggestions: ["Make me a study schedule.", "What should I do tonight?", "Use Focus Mode", "Make it shorter"],
+      generatedPlan: plan.generatedPlan,
+      topic: "time management",
       courseId,
     };
   }
@@ -1054,6 +1081,37 @@ Course focus order
 
 Suggested follow-up
 Ask Comet AI to make this shorter, time block your day, or prep you for the Database Systems exam.`;
+}
+
+function buildTimeManagementResponse(courses: Array<CoursePlan & Partial<{ projectedGrade: number }>>, modeIntro = "") {
+  const networks = courses.find((course) => course.id === "networks") ?? COURSES[0];
+  const software = courses.find((course) => course.id === "software") ?? COURSES[1];
+  const database = courses.find((course) => course.id === "database") ?? COURSES[2];
+  const generatedPlan = `Time management strategy
+Today
+- 25-minute focus block: ${networks.name} ${networks.deadline}.
+- 5-minute break: stand up, reset tabs, and write the next tiny task.
+- 25-minute focus block: Computer Networks subnetting or TCP reliability review.
+
+Tonight
+- Prioritize urgent deadlines before optional review.
+- Spend 30 minutes on ${software.name} UML, requirements, or traceability only if the Networks submission is stable.
+- Stop with a short checklist for tomorrow instead of starting a new large task late.
+
+Tomorrow
+- 30-minute review block: ${software.name} milestone cleanup.
+- 25-minute Pomodoro: ${database.name} normalization, SQL joins, keys, ACID, or indexing.
+
+This week
+- Balance the three major courses: Computer Networks for urgency, Database Systems for grade risk, and Software Engineering for milestone quality.
+- Schedule two 45-minute Database Systems checkpoints before the midterm.
+- Use Focus Mode for quizzes, exams, and any timed practice session.`;
+
+  return {
+    generatedPlan,
+    body:
+      `${modeIntro}Quick read\nUse time blocking: protect the urgent Computer Networks deadline first, then rotate Software Engineering and Database Systems in short focused blocks.\n\nRecommended next steps\n1. Start with one 25-minute Pomodoro on ${networks.deadline}; keep only the assignment, notes, and timer open.\n2. Take a 5-minute break before switching tasks.\n3. If you still have energy tonight, do 30 minutes of ${software.name} traceability or UML cleanup.\n4. Put ${database.name} into two 45-minute checkpoints this week for normalization, SQL joins, ACID, keys, and indexing.\n5. Use Focus Mode for quizzes, exams, and timed review so notifications and extra navigation stay out of the way.\n\n${generatedPlan}\n\nWhy this matters\nA deterministic schedule lowers overwhelm because every course has a job: urgent deadline, milestone polish, or grade-risk practice.`,
+  };
 }
 
 function calculateProjectedGrade(course: CoursePlan) {

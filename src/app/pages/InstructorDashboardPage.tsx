@@ -61,10 +61,21 @@ const roster = [
 ];
 
 const sampleBadges = [
-  { name: "Sprint Starter", detail: "Submit first sprint plan", color: "bg-blue-600" },
-  { name: "Peer Reviewer", detail: "Complete 3 thoughtful reviews", color: "bg-emerald-600" },
-  { name: "Design Thinker", detail: "Revise UML after feedback", color: "bg-violet-600" },
+  { name: "Requirements Champion", milestone: "Complete 4 traceability updates with clear acceptance criteria", course: "Software Engineering", color: "bg-blue-600", icon: "shield", earnedCount: 12 },
+  { name: "SQL Mastery", milestone: "Score 90% or higher on SQL joins and normalization practice", course: "Database Systems", color: "bg-emerald-600", icon: "book", earnedCount: 8 },
+  { name: "Network Troubleshooter", milestone: "Resolve 5 packet analysis scenarios with evidence", course: "Computer Networks", color: "bg-orange-600", icon: "branch", earnedCount: 6 },
+  { name: "Peer Review Pro", milestone: "Complete 3 thoughtful peer reviews before the sprint deadline", course: "Software Engineering", color: "bg-violet-600", icon: "users", earnedCount: 15 },
 ];
+
+const badgeIconOptions = [
+  { id: "award", label: "Award", icon: Award },
+  { id: "shield", label: "Shield", icon: ShieldCheck },
+  { id: "book", label: "Book", icon: BookOpen },
+  { id: "branch", label: "Branch", icon: GitBranch },
+  { id: "users", label: "Team", icon: Users },
+];
+
+const courseOptions = ["Software Engineering", "Database Systems", "Computer Networks", "Programming Language Paradigms"];
 
 const branchingChoices = [
   { choice: "Interview the stakeholder again", outcome: "Unlocks clearer acceptance criteria" },
@@ -101,47 +112,33 @@ const previousCourses = [
 export function InstructorDashboardPage() {
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [badgeColor, setBadgeColor] = useState("bg-blue-600");
-  const [uploadedFileList, setUploadedFileList] = useState(uploadedFiles);
-  const [dragActive, setDragActive] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<typeof previousCourses[0] | null>(null);
+  const [badgeName, setBadgeName] = useState("Requirements Champion");
+  const [badgeMilestone, setBadgeMilestone] = useState("Complete 4 traceability updates");
+  const [badgeCourse, setBadgeCourse] = useState("Software Engineering");
+  const [badgeIcon, setBadgeIcon] = useState("award");
+  const [badges, setBadges] = useState(sampleBadges);
 
   const formatEditor = (command: "bold" | "italic" | "insertUnorderedList") => {
     document.execCommand(command);
   };
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const files = Array.from(e.dataTransfer.files);
-      files.forEach((file) => {
-        const newFile = {
-          name: file.name,
-          size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-          uploadedAt: "Just now",
-        };
-        setUploadedFileList((prev) => [newFile, ...prev]);
-      });
-    }
-  };
-
-  const cloneCourse = () => {
-    if (selectedCourse) {
-      alert(`Cloning "${selectedCourse.name}" with ${selectedCourse.modules} modules. This will copy all materials to the new semester.`);
-      setSelectedCourse(null);
-    }
+  const createBadge = () => {
+    const trimmedName = badgeName.trim();
+    const trimmedMilestone = badgeMilestone.trim();
+    if (!trimmedName || !trimmedMilestone) return;
+    setBadges((current) => [
+      {
+        name: trimmedName,
+        milestone: trimmedMilestone,
+        course: badgeCourse,
+        color: badgeColor,
+        icon: badgeIcon,
+        earnedCount: 0,
+      },
+      ...current,
+    ]);
+    setBadgeName("");
+    setBadgeMilestone("");
   };
 
   return (
@@ -265,17 +262,45 @@ export function InstructorDashboardPage() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">
                   Badge name
-                  <input className={inputClass} defaultValue="Requirement Wrangler" />
+                  <input className={inputClass} value={badgeName} onChange={(event) => setBadgeName(event.target.value)} placeholder="Requirements Champion" />
                 </label>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">
                   Milestone requirement
-                  <input className={inputClass} defaultValue="Complete 4 traceability updates" />
+                  <input className={inputClass} value={badgeMilestone} onChange={(event) => setBadgeMilestone(event.target.value)} placeholder="Complete a measurable milestone" />
                 </label>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">
+                  Course
+                  <select className={inputClass} value={badgeCourse} onChange={(event) => setBadgeCourse(event.target.value)}>
+                    {courseOptions.map((course) => (
+                      <option key={course} value={course}>{course}</option>
+                    ))}
+                  </select>
+                </label>
+                <div>
+                  <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Badge icon</p>
+                  <div className="flex flex-wrap gap-2">
+                    {badgeIconOptions.map(({ id, label, icon: Icon }) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setBadgeIcon(id)}
+                        className={cn(
+                          "flex h-10 w-10 items-center justify-center rounded border text-slate-700 transition-colors dark:text-slate-200",
+                          badgeIcon === id ? "border-slate-900 bg-slate-100 dark:border-white dark:bg-slate-800" : "border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:hover:bg-slate-800",
+                          FOCUS_RING,
+                        )}
+                        aria-label={`Select ${label} badge icon`}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
               <div>
-                <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Icon color</p>
+                <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Badge color</p>
                 <div className="flex flex-wrap gap-2">
-                  {["bg-blue-600", "bg-emerald-600", "bg-violet-600", "bg-rose-600"].map((color) => (
+                  {["bg-blue-600", "bg-emerald-600", "bg-violet-600", "bg-rose-600", "bg-orange-600"].map((color) => (
                     <button
                       key={color}
                       type="button"
@@ -288,16 +313,25 @@ export function InstructorDashboardPage() {
                   ))}
                 </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {sampleBadges.map((badge) => (
-                  <div key={badge.name} className="rounded border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800">
-                    <div className={cn("mb-3 flex h-9 w-9 items-center justify-center rounded text-white", badge.name === "Design Thinker" ? badgeColor : badge.color)}>
-                      <Award className="h-5 w-5" />
+              <button type="button" onClick={createBadge} disabled={!badgeName.trim() || !badgeMilestone.trim()} className={cn(primaryButton, (!badgeName.trim() || !badgeMilestone.trim()) && "cursor-not-allowed opacity-60")}>
+                <Award className="h-4 w-4" aria-hidden="true" />
+                Create Badge
+              </button>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {badges.map((badge) => {
+                  const Icon = badgeIconOptions.find((option) => option.id === badge.icon)?.icon ?? Award;
+                  return (
+                  <div key={`${badge.name}-${badge.course}-${badge.milestone}`} className="rounded border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800">
+                    <div className={cn("mb-3 flex h-10 w-10 items-center justify-center rounded text-white", badge.color)}>
+                      <Icon className="h-5 w-5" />
                     </div>
                     <p className="text-sm font-black text-slate-900 dark:text-white">{badge.name}</p>
-                    <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{badge.detail}</p>
+                    <p className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300">{badge.course}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">Earned by: {badge.milestone}</p>
+                    <p className="mt-2 text-xs font-black uppercase tracking-wide text-slate-500">{badge.earnedCount} earned</p>
                   </div>
-                ))}
+                );
+                })}
               </div>
             </div>
           </FeatureCard>

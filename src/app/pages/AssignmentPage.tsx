@@ -60,6 +60,12 @@ export function AssignmentPage() {
   const [recoveredDraftNotice, setRecoveredDraftNotice] = useState("");
   const [recoveredFileMeta, setRecoveredFileMeta] = useState<FileMetadata | null>(null);
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const [isExtensionPanelOpen, setIsExtensionPanelOpen] = useState(false);
+  const [extensionRequest, setExtensionRequest] = useState<ExtensionRequest | null>(null);
+  const [requestedDueDate, setRequestedDueDate] = useState("");
+  const [extensionReason, setExtensionReason] = useState("");
+  const [supportingNote, setSupportingNote] = useState("");
+  const [digitalSignatureConfirmed, setDigitalSignatureConfirmed] = useState(false);
   const lastActivityRef = useRef(Date.now());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,6 +75,7 @@ export function AssignmentPage() {
   const course = courseId ? getCourseById(courseId) : null;
   const assignment = assignmentId && course ? getAssignmentById(course.id, assignmentId) : null;
   const draftKey = courseId && assignmentId ? getAssignmentDraftKey(courseId, assignmentId) : null;
+  const extensionKey = courseId && assignmentId ? getExtensionRequestKey(courseId, assignmentId) : null;
 
   useEffect(() => {
     setDraftNotes("");
@@ -89,6 +96,24 @@ export function AssignmentPage() {
       setRecoveredDraftNotice("");
     }
   }, [draftKey]);
+
+  useEffect(() => {
+    setIsExtensionPanelOpen(false);
+    setExtensionRequest(null);
+    setRequestedDueDate("");
+    setExtensionReason("");
+    setSupportingNote("");
+    setDigitalSignatureConfirmed(false);
+    if (!extensionKey) return;
+
+    try {
+      const saved = localStorage.getItem(extensionKey);
+      if (!saved) return;
+      setExtensionRequest(JSON.parse(saved) as ExtensionRequest);
+    } catch {
+      setExtensionRequest(null);
+    }
+  }, [extensionKey]);
 
   useEffect(() => {
     if (!draftKey || !course || !assignment) return;
@@ -270,6 +295,32 @@ export function AssignmentPage() {
     setLastSavedAt(null);
     setRecoveredDraftNotice("");
     setRecoveredFileMeta(null);
+  };
+
+  const canSubmitExtension = requestedDueDate.trim() && extensionReason.trim() && digitalSignatureConfirmed;
+
+  const submitExtensionRequest = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!canSubmitExtension || !course || !assignment) return;
+
+    const request: ExtensionRequest = {
+      courseId: course.id,
+      assignmentId: assignment.id,
+      requestedDueDate,
+      reason: extensionReason.trim(),
+      supportingNote: supportingNote.trim(),
+      status: "Pending Review",
+      submittedAt: new Date().toISOString(),
+      digitallySigned: true,
+    };
+
+    setExtensionRequest(request);
+    if (extensionKey) localStorage.setItem(extensionKey, JSON.stringify(request));
+    setIsExtensionPanelOpen(false);
+    setRequestedDueDate("");
+    setExtensionReason("");
+    setSupportingNote("");
+    setDigitalSignatureConfirmed(false);
   };
 
   return (
@@ -547,6 +598,43 @@ export function AssignmentPage() {
           </div>
 
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-black text-slate-900 dark:text-white">Extension Request</h3>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Frontend-only request with a digital signature confirmation.</p>
+              </div>
+              <CalendarIcon className="h-5 w-5 text-blue-600 dark:text-blue-300" />
+            </div>
+
+            {extensionRequest ? (
+              <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-900/20">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-bold text-amber-900 dark:text-amber-200">Status</span>
+                  <span className="rounded bg-white px-2 py-1 text-xs font-black uppercase tracking-wide text-amber-700 dark:bg-slate-900 dark:text-amber-300">
+                    {extensionRequest.status}
+                  </span>
+                </div>
+                <p className="text-amber-950 dark:text-amber-100">
+                  Extension request submitted for instructor review.
+                </p>
+                <div className="grid gap-2 text-xs text-amber-900 dark:text-amber-200">
+                  <p><span className="font-black">Submitted:</span> {formatSavedTime(extensionRequest.submittedAt)}</p>
+                  <p><span className="font-black">Requested due date:</span> {formatDateInput(extensionRequest.requestedDueDate)}</p>
+                  <p><span className="font-black">Digital signature:</span> Confirmed</p>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsExtensionPanelOpen(true)}
+                className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:shadow-blue-900/40"
+              >
+                Request Extension
+              </button>
+            )}
+          </div>
+
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
             <h3 className="font-black text-slate-900 dark:text-white mb-4">Resources</h3>
             <div className="space-y-2">
               {[
@@ -587,6 +675,96 @@ export function AssignmentPage() {
           </div>
         </div>
       </div>
+
+      {isExtensionPanelOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" role="dialog" aria-modal="true" aria-labelledby="extension-request-title">
+          <form onSubmit={submitExtensionRequest} className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h2 id="extension-request-title" className="text-xl font-black text-slate-900 dark:text-white">Request Extension</h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">This stays in local browser storage for the demo.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsExtensionPanelOpen(false)}
+                className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:hover:bg-slate-800 dark:hover:text-white"
+                aria-label="Close extension request form"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-200" htmlFor="requested-due-date">
+                Requested new due date
+                <input
+                  id="requested-due-date"
+                  type="datetime-local"
+                  value={requestedDueDate}
+                  onChange={(event) => setRequestedDueDate(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  required
+                />
+              </label>
+
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-200" htmlFor="extension-reason">
+                Reason for request
+                <textarea
+                  id="extension-reason"
+                  value={extensionReason}
+                  onChange={(event) => setExtensionReason(event.target.value)}
+                  rows={4}
+                  className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                  required
+                />
+              </label>
+
+              <label className="block text-sm font-bold text-slate-700 dark:text-slate-200" htmlFor="supporting-note">
+                Supporting note <span className="font-medium text-slate-500">(optional)</span>
+                <textarea
+                  id="supporting-note"
+                  value={supportingNote}
+                  onChange={(event) => setSupportingNote(event.target.value)}
+                  rows={3}
+                  className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                />
+              </label>
+
+              <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={digitalSignatureConfirmed}
+                  onChange={(event) => setDigitalSignatureConfirmed(event.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                />
+                I digitally sign this extension request and confirm the information is accurate.
+              </label>
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setIsExtensionPanelOpen(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!canSubmitExtension}
+                className={cn(
+                  "rounded-xl px-4 py-2 text-sm font-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+                  canSubmitExtension
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400",
+                )}
+              >
+                Submit Extension Request
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
@@ -606,8 +784,23 @@ interface AssignmentDraft {
   savedAt: string;
 }
 
+interface ExtensionRequest {
+  courseId: string;
+  assignmentId: string;
+  requestedDueDate: string;
+  reason: string;
+  supportingNote: string;
+  status: "Pending Review";
+  submittedAt: string;
+  digitallySigned: boolean;
+}
+
 function getAssignmentDraftKey(courseId: string, assignmentId: string) {
   return `lms-assignment-draft:${courseId}:${assignmentId}`;
+}
+
+function getExtensionRequestKey(courseId: string, assignmentId: string) {
+  return `lms-extension-request:${courseId}:${assignmentId}`;
 }
 
 function toFileMetadata(file: File): FileMetadata {
@@ -631,4 +824,15 @@ function formatSavedTime(value?: string | null) {
 
 function formatFileSize(size: number) {
   return `${(size / 1024 / 1024).toFixed(2)} MB`;
+}
+
+function formatDateInput(value: string) {
+  if (!value) return "Not selected";
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
 }

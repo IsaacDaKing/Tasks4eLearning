@@ -1,23 +1,31 @@
 
-  [32m[1mVITE[22m v6.3.5[39m  [2mready in [0m[1m239[22m[2m[0m ms[22m
+> @figma/my-make-file@0.0.1 dev C:\Users\bibhas\Desktop\nba discord bot\Tasks4eLearning
+> vite "--" "--host" "127.0.0.1" "--port" "5173"
 
-  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\components\Calendar.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/index.css, /@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\CoursePage.tsx, /@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\CoursesPage.tsx, /@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\GradesPage.tsx, /@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\AssignmentPage.tsx, /@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\Dashboard.tsx, /@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\components\Calendar.tsx[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\AIAssistantPage.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\components\Sidebar.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\AssignmentPage.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\Dashboard.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\CoursesPage.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\GradesPage.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\GradeCalculator.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\LoginPage.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\MessagesPage.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\QuizPage.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\pages\SettingsPage.tsx, /src/styles/index.css[22m
-[2m8:37:08 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/routes.tsx, /src/styles/index.css[22m
-[2m8:37:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/@fs/C:\Users\ztash\OneDrive\Documents\GitHub\Tasks4eLearning\src\app\components\Sidebar.tsx[22m Could not Fast Refresh ("useSidebar" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
-[2m8:37:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/index.css, /src/app/routes.tsx[22m
-[2m8:37:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/app/routes.tsx[22m Could not Fast Refresh ("router" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
-[2m8:37:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css[22m
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+Port 5175 is in use, trying another one...
+Port 5176 is in use, trying another one...
+
+  [32m[1mVITE[22m v6.3.5[39m  [2mready in [0m[1m636[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5177[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m10:54:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m10:54:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m10:54:53 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m10:55:26 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m10:55:44 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m10:55:50 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m10:56:09 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m10:56:19 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m10:57:25 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m10:57:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m11:00:42 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m11:00:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m11:01:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m11:01:50 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m11:05:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m11:05:54 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m11:10:28 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m
+[2m11:11:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AIAssistantPage.tsx, /src/styles/index.css[22m

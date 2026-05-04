@@ -1,13 +1,17 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import {
   AlertCircle,
   Bot,
+  BookOpenCheck,
   CalendarClock,
+  ChevronDown,
   Clock,
   Copy,
   Download,
   GraduationCap,
   ListChecks,
+  MessageSquareText,
+  Plus,
   RotateCcw,
   Send,
   Sparkles,
@@ -51,6 +55,17 @@ interface ChatMessage {
   sender: "You" | "Comet AI";
   body: string;
   time: string;
+}
+
+interface RecentChat {
+  id: string;
+  title: string;
+  preview: string;
+  timestamp: string;
+  tag: string;
+  messages: ChatMessage[];
+  selectedCourse?: CourseSelection;
+  responseMode?: ResponseMode;
 }
 
 interface AssistantResponse {
@@ -133,9 +148,17 @@ const QUICK_ACTIONS = [
   "Review Deadlines",
   "Accessibility Help",
   "Explain the Whoosh",
+  "Motivate Me Like Temoc",
+  "Comet-Style Pep Talk",
 ];
 
 const PROMPT_STARTERS = [
+  "Give me a Whoosh study plan.",
+  "Motivate me like Temoc.",
+  "Make this less stressful.",
+  "What should I launch into first?",
+  "Give me a comet-style pep talk.",
+  "Turn my week into orbit.",
   "How should I manage my time?",
   "I am overwhelmed.",
   "What should I do tonight?",
@@ -191,10 +214,133 @@ const RESPONSE_MODES: Array<{ value: ResponseMode; label: string }> = [
 const SMART_ACTIONS = [
   "Generate weekly plan",
   "Time Management Strategies",
+  "Motivate me like Temoc",
   "Create professor message",
   "Explain like I'm new",
   "Practice me",
   "Summarize my week",
+];
+
+const TEMOC_PROMPT_STARTERS = [
+  "Give me a Whoosh study plan",
+  "Motivate me like Temoc",
+  "Make this less stressful",
+  "What should I launch into first?",
+  "Explain the Whoosh",
+  "Give me a comet-style pep talk",
+  "Turn my week into orbit",
+];
+
+const RECENT_CHATS: RecentChat[] = [
+  {
+    id: "study-week",
+    title: "Study plan for this week",
+    preview: "Protect Networks first, then rotate Database and Software Engineering.",
+    timestamp: "Today",
+    tag: "Plan",
+    responseMode: "steps",
+    messages: [
+      { id: "recent-study-1", sender: "You", time: "9:10 AM", body: "Make me a study plan for this week." },
+      {
+        id: "recent-study-2",
+        sender: "Comet AI",
+        time: "9:11 AM",
+        body: buildStudyPlan(COURSES),
+      },
+    ],
+  },
+  {
+    id: "database-prep",
+    title: "Database exam prep",
+    preview: "Normalization, joins, keys, ACID, and indexing practice order.",
+    timestamp: "Yesterday",
+    tag: "CS 4347",
+    selectedCourse: "database",
+    responseMode: "coach",
+    messages: [
+      { id: "recent-database-1", sender: "You", time: "7:42 PM", body: "Help me prepare for Database Systems." },
+      {
+        id: "recent-database-2",
+        sender: "Comet AI",
+        time: "7:43 PM",
+        body:
+          "Quick read\nDatabase Systems should be your main grade-improvement course right now.\n\nRecommended next steps\n1. Review normalization in order: 1NF, 2NF, then 3NF.\n2. Practice joins with expected row counts before writing SQL from memory.\n3. Recheck keys, ER diagrams, transactions, ACID, and indexing.\n4. End with a short mixed quiz so you can find weak spots.",
+      },
+    ],
+  },
+  {
+    id: "se-feedback",
+    title: "Software Engineering project feedback",
+    preview: "Draft a focused note for Professor Klyne Smith.",
+    timestamp: "Mon",
+    tag: "CS 3354",
+    selectedCourse: "software",
+    messages: [
+      {
+        id: "recent-software-1",
+        sender: "You",
+        time: "2:16 PM",
+        body: "How should I ask Professor Klyne Smith for Software Engineering project feedback?",
+      },
+      {
+        id: "recent-software-2",
+        sender: "Comet AI",
+        time: "2:17 PM",
+        body: buildProfessorMessageResponse().body,
+      },
+    ],
+  },
+  {
+    id: "networks-subnetting",
+    title: "Computer Networks subnetting help",
+    preview: "Write the range out every time and separate network, host, broadcast.",
+    timestamp: "Fri",
+    tag: "CS 4390",
+    selectedCourse: "networks",
+    messages: [
+      { id: "recent-networks-1", sender: "You", time: "11:04 AM", body: "Help me with TCP/IP, subnetting, and DNS." },
+      {
+        id: "recent-networks-2",
+        sender: "Comet AI",
+        time: "11:05 AM",
+        body:
+          "Quick read\nComputer Networks is your urgent deadline course right now.\n\nRecommended next steps\n1. Finish the packet/protocol analysis before optional review.\n2. Drill TCP vs UDP, IP, DNS, subnetting, OSI, routing, packets, and protocols.\n3. For subnetting, write each step instead of doing it mentally.\n4. For TCP, focus on reliability, retransmission, and ordering.",
+      },
+    ],
+  },
+  {
+    id: "time-management",
+    title: "Time management strategy",
+    preview: "A focused block schedule for tonight and tomorrow.",
+    timestamp: "Thu",
+    tag: "Focus",
+    messages: [
+      { id: "recent-time-1", sender: "You", time: "8:30 PM", body: "How should I manage my time?" },
+      {
+        id: "recent-time-2",
+        sender: "Comet AI",
+        time: "8:31 PM",
+        body: buildTimeManagementResponse(COURSES).body,
+      },
+    ],
+  },
+  {
+    id: "whoosh",
+    title: "What is the Whoosh?",
+    preview: "A subtle UTD context answer for Comets.",
+    timestamp: "Last week",
+    tag: "UTD",
+    messages: [
+      { id: "recent-whoosh-1", sender: "You", time: "4:22 PM", body: "What is the Whoosh?" },
+      {
+        id: "recent-whoosh-2",
+        sender: "Comet AI",
+        time: "4:23 PM",
+        body:
+          "Quick read\nThe Whoosh is the UT Dallas signature sign. It is an understood language between Comets, named for the sound a comet would make if there was sound in space.\n\nUTD context\nThe gesture honors Temoc, whose name is comet spelled backward. It was invented in the early 1990s, UT Dallas began teaching it at new student orientation in 2005, and it is now embraced as a symbolic gesture for students and alumni.",
+      },
+    ],
+  },
 ];
 
 export function AIAssistantPage() {
@@ -206,6 +352,9 @@ export function AIAssistantPage() {
   const [studyPlan, setStudyPlan] = useState(() => buildStudyPlan(COURSES));
   const [selectedCourse, setSelectedCourse] = useState<CourseSelection>("all");
   const [responseMode, setResponseMode] = useState<ResponseMode>("steps");
+  const [activeRecentChatId, setActiveRecentChatId] = useState("new");
+  const [recentChatsCollapsed, setRecentChatsCollapsed] = useState(false);
+  const [temocMode, setTemocMode] = useState(false);
   const [memory, setMemory] = useState<SessionMemory>({ generatedPlan: buildStudyPlan(COURSES) });
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -219,9 +368,15 @@ export function AIAssistantPage() {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const chatScrollElement = chatScrollRef.current;
+    if (!chatScrollElement) return;
+    chatScrollElement.scrollTo({
+      top: chatScrollElement.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages, isAssistantTyping]);
 
   useEffect(() => {
@@ -251,13 +406,15 @@ export function AIAssistantPage() {
     const trimmedPrompt = prompt.trim();
     if (!trimmedPrompt || isAssistantTyping) return;
     const coursePrefix = selectedCourse === "all" ? "" : `${COURSE_OPTIONS.find((item) => item.value === selectedCourse)?.label}: `;
-    const response = getRuleBasedResponse(`${coursePrefix}${trimmedPrompt}`, {
+    const rawResponse = getRuleBasedResponse(`${coursePrefix}${trimmedPrompt}`, {
       memory: quickAction ? { ...memory, lastQuickAction: quickAction } : memory,
       courses: projectedCourses,
       projectedGpa,
       selectedCourse,
       responseMode,
+      temocMode,
     });
+    const response = applyTemocStyle(rawResponse, temocMode);
 
     setMessages((current) => [
       ...current,
@@ -321,6 +478,7 @@ export function AIAssistantPage() {
   const resetChat = () => {
     clearTypingTimers();
     const freshPlan = buildStudyPlan(courses);
+    setActiveRecentChatId("new");
     setIsAssistantTyping(false);
     setSuggestions(DEFAULT_SUGGESTIONS);
     setCopyNotice("");
@@ -336,6 +494,24 @@ export function AIAssistantPage() {
           "Ask Comet AI about grades, deadlines, quizzes, exams, messages, or course topics.\n\nPick a course context and response mode, then try a weekly plan, professor message, beginner explanation, or practice drill.",
       },
     ]);
+  };
+
+  const loadRecentChat = (chat: RecentChat) => {
+    clearTypingTimers();
+    setActiveRecentChatId(chat.id);
+    setIsAssistantTyping(false);
+    setCopyNotice("");
+    setChatInput("");
+    setSuggestions(DEFAULT_SUGGESTIONS);
+    setSelectedCourse(chat.selectedCourse ?? "all");
+    setResponseMode(chat.responseMode ?? "steps");
+    setStudyPlan(buildStudyPlan(courses));
+    setMemory({
+      generatedPlan: buildStudyPlan(courses),
+      lastCourseId: chat.selectedCourse && chat.selectedCourse !== "all" ? chat.selectedCourse : undefined,
+      lastSelectedTopic: chat.title,
+    });
+    setMessages(chat.messages);
   };
 
   const clearTypingTimers = () => {
@@ -371,134 +547,378 @@ export function AIAssistantPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-6 p-4 animate-in fade-in duration-500 sm:p-6">
-      <section className="overflow-hidden rounded border border-slate-200 bg-slate-950 text-white shadow-sm">
-        <div className="grid gap-5 px-5 pb-0 pt-5 sm:px-6 sm:pt-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center lg:gap-8 lg:px-8 lg:pt-8">
-          <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-white/10 px-3 py-1 text-xs font-bold text-cyan-100">
-              <Sparkles className="h-3.5 w-3.5" />
-              Comet AI uses local course context in this prototype.
-            </div>
-            <h2 className="flex items-center gap-3 text-3xl font-black tracking-tight sm:text-4xl">
-              <span className="flex h-11 w-11 items-center justify-center rounded bg-cyan-400 text-slate-950">
-                <Star className="h-6 w-6 fill-slate-950" />
-              </span>
-              Comet AI
-            </h2>
-            <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-200">
-              Whoosh, Comet. Your course planning and study strategy assistant.
-            </p>
-          </div>
-        </div>
-        <CometSky />
-        <div className="px-5 pb-5 pt-4 sm:px-6 sm:pb-6 sm:pt-5 lg:px-8 lg:pb-8">
-          <div className="flex flex-wrap gap-2" aria-label="Comet AI capabilities">
-            {HELP_TOPICS.map((topic) => (
-              <span key={topic} className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-slate-100">
-                {topic}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+    <div className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-100">
+      <CometSky />
+      <div
+        className={cn(
+          "relative mx-auto grid max-w-[1840px] gap-3 p-3 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700 sm:p-4 xl:min-h-[calc(100vh-6rem)] xl:items-start",
+          recentChatsCollapsed
+            ? "xl:grid-cols-[72px_minmax(0,1fr)_292px]"
+            : "xl:grid-cols-[260px_minmax(0,1fr)_292px]",
+        )}
+      >
+        <RecentChatsPanel
+          chats={RECENT_CHATS}
+          activeChatId={activeRecentChatId}
+          collapsed={recentChatsCollapsed}
+          onNewChat={resetChat}
+          onSelectChat={loadRecentChat}
+          onToggleCollapsed={() => setRecentChatsCollapsed((current) => !current)}
+        />
 
-      <section className="mx-auto max-w-5xl">
-        <CometChatPanel
-          messages={messages}
-          isAssistantTyping={isAssistantTyping}
-          suggestions={suggestions}
-          chatInput={chatInput}
-          copyNotice={copyNotice}
+        <main className="min-w-0">
+          <CometChatPanel
+            messages={messages}
+            isAssistantTyping={isAssistantTyping}
+            suggestions={suggestions}
+            chatInput={chatInput}
+            copyNotice={copyNotice}
+            selectedCourse={selectedCourse}
+            responseMode={responseMode}
+            temocMode={temocMode}
+            setChatInput={setChatInput}
+            setTemocMode={setTemocMode}
+            submitPrompt={submitPrompt}
+            sendMessage={sendMessage}
+            handleChatKeyDown={handleChatKeyDown}
+            copyLatestResponse={copyLatestResponse}
+            resetChat={resetChat}
+            chatEndRef={chatEndRef}
+            chatScrollRef={chatScrollRef}
+          />
+        </main>
+
+        <CometToolsPanel
+          alerts={alerts}
+          studyPlan={studyPlan}
           selectedCourse={selectedCourse}
           responseMode={responseMode}
-          setChatInput={setChatInput}
+          temocMode={temocMode}
+          currentGpa={currentGpa.toFixed(2)}
+          projectedGpa={projectedGpa}
+          courseNeedingAttention={courseNeedingAttention.name}
+          highestPriorityDeadline={courseNeedingAttention.deadline}
+          nextAssessment={courseNeedingAttention.nextAssessment}
+          setSelectedCourse={setSelectedCourse}
+          setResponseMode={setResponseMode}
+          setTemocMode={setTemocMode}
           submitPrompt={submitPrompt}
-          sendMessage={sendMessage}
-          handleChatKeyDown={handleChatKeyDown}
-          copyLatestResponse={copyLatestResponse}
           copyStudyPlan={copyStudyPlan}
           downloadStudyPlan={downloadStudyPlan}
-          resetChat={resetChat}
-          chatEndRef={chatEndRef}
         />
-      </section>
+      </div>
+    </div>
+  );
+}
 
-      <section className="grid gap-3 md:grid-cols-4" aria-label="Comet AI overview">
-        <MetricCard icon={GraduationCap} label="Current GPA" value={currentGpa.toFixed(2)} detail="Mock academic snapshot" />
-        <MetricCard icon={TrendingUp} label="Projected GPA" value={projectedGpa} detail="Updates from local sliders" />
-        <MetricCard icon={AlertCircle} label="Courses To Watch" value="2" detail="Database and Networks" />
-        <MetricCard icon={CalendarClock} label="High Priority" value="3" detail="Next 72 hours" />
-      </section>
+function RecentChatsPanel({
+  chats,
+  activeChatId,
+  collapsed,
+  onNewChat,
+  onSelectChat,
+  onToggleCollapsed,
+}: {
+  chats: RecentChat[];
+  activeChatId: string;
+  collapsed: boolean;
+  onNewChat: () => void;
+  onSelectChat: (chat: RecentChat) => void;
+  onToggleCollapsed: () => void;
+}) {
+  if (collapsed) {
+    return (
+      <aside className="flex rounded border border-slate-200/80 bg-white p-2 shadow-sm shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/30 xl:h-[calc(100vh-6.5rem)] xl:flex-col xl:items-center">
+        <button
+          type="button"
+          onClick={onToggleCollapsed}
+          className={cn(
+            "inline-flex h-10 w-10 items-center justify-center rounded border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white",
+            FOCUS_RING,
+          )}
+          aria-label="Expand recent chats"
+          title="Expand recent chats"
+        >
+          <MessageSquareText className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          onClick={onNewChat}
+          className={cn(
+            "ml-2 inline-flex h-10 w-10 items-center justify-center rounded bg-slate-950 text-white transition-colors hover:bg-slate-800 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300 xl:ml-0 xl:mt-2",
+            FOCUS_RING,
+          )}
+          aria-label="Start a new Comet AI chat"
+          title="New Chat"
+        >
+          <Plus className="h-5 w-5" />
+        </button>
+        <span className="hidden pt-4 text-center text-[11px] font-black uppercase tracking-wide text-slate-500 [writing-mode:vertical-rl] dark:text-slate-400 xl:block">
+          Recent
+        </span>
+      </aside>
+    );
+  }
 
-      <main className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <Panel icon={ListChecks} title="Generated Study Plan" description="Structured plan from Comet AI's local rules.">
-          <div className="flex flex-wrap gap-2">
+  return (
+    <aside className="flex max-h-[420px] flex-col overflow-hidden rounded border border-slate-200/80 bg-white p-3 shadow-sm shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/30 motion-safe:animate-in motion-safe:slide-in-from-left-6 motion-safe:fade-in motion-safe:duration-700 xl:h-[calc(100vh-6.5rem)] xl:max-h-none">
+      <div className="shrink-0 border-b border-slate-100 pb-3 dark:border-slate-800">
+        <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-wide text-cyan-700 dark:text-cyan-300">Comet AI</p>
+          <h2 className="text-lg font-black text-slate-950 dark:text-white">Recent Chats</h2>
+        </div>
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => submitPrompt("Build Study Plan", "Build Study Plan")}
-              className={cn("inline-flex items-center gap-2 rounded bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800", FOCUS_RING)}
+              onClick={onToggleCollapsed}
+              className={iconButtonClass()}
+              aria-label="Collapse recent chats"
+              title="Collapse recent chats"
             >
+              <ChevronDown className="h-4 w-4 rotate-90" />
+            </button>
+            <button
+              type="button"
+              onClick={onNewChat}
+              className={cn(
+                "inline-flex h-9 w-9 items-center justify-center rounded bg-slate-950 text-white transition-colors hover:bg-slate-800 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300",
+                FOCUS_RING,
+              )}
+              aria-label="Start a new Comet AI chat"
+              title="New Chat"
+            >
+              <Plus className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1" aria-label="Recent Comet AI chats">
+        <button
+          type="button"
+          onClick={onNewChat}
+          aria-pressed={activeChatId === "new"}
+          className={cn(
+            "w-full rounded border p-3 text-left transition-colors",
+            activeChatId === "new"
+              ? "border-cyan-500 bg-cyan-50 text-slate-950 ring-1 ring-cyan-500 dark:border-cyan-300 dark:bg-cyan-950/45 dark:text-white"
+              : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-900",
+            FOCUS_RING,
+          )}
+        >
+          <span className="flex items-center gap-2 text-sm font-black">
+            <MessageSquareText className="h-4 w-4" />
+            New Chat
+          </span>
+          <span className="mt-1 block text-xs font-semibold opacity-75">Whoosh, Comet. What should we work on today?</span>
+        </button>
+
+        {chats.map((chat) => {
+          const isActive = activeChatId === chat.id;
+          return (
+            <button
+              key={chat.id}
+              type="button"
+              onClick={() => onSelectChat(chat)}
+              aria-pressed={isActive}
+              className={cn(
+                "w-full rounded border p-3 text-left transition-colors",
+                isActive
+                  ? "border-cyan-500 bg-cyan-50 ring-1 ring-cyan-500 dark:border-cyan-300 dark:bg-cyan-950/45"
+                  : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950/45 dark:hover:border-slate-700 dark:hover:bg-slate-900",
+                FOCUS_RING,
+              )}
+            >
+              <span className="flex items-start justify-between gap-3">
+                <span className="text-sm font-black text-slate-950 dark:text-white">{chat.title}</span>
+                <span className="shrink-0 text-[11px] font-bold text-slate-500 dark:text-slate-400">{chat.timestamp}</span>
+              </span>
+              <span className="mt-1 line-clamp-2 block text-xs font-medium leading-5 text-slate-600 dark:text-slate-300">{chat.preview}</span>
+              <span
+                className={cn(
+                  "mt-2 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-black",
+                  isActive
+                    ? "border-cyan-300 bg-white text-cyan-800 dark:border-cyan-700 dark:bg-slate-950 dark:text-cyan-200"
+                    : "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300",
+                )}
+              >
+                {chat.tag}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </aside>
+  );
+}
+
+function CometToolsPanel({
+  alerts,
+  studyPlan,
+  selectedCourse,
+  responseMode,
+  temocMode,
+  currentGpa,
+  projectedGpa,
+  courseNeedingAttention,
+  highestPriorityDeadline,
+  nextAssessment,
+  setSelectedCourse,
+  setResponseMode,
+  setTemocMode,
+  submitPrompt,
+  copyStudyPlan,
+  downloadStudyPlan,
+}: {
+  alerts: string[];
+  studyPlan: string;
+  selectedCourse: CourseSelection;
+  responseMode: ResponseMode;
+  temocMode: boolean;
+  currentGpa: string;
+  projectedGpa: string;
+  courseNeedingAttention: string;
+  highestPriorityDeadline: string;
+  nextAssessment: string;
+  setSelectedCourse: (value: CourseSelection) => void;
+  setResponseMode: (value: ResponseMode) => void;
+  setTemocMode: (value: boolean) => void;
+  submitPrompt: (prompt: string, quickAction?: string) => void;
+  copyStudyPlan: () => void;
+  downloadStudyPlan: () => void;
+}) {
+  return (
+    <aside className="space-y-3 xl:sticky xl:top-4 xl:h-[calc(100vh-7rem)] xl:overflow-auto">
+      <details
+        open
+        className="group rounded border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/30"
+      >
+        <summary className={cn("flex cursor-pointer list-none items-center justify-between gap-3", FOCUS_RING)}>
+          <span>
+            <span className="flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
+              <BookOpenCheck className="h-4 w-4 text-cyan-600 dark:text-cyan-300" />
+              Comet Tools
+            </span>
+            <span className="mt-1 block text-xs font-semibold text-slate-500 dark:text-slate-400">Course context and study helpers</span>
+          </span>
+          <ChevronDown className="h-4 w-4 text-slate-500 transition-transform group-open:rotate-180" />
+        </summary>
+
+        <div className="mt-4 space-y-4">
+          <div className="grid gap-3">
+            <label className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400" htmlFor="comet-course-context">
+              Course context
+            </label>
+            <select
+              id="comet-course-context"
+              value={selectedCourse}
+              onChange={(event) => setSelectedCourse(event.target.value as CourseSelection)}
+              className={cn("rounded border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-white", FOCUS_RING)}
+            >
+              {COURSE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+
+            <label className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400" htmlFor="comet-response-mode">
+              Response mode
+            </label>
+            <select
+              id="comet-response-mode"
+              value={responseMode}
+              onChange={(event) => setResponseMode(event.target.value as ResponseMode)}
+              className={cn("rounded border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-white", FOCUS_RING)}
+            >
+              {RESPONSE_MODES.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+
+            <button
+              type="button"
+              onClick={() => setTemocMode(!temocMode)}
+              aria-pressed={temocMode}
+              className={cn(
+                "flex items-center justify-between gap-3 rounded border px-3 py-2 text-left text-sm font-black transition-colors",
+                temocMode
+                  ? "border-cyan-400 bg-cyan-50 text-cyan-950 dark:border-cyan-400 dark:bg-cyan-950/45 dark:text-cyan-100"
+                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800",
+                FOCUS_RING,
+              )}
+            >
+              <span className="inline-flex items-center gap-2">
+                <Star className={cn("h-4 w-4", temocMode && "fill-cyan-400")} />
+                Whoosh Mode
+              </span>
+              <span className="text-[11px] font-bold opacity-75">{temocMode ? "On" : "Off"}</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <ContextRow label="Current GPA" value={currentGpa} />
+            <ContextRow label="Projected GPA" value={projectedGpa} />
+            <ContextRow label="Course to watch" value={courseNeedingAttention} />
+            <ContextRow label="Next assessment" value={nextAssessment} />
+          </div>
+
+          <div className="rounded border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/70">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Highest priority</p>
+            <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">{highestPriorityDeadline}</p>
+          </div>
+
+          <div className="space-y-2">
+            {alerts.slice(0, 2).map((alert) => (
+              <div key={alert} className="rounded border border-amber-200 bg-amber-50 p-3 text-xs font-semibold leading-5 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/30 dark:text-amber-100">
+                {alert}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid gap-2">
+            <button type="button" onClick={() => submitPrompt("Build Study Plan", "Build Study Plan")} className={primaryToolButtonClass()}>
               <Sparkles className="h-4 w-4" />
               Build Study Plan
             </button>
-            <button
-              type="button"
-              onClick={copyStudyPlan}
-              className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800", FOCUS_RING)}
-            >
-              <Copy className="h-4 w-4" />
-              Copy Study Plan
+            <button type="button" onClick={() => submitPrompt("How should I manage my time?", "Time Management Strategies")} className={secondaryToolButtonClass()}>
+              <Clock className="h-4 w-4" />
+              Time Strategies
             </button>
-            <button
-              type="button"
-              onClick={downloadStudyPlan}
-              className={cn("inline-flex items-center gap-2 rounded border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800", FOCUS_RING)}
-            >
-              <Download className="h-4 w-4" />
-              Download .txt
+            <button type="button" onClick={() => submitPrompt("Practice me", "Practice me")} className={secondaryToolButtonClass()}>
+              <ListChecks className="h-4 w-4" />
+              Practice Questions
             </button>
           </div>
-          <pre className="mt-4 max-h-[420px] overflow-auto whitespace-pre-wrap rounded border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-            {studyPlan}
-          </pre>
-        </Panel>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Panel icon={AlertCircle} title="Planning Alerts" description="Supportive signals from local mock conditions.">
-            <div className="space-y-3">
-              {alerts.map((alert) => (
-                <div key={alert} className="rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
-                  <p className="font-bold">{alert}</p>
-                </div>
-              ))}
-            </div>
-          </Panel>
-
-          <Panel icon={Clock} title="Time Management Strategies" description="Local Comet strategy cards for the next study windows.">
-            <div className="space-y-3">
-              {[
-                { label: "Today's focus block", detail: "25 minutes on Computer Networks protocol analysis, then a 5-minute break." },
-                { label: "Tomorrow's review block", detail: "30 minutes on Software Engineering UML and traceability cleanup." },
-                { label: "This week's checkpoint", detail: "Two 45-minute Database Systems blocks for normalization, joins, ACID, and indexing." },
-              ].map((block) => (
-                <div key={block.label} className="rounded border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                  <p className="font-black text-slate-900 dark:text-white">{block.label}</p>
-                  <p className="mt-1 font-medium">{block.detail}</p>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => submitPrompt("How should I manage my time?", "Time Management Strategies")}
-                className={cn("inline-flex w-full items-center justify-center gap-2 rounded bg-cyan-600 px-4 py-2 text-sm font-black text-white hover:bg-cyan-700", FOCUS_RING)}
-              >
-                <Clock className="h-4 w-4" />
-                Ask Comet for time strategies
-              </button>
-            </div>
-          </Panel>
         </div>
-      </main>
-    </div>
+      </details>
+
+      <details className="group rounded border border-slate-200/80 bg-white p-4 shadow-sm shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/30">
+        <summary className={cn("flex cursor-pointer list-none items-center justify-between gap-3", FOCUS_RING)}>
+          <span className="flex items-center gap-2 text-sm font-black text-slate-950 dark:text-white">
+            <ListChecks className="h-4 w-4 text-cyan-600 dark:text-cyan-300" />
+            Study Plan
+          </span>
+          <ChevronDown className="h-4 w-4 text-slate-500 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" onClick={copyStudyPlan} className={smallButtonClass()}>
+            <Copy className="h-3.5 w-3.5" />
+            Copy
+          </button>
+          <button type="button" onClick={downloadStudyPlan} className={smallButtonClass()}>
+            <Download className="h-3.5 w-3.5" />
+            Download
+          </button>
+        </div>
+        <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap rounded border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+          {studyPlan}
+        </pre>
+      </details>
+    </aside>
   );
 }
 
@@ -510,15 +930,16 @@ function CometChatPanel({
   copyNotice,
   selectedCourse,
   responseMode,
+  temocMode,
   setChatInput,
+  setTemocMode,
   submitPrompt,
   sendMessage,
   handleChatKeyDown,
   copyLatestResponse,
-  copyStudyPlan,
-  downloadStudyPlan,
   resetChat,
   chatEndRef,
+  chatScrollRef,
 }: {
   messages: ChatMessage[];
   isAssistantTyping: boolean;
@@ -527,40 +948,73 @@ function CometChatPanel({
   copyNotice: string;
   selectedCourse: CourseSelection;
   responseMode: ResponseMode;
+  temocMode: boolean;
   setChatInput: (value: string) => void;
+  setTemocMode: (value: boolean) => void;
   submitPrompt: (prompt: string, quickAction?: string) => void;
   sendMessage: (event: FormEvent) => void;
   handleChatKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
   copyLatestResponse: () => void;
-  copyStudyPlan: () => void;
-  downloadStudyPlan: () => void;
   resetChat: () => void;
   chatEndRef: RefObject<HTMLDivElement>;
+  chatScrollRef: RefObject<HTMLDivElement>;
 }) {
   return (
-    <section className="overflow-hidden rounded border border-slate-200 bg-white shadow-lg shadow-slate-200/50 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/40" aria-labelledby="comet-chat-title">
-      <div className="border-b border-slate-200 p-4 dark:border-slate-700 sm:p-5">
+    <section
+      className="flex h-[calc(100vh-6.5rem)] min-h-[640px] max-h-[920px] flex-col overflow-hidden rounded border border-slate-200/80 bg-white shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:shadow-slate-950/40 motion-safe:animate-in motion-safe:slide-in-from-bottom-5 motion-safe:fade-in motion-safe:duration-700"
+      aria-labelledby="comet-chat-title"
+    >
+      <div className="shrink-0 border-b border-slate-200/80 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded bg-slate-950 text-cyan-300">
+            <div className="flex h-12 w-12 items-center justify-center rounded bg-slate-950 text-cyan-300 shadow-lg shadow-cyan-500/15 dark:bg-cyan-300 dark:text-slate-950">
               <Bot className="h-6 w-6" />
             </div>
             <div>
-              <h3 id="comet-chat-title" className="text-xl font-black text-slate-950 dark:text-white">Chat With Comet AI</h3>
+              <p className="text-xs font-black uppercase tracking-wide text-cyan-700 dark:text-cyan-300">Whoosh, Comet</p>
+              <h3 id="comet-chat-title" className="text-2xl font-black text-slate-950 dark:text-white">Comet AI</h3>
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 {isAssistantTyping
-                  ? "Comet AI is thinking..."
+                  ? temocMode
+                    ? "Comet AI is charging the Whoosh..."
+                    : "Comet AI is thinking..."
                   : `${COURSE_OPTIONS.find((item) => item.value === selectedCourse)?.label ?? "All courses"} - ${RESPONSE_MODES.find((item) => item.value === responseMode)?.label ?? "Step-by-step"}`}
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setTemocMode(!temocMode)}
+              aria-pressed={temocMode}
+              className={cn(
+                "inline-flex items-center gap-2 rounded border px-3 py-2 text-xs font-black transition-colors",
+                temocMode
+                  ? "border-cyan-400 bg-cyan-50 text-cyan-950 shadow-sm shadow-cyan-500/15 dark:border-cyan-300 dark:bg-cyan-950/50 dark:text-cyan-100"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800",
+                FOCUS_RING,
+              )}
+            >
+              <Star className={cn("h-4 w-4", temocMode && "fill-cyan-400")} />
+              Whoosh Mode
+            </button>
             <button type="button" onClick={copyLatestResponse} className={iconButtonClass()} title="Copy latest response" aria-label="Copy latest response">
               <Copy className="h-4 w-4" />
             </button>
             <button type="button" onClick={resetChat} className={iconButtonClass()} title="Reset chat" aria-label="Reset chat">
               <RotateCcw className="h-4 w-4" />
             </button>
+          </div>
+        </div>
+
+        <div className="mt-4 overflow-hidden rounded border border-cyan-200/70 bg-cyan-50/70 px-3 py-2 text-cyan-950 dark:border-cyan-700/50 dark:bg-cyan-950/30 dark:text-cyan-100">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+            <span className="whoosh-chip inline-flex items-center gap-1 rounded-full border border-cyan-300 bg-white px-2 py-1 text-cyan-900 shadow-sm dark:border-cyan-700 dark:bg-slate-950 dark:text-cyan-100">
+              <Sparkles className="h-3.5 w-3.5" />
+              Whoosh!
+            </span>
+            <span>Your study plan is cleared for launch.</span>
+            <span className="hidden sm:inline text-cyan-800/75 dark:text-cyan-100/70">Let's turn chaos into orbit.</span>
           </div>
         </div>
 
@@ -572,7 +1026,7 @@ function CometChatPanel({
               onClick={() => submitPrompt(action, action)}
               disabled={isAssistantTyping}
               className={cn(
-                "rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:border-cyan-200 hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white",
+                "rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:border-cyan-300 hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-200 dark:hover:border-cyan-700 dark:hover:bg-slate-800 dark:hover:text-white",
                 FOCUS_RING,
               )}
             >
@@ -592,7 +1046,7 @@ function CometChatPanel({
                 onClick={() => submitPrompt(action, action)}
                 disabled={isAssistantTyping}
                 className={cn(
-                  "rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:border-cyan-200 hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:text-white",
+                  "rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:border-cyan-200 hover:bg-cyan-50 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white",
                   FOCUS_RING,
                 )}
               >
@@ -604,22 +1058,24 @@ function CometChatPanel({
       </div>
 
       <div
-        className="min-h-[420px] bg-gradient-to-b from-slate-50 to-white p-4 dark:from-slate-950 dark:to-slate-900 sm:p-5"
+        ref={chatScrollRef}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-gradient-to-b from-slate-50 via-white to-white p-4 [overflow-anchor:none] dark:from-slate-950 dark:via-slate-950/80 dark:to-slate-900 sm:p-6"
         aria-live="polite"
         aria-label="Comet AI chat history"
       >
-        <div className="space-y-4">
+        <div className="mx-auto max-w-4xl space-y-4">
           {messages.length <= 1 && (
-            <div className="mx-auto mb-4 max-w-2xl rounded border border-dashed border-cyan-200 bg-cyan-50/70 p-4 text-center text-sm text-cyan-950 dark:border-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-100">
-              <p className="font-black">Ask Comet AI about grades, deadlines, quizzes, exams, messages, or course topics.</p>
-              <div className="mt-3 flex flex-wrap justify-center gap-2" aria-label="Prompt starters">
-                {PROMPT_STARTERS.slice(0, 4).map((starter) => (
+            <div className="mx-auto mb-6 max-w-3xl rounded border border-dashed border-cyan-200 bg-cyan-50/70 p-5 text-center text-sm text-cyan-950 dark:border-cyan-700/60 dark:bg-cyan-950/25 dark:text-cyan-100">
+              <p className="text-base font-black">Whoosh, Comet. What should we work on today?</p>
+              <p className="mt-1 font-medium text-cyan-900/80 dark:text-cyan-100/80">Ask about grades, deadlines, quizzes, study planning, or a tiny boost of Temoc energy.</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2" aria-label="Prompt starters">
+                {[...TEMOC_PROMPT_STARTERS.slice(0, 4), ...PROMPT_STARTERS.slice(6, 8)].map((starter) => (
                   <button
                     key={starter}
                     type="button"
                     onClick={() => submitPrompt(starter)}
                     disabled={isAssistantTyping}
-                    className={cn("rounded-full bg-white px-3 py-1.5 text-xs font-bold text-cyan-900 shadow-sm hover:bg-cyan-100 dark:bg-slate-800 dark:text-cyan-200 dark:hover:bg-slate-700", FOCUS_RING)}
+                    className={cn("rounded border border-white bg-white px-3 py-2 text-left text-xs font-bold text-cyan-900 shadow-sm transition-colors hover:border-cyan-200 hover:bg-cyan-100 dark:border-slate-800 dark:bg-slate-900 dark:text-cyan-100 dark:hover:border-cyan-700 dark:hover:bg-slate-800", FOCUS_RING)}
                   >
                     {starter}
                   </button>
@@ -632,17 +1088,17 @@ function CometChatPanel({
             return (
               <article key={message.id} className={cn("flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200", isUser ? "justify-end" : "justify-start")}>
                 {!isUser && (
-                  <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-slate-950 text-cyan-300">
+                  <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-slate-950 text-cyan-300 dark:bg-cyan-300 dark:text-slate-950">
                     <Sparkles className="h-4 w-4" />
                   </div>
                 )}
-                <div className={cn("max-w-[86%] sm:max-w-[74%]", isUser && "text-right")}>
+                <div className={cn("max-w-[90%] sm:max-w-[78%]", isUser && "text-right")}>
                   <div
                     className={cn(
                       "rounded px-4 py-3 text-left text-sm leading-relaxed shadow-sm",
                       isUser
-                        ? "bg-cyan-600 text-white"
-                        : "border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200",
+                        ? "bg-slate-950 text-white dark:bg-cyan-400 dark:text-slate-950"
+                        : "min-h-[88px] border border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200",
                     )}
                   >
                     <p className="mb-1 text-xs font-black opacity-80">{message.sender}</p>
@@ -655,15 +1111,16 @@ function CometChatPanel({
           })}
           {isAssistantTyping && messages[messages.length - 1]?.sender !== "Comet AI" && (
             <div className="flex gap-3" role="status" aria-live="polite">
-              <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-slate-950 text-cyan-300">
+              <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-slate-950 text-cyan-300 dark:bg-cyan-300 dark:text-slate-950">
                 <Sparkles className="h-4 w-4" />
               </div>
-              <div className="rounded border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                <p className="mb-2 text-xs font-black">Comet AI</p>
-                <span className="inline-flex items-center gap-1" aria-label="Comet AI is typing">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-600" />
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-600 [animation-delay:120ms]" />
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-600 [animation-delay:240ms]" />
+              <div className="rounded border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
+                <p className="mb-2 text-xs font-black">{temocMode ? "Comet AI is charging the Whoosh" : "Comet AI"}</p>
+                <span className="inline-flex items-center gap-1" aria-label={temocMode ? "Comet AI is charging the Whoosh" : "Comet AI is typing"}>
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-600 shadow-[0_0_8px_rgba(8,145,178,0.45)]" />
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-500 shadow-[0_0_8px_rgba(8,145,178,0.35)] [animation-delay:120ms]" />
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-600 shadow-[0_0_8px_rgba(8,145,178,0.45)] [animation-delay:240ms]" />
+                  {temocMode && <Star className="ml-1 h-3.5 w-3.5 animate-pulse fill-cyan-300 text-cyan-500" />}
                 </span>
               </div>
             </div>
@@ -672,9 +1129,9 @@ function CometChatPanel({
         </div>
       </div>
 
-      <div className="border-t border-slate-200 p-4 dark:border-slate-700 sm:p-5">
+      <div className="shrink-0 border-t border-slate-200/80 bg-white/95 p-4 dark:border-slate-800 dark:bg-slate-900/95 sm:p-5">
         {suggestions.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2" aria-label="Suggested follow-up prompts">
+          <div className="mx-auto mb-3 flex max-w-4xl flex-wrap gap-2" aria-label="Suggested follow-up prompts">
             {suggestions.map((suggestion) => (
               <button
                 key={suggestion}
@@ -689,9 +1146,9 @@ function CometChatPanel({
           </div>
         )}
 
-        <form onSubmit={sendMessage}>
+        <form onSubmit={sendMessage} className="mx-auto max-w-4xl">
           <label className="sr-only" htmlFor="comet-chat-input">Ask Comet AI</label>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-col gap-2 rounded border border-slate-200 bg-slate-50 p-2 shadow-sm dark:border-slate-700 dark:bg-slate-950 sm:flex-row">
             <textarea
               id="comet-chat-input"
               value={chatInput}
@@ -699,7 +1156,7 @@ function CometChatPanel({
               onKeyDown={handleChatKeyDown}
               placeholder="Ask about grades, deadlines, quizzes, course topics, or what to do next..."
               rows={3}
-              className={cn("min-w-0 flex-1 resize-none rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white", FOCUS_RING)}
+              className={cn("min-w-0 flex-1 resize-none rounded border-0 bg-transparent px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500", FOCUS_RING)}
             />
             <button
               type="submit"
@@ -708,7 +1165,7 @@ function CometChatPanel({
                 "inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm font-black sm:w-32",
                 FOCUS_RING,
                 chatInput.trim() && !isAssistantTyping
-                  ? "bg-slate-950 text-white hover:bg-slate-800 dark:bg-blue-600 dark:hover:bg-blue-700"
+                  ? "bg-slate-950 text-white hover:bg-slate-800 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300"
                   : "cursor-not-allowed bg-slate-200 text-slate-400 dark:bg-slate-800 dark:text-slate-500",
               )}
             >
@@ -718,18 +1175,8 @@ function CometChatPanel({
           </div>
         </form>
 
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button type="button" onClick={copyStudyPlan} className={smallButtonClass()}>
-            <Copy className="h-3.5 w-3.5" />
-            Copy Study Plan
-          </button>
-          <button type="button" onClick={downloadStudyPlan} className={smallButtonClass()}>
-            <Download className="h-3.5 w-3.5" />
-            Download Study Plan
-          </button>
-        </div>
         {copyNotice && (
-          <p className="mt-2 text-xs font-bold text-emerald-700" role="status" aria-live="polite">
+          <p className="mx-auto mt-2 max-w-4xl text-xs font-bold text-emerald-700 dark:text-emerald-300" role="status" aria-live="polite">
             {copyNotice}
           </p>
         )}
@@ -775,6 +1222,7 @@ function getRuleBasedResponse(
     projectedGpa: string;
     selectedCourse: CourseSelection;
     responseMode: ResponseMode;
+    temocMode: boolean;
   },
 ): AssistantResponse {
   const normalized = prompt.toLowerCase();
@@ -788,38 +1236,52 @@ function getRuleBasedResponse(
         ? "Study coach mode\n"
         : "";
 
+  if (/(temoc|motivate me|pep talk|launch|orbit|comet-style|comet style|whoosh study|whoosh plan|back in orbit|cleared for launch|turn my week into orbit|make this less stressful|what should i do first|what should i launch into first)/.test(normalized)) {
+    const basePlan = buildLaunchPlan(context.courses);
+    return applyTemocStyle(
+      {
+        body: basePlan,
+        suggestions: ["Give me a Whoosh study plan", "Make this less stressful", "Practice me", "Build Study Plan"],
+        generatedPlan: basePlan,
+        topic: "Temoc motivation",
+        courseId,
+      },
+      true,
+    );
+  }
+
   if (/(generate weekly plan|weekly plan|build study plan|make a plan|plan for this week)/.test(normalized)) {
     const plan = buildStudyPlan(context.courses);
-    return {
+    return applyTemocStyle({
       body: `${modeIntro}${plan}\n\nSuggested follow-up\nAsk Comet to make this shorter, turn it into practice questions, or draft a professor message.`,
       suggestions: ["Practice me", "Create professor message", "Summarize my week", "Make it shorter"],
       generatedPlan: plan,
       topic: "weekly plan",
       courseId,
-    };
+    }, context.temocMode);
   }
 
   if (/(time management strategies|manage my time|time block my day|study schedule|what should i do tonight|prioritize my week|prioritize this week|overwhelmed|i am overwhelmed|too much|tonight)/.test(normalized)) {
     const plan = buildTimeManagementResponse(context.courses, modeIntro);
-    return {
+    return applyTemocStyle({
       body: plan.body,
       suggestions: ["Make me a study schedule.", "What should I do tonight?", "Use Focus Mode", "Make it shorter"],
       generatedPlan: plan.generatedPlan,
       topic: "time management",
       courseId,
-    };
+    }, context.temocMode);
   }
 
   if (/(create professor message|professor message|message my professor|klyne smith|professor smith|prof\. smith)/.test(normalized)) {
-    return buildProfessorMessageResponse();
+    return applyTemocStyle(buildProfessorMessageResponse(), context.temocMode);
   }
 
   if (/(explain like i'm new|explain like i am new|beginner|new to|eli5|explain sql joins|explain subnetting|explain uml)/.test(normalized)) {
-    return buildBeginnerExplanation(courseId ?? "database", context.responseMode);
+    return applyTemocStyle(buildBeginnerExplanation(courseId ?? "database", context.responseMode), context.temocMode);
   }
 
   if (/(practice me|practice questions|quiz me|drill me|make.*drill|30-minute.*drill)/.test(normalized)) {
-    return buildPracticeResponse(courseId ?? "database");
+    return applyTemocStyle(buildPracticeResponse(courseId ?? "database"), context.temocMode);
   }
 
   if (/(summarize my week|weekly summary|what matters this week|this week)/.test(normalized)) {
@@ -1114,63 +1576,150 @@ This week
   };
 }
 
+function buildLaunchPlan(courses: Array<CoursePlan & Partial<{ projectedGrade: number }>>) {
+  const networks = courses.find((course) => course.id === "networks") ?? COURSES[0];
+  const software = courses.find((course) => course.id === "software") ?? COURSES[1];
+  const database = courses.find((course) => course.id === "database") ?? COURSES[2];
+
+  return `Launch plan
+Whoosh! Let's get you back in orbit without pretending the whole galaxy has to be solved tonight.
+
+First launch
+1. Start with ${networks.deadline} for ${networks.name}; it is the nearest deadline and clears the most pressure.
+2. Use one 25-minute focus block, then write the next tiny task before you take a break.
+3. If the deadline is stable, spend 25 minutes on ${database.name}: normalization, joins, keys, ACID, or indexing.
+
+Next orbit
+1. Put ${software.name} UML or traceability cleanup into a short tomorrow block.
+2. End each block with one visible artifact: submitted work, three corrected mistakes, or one question for office hours.
+3. Keep the pace warm and nerdy: tiny thrusts, big trajectory.
+
+Supportive check
+If stress is loud, shrink the mission. One task, one timer, one proof of progress.`;
+}
+
+function applyTemocStyle(response: AssistantResponse, enabled: boolean): AssistantResponse {
+  if (!enabled || response.body.startsWith("Whoosh!")) {
+    return response;
+  }
+
+  return {
+    ...response,
+    body: `Whoosh! Let's add a little Temoc energy while keeping the advice useful.\n\n${response.body}\n\nComet nudge\nTiny thrusts, big trajectory. Pick the first action, start the timer, and let the rest of the orbit tighten after that.`,
+    suggestions: Array.from(new Set(["Motivate me like Temoc", "Make this less stressful", ...response.suggestions])).slice(0, 5),
+  };
+}
+
 function calculateProjectedGrade(course: CoursePlan) {
   return Math.round(course.currentGrade * (1 - course.weight) + course.projectedScore * course.weight);
 }
 
 function CometSky() {
   const stars = [
-    ["8%", "22%", "0.4s"],
-    ["19%", "58%", "0s"],
-    ["31%", "38%", "1.1s"],
-    ["46%", "72%", "0.7s"],
-    ["58%", "18%", "1.5s"],
-    ["72%", "48%", "0.2s"],
-    ["84%", "62%", "0.9s"],
-    ["93%", "28%", "1.3s"],
+    ["5%", "18%", "0.4s", "3px"],
+    ["19%", "32%", "0s", "2px"],
+    ["31%", "38%", "1.1s", "2px"],
+    ["38%", "16%", "0.6s", "4px"],
+    ["58%", "18%", "1.5s", "2px"],
+    ["72%", "48%", "0.2s", "2px"],
+    ["84%", "62%", "0.9s", "2px"],
+    ["93%", "28%", "1.3s", "2px"],
+  ] as const;
+
+  const comets = [
+    ["10%", "34%", "0s", "20s", "280px", "cyan", "-13deg", "-72vw", "108vw", "-4vh", "8vh", "0.58"],
+    ["34%", "64%", "6s", "24s", "210px", "indigo", "-8deg", "-68vw", "96vw", "6vh", "-4vh", "0.46"],
+    ["68%", "18%", "12s", "28s", "240px", "cyan", "10deg", "98vw", "-82vw", "-5vh", "10vh", "0.42"],
   ] as const;
 
   return (
     <div
-      className="pointer-events-none relative mt-5 w-full overflow-hidden border-y border-white/[0.07] bg-gradient-to-b from-slate-950/90 via-[#0c1222] to-slate-950"
+      className="pointer-events-none absolute inset-0 overflow-hidden bg-[radial-gradient(80%_52%_at_52%_8%,rgba(8,145,178,0.2),transparent_48%),radial-gradient(55%_45%_at_90%_18%,rgba(79,70,229,0.14),transparent_44%),linear-gradient(180deg,rgba(240,249,255,0.98),rgba(248,250,252,0.82)_32%,rgba(248,250,252,1)_82%)] dark:bg-[radial-gradient(78%_54%_at_52%_6%,rgba(34,211,238,0.22),transparent_46%),radial-gradient(60%_48%_at_92%_18%,rgba(129,140,248,0.16),transparent_45%),linear-gradient(180deg,#01040d,#07111f_36%,#020617)]"
       aria-hidden="true"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,rgba(56,189,248,0.07),transparent_55%),radial-gradient(80%_50%_at_80%_100%,rgba(99,102,241,0.06),transparent_50%)]" />
-      <div className="relative mx-auto h-[5.25rem] w-full max-w-none">
-        {stars.map(([left, top, delay], i) => (
+      <div className="absolute inset-0 opacity-80 [background-image:radial-gradient(circle_at_12%_18%,rgba(14,165,233,0.34)_0_1px,transparent_1.5px),radial-gradient(circle_at_38%_34%,rgba(51,65,85,0.28)_0_1px,transparent_1.5px),radial-gradient(circle_at_72%_20%,rgba(14,165,233,0.26)_0_1px,transparent_1.5px),radial-gradient(circle_at_88%_56%,rgba(51,65,85,0.24)_0_1px,transparent_1.5px),radial-gradient(circle_at_22%_84%,rgba(14,165,233,0.22)_0_1px,transparent_1.5px),radial-gradient(circle_at_66%_76%,rgba(51,65,85,0.2)_0_1px,transparent_1.5px)] dark:opacity-100 dark:[background-image:radial-gradient(circle_at_12%_18%,rgba(255,255,255,0.74)_0_1px,transparent_1.5px),radial-gradient(circle_at_38%_34%,rgba(103,232,249,0.68)_0_1px,transparent_1.5px),radial-gradient(circle_at_72%_20%,rgba(255,255,255,0.6)_0_1px,transparent_1.5px),radial-gradient(circle_at_88%_56%,rgba(165,180,252,0.56)_0_1px,transparent_1.5px),radial-gradient(circle_at_22%_84%,rgba(103,232,249,0.5)_0_1px,transparent_1.5px),radial-gradient(circle_at_66%_76%,rgba(255,255,255,0.46)_0_1px,transparent_1.5px)]" />
+      <div className="relative h-full w-full">
+        {stars.map(([left, top, delay, size], i) => (
           <span
             key={i}
-            className="absolute h-px w-px rounded-full bg-white/70 shadow-[0_0_5px_rgba(255,255,255,0.55)] motion-safe:animate-pulse"
-            style={{ left, top, animationDelay: delay }}
+            className="comet-star absolute rounded-full bg-cyan-500/40 dark:bg-white/75"
+            style={{ left, top, width: size, height: size, animationDelay: delay }}
           />
         ))}
-        {/* Full-width comet sweeps: motion uses % of container via left + width */}
-        <span
-          className="comet-sweep absolute top-[32%] h-px w-[32%] max-w-[min(280px,42vw)] -rotate-[11deg] rounded-full bg-gradient-to-r from-transparent via-cyan-200/75 to-transparent opacity-0 shadow-[0_0_14px_rgba(103,232,249,0.35)]"
-          style={{ animationDelay: "0s", animationDuration: "11s" }}
-        />
-        <span
-          className="comet-sweep absolute top-[58%] h-px w-[26%] max-w-[min(220px,38vw)] -rotate-[9deg] rounded-full bg-gradient-to-r from-transparent via-indigo-200/55 to-transparent opacity-0 shadow-[0_0_12px_rgba(165,180,252,0.3)]"
-          style={{ animationDelay: "3.5s", animationDuration: "13s" }}
-        />
-        <span
-          className="comet-sweep absolute top-[44%] h-px w-[22%] max-w-[min(180px,34vw)] -rotate-[13deg] rounded-full bg-gradient-to-r from-transparent via-amber-100/45 to-transparent opacity-0 shadow-[0_0_10px_rgba(253,230,138,0.22)]"
-          style={{ animationDelay: "7s", animationDuration: "14.5s" }}
-        />
+        {comets.map(([top, start, delay, duration, width, tone, angle, startX, endX, startY, endY, peakOpacity], index) => (
+          <span
+            key={index}
+            className={cn(
+              "comet-sweep absolute h-8 opacity-0",
+              tone === "indigo" && "comet-sweep-indigo",
+              tone === "white" && "comet-sweep-white",
+            )}
+            style={
+              {
+                top,
+                left: start,
+                width,
+                animationDelay: delay,
+                animationDuration: duration,
+                "--comet-angle": angle,
+                "--comet-x-start": startX,
+                "--comet-x-end": endX,
+                "--comet-y-start": startY,
+                "--comet-y-end": endY,
+                "--comet-peak-opacity": peakOpacity,
+              } as CSSProperties
+            }
+          >
+            <span className="comet-tail absolute right-3 top-1/2 h-[2px] w-full -translate-y-1/2 rounded-full" />
+            <span className="comet-head absolute right-0 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full" />
+          </span>
+        ))}
         <style>{`
+          @keyframes comet-twinkle {
+            0%, 100% { opacity: 0.45; transform: scale(0.86); }
+            45% { opacity: 1; transform: scale(1.18); }
+          }
           @keyframes comet-sweep-x {
-            0% { left: -35%; opacity: 0; }
-            8% { opacity: 0.85; }
-            78% { opacity: 0.45; }
-            100% { left: 108%; opacity: 0; }
+            0% { transform: translate3d(var(--comet-x-start, -70vw), var(--comet-y-start, 0), 0) rotate(var(--comet-angle, -12deg)); opacity: 0; }
+            9% { opacity: var(--comet-peak-opacity, 0.82); }
+            68% { opacity: calc(var(--comet-peak-opacity, 0.82) * 0.72); }
+            100% { transform: translate3d(var(--comet-x-end, 105vw), var(--comet-y-end, 0), 0) rotate(var(--comet-angle, -12deg)); opacity: 0; }
+          }
+          @keyframes whoosh-chip-pop {
+            0%, 100% { transform: translateY(0); box-shadow: 0 0 0 rgba(8,145,178,0); }
+            50% { transform: translateY(-1px); box-shadow: 0 0 18px rgba(8,145,178,0.24); }
+          }
+          .comet-star {
+            animation: comet-twinkle 3.8s ease-in-out infinite;
           }
           .comet-sweep {
             animation-name: comet-sweep-x;
             animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
             animation-iteration-count: infinite;
+            will-change: transform, opacity;
+          }
+          .comet-tail {
+            background: linear-gradient(90deg, transparent 0%, rgba(8,145,178,0.12) 18%, rgba(6,182,212,0.74) 76%, rgba(255,255,255,0.95) 100%);
+          }
+          .comet-head {
+            background: radial-gradient(circle, rgba(255,255,255,1) 0 30%, rgba(103,232,249,0.95) 42%, rgba(6,182,212,0.22) 72%, transparent 76%);
+          }
+          .comet-sweep-indigo .comet-tail {
+            background: linear-gradient(90deg, transparent 0%, rgba(79,70,229,0.1) 18%, rgba(129,140,248,0.68) 76%, rgba(255,255,255,0.9) 100%);
+          }
+          .comet-sweep-white .comet-tail {
+            background: linear-gradient(90deg, transparent 0%, rgba(148,163,184,0.1) 18%, rgba(226,232,240,0.6) 76%, rgba(255,255,255,0.9) 100%);
+          }
+          .whoosh-chip {
+            animation: whoosh-chip-pop 3.4s ease-in-out infinite;
           }
           @media (prefers-reduced-motion: reduce) {
-            .comet-sweep { animation: none; left: 38%; opacity: 0.28; }
+            .comet-star, .comet-sweep, .whoosh-chip { animation: none; }
+            .comet-sweep { transform: translate3d(18vw, 0, 0) rotate(var(--comet-angle, -12deg)); opacity: 0.36; }
+          }
+          @media (max-width: 767px) {
+            .comet-star, .comet-sweep, .whoosh-chip { animation: none; }
+            .comet-sweep { display: none; }
           }
         `}</style>
       </div>
@@ -1286,6 +1835,20 @@ function buildPracticeResponse(courseId: CourseId): AssistantResponse {
 
 function smallButtonClass() {
   return cn("inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800", FOCUS_RING);
+}
+
+function primaryToolButtonClass() {
+  return cn(
+    "inline-flex w-full items-center justify-center gap-2 rounded bg-slate-950 px-4 py-2 text-sm font-black text-white transition-colors hover:bg-slate-800 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300",
+    FOCUS_RING,
+  );
+}
+
+function secondaryToolButtonClass() {
+  return cn(
+    "inline-flex w-full items-center justify-center gap-2 rounded border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800",
+    FOCUS_RING,
+  );
 }
 
 function CometContextCard({

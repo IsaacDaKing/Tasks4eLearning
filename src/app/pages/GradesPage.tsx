@@ -9,6 +9,7 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { motion } from "motion/react";
+import { COURSES } from "../data/courses";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -16,10 +17,14 @@ function cn(...inputs: ClassValue[]) {
 
 const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2";
 
-const COURSE_GRADES = [
-  {
-    code: "CS 4390.0W1",
-    name: "Computer Networks",
+const COURSE_GRADE_DETAILS: Record<string, {
+  grade: string;
+  percent: number;
+  trend: string;
+  feedback: string;
+  assignments: Array<{ title: string; score: string; status: string; feedback: string }>;
+}> = {
+  cs4390: {
     grade: "A-",
     percent: 88,
     trend: "+3%",
@@ -27,41 +32,54 @@ const COURSE_GRADES = [
     assignments: [
       { title: "Network Protocol Analysis", score: "85/100", status: "Graded", feedback: "Good TCP retransmission notes" },
       { title: "Subnetting Practice", score: "92/100", status: "Graded", feedback: "Strong calculation accuracy" },
-      { title: "Protocol Quiz", score: "Not submitted", status: "In Progress", feedback: "Due soon" },
+      { title: "Protocol Quiz", score: "Upcoming", status: "In Progress", feedback: "Due May 9" },
     ],
   },
-  {
-    code: "CS 3354.012",
-    name: "Software Engineering",
+  cs3354: {
     grade: "A",
     percent: 92,
     trend: "+1%",
     feedback: "Project milestone on track",
     assignments: [
-      { title: "Software Design Patterns Lab", score: "90/100", status: "Submitted", feedback: "Awaiting final rubric notes" },
+      { title: "Software Design Patterns Lab", score: "Submitted", status: "Submitted", feedback: "Awaiting rubric notes after May 8 due date" },
       { title: "Requirements Traceability", score: "95/100", status: "Graded", feedback: "Clear acceptance criteria" },
       { title: "UML Sequence Draft", score: "88/100", status: "Graded", feedback: "Add actor/service boundary detail" },
     ],
   },
-  {
-    code: "CS 4347.002",
-    name: "Database Systems",
+  cs4347: {
     grade: "B+",
     percent: 84,
     trend: "-2%",
     feedback: "Midterm review recommended",
     assignments: [
-      { title: "SQL Query Optimization", score: "78/100", status: "Graded", feedback: "Index choice needs more explanation" },
+      { title: "SQL Query Optimization", score: "78/100", status: "Graded", feedback: "Submitted April 28; index choice needs more explanation" },
       { title: "ER Modeling Checkpoint", score: "89/100", status: "Graded", feedback: "Good relationship constraints" },
-      { title: "Midterm: Database Normalization", score: "Upcoming", status: "In Progress", feedback: "Review 2NF/3NF and joins" },
+      { title: "Midterm: Database Normalization", score: "Upcoming", status: "In Progress", feedback: "Due May 11; review 2NF/3NF and joins" },
     ],
   },
-];
+};
+
+const COURSE_GRADES = COURSES.map((course) => ({
+  code: course.code,
+  name: course.title,
+  ...(COURSE_GRADE_DETAILS[course.id] ?? {
+    grade: course.grade,
+    percent: course.progress,
+    trend: "+0%",
+    feedback: "Course activity is available in the LMS.",
+    assignments: course.assignments.map((assignment) => ({
+      title: assignment.title,
+      score: assignment.dueDate.startsWith("April") ? "Submitted" : "Upcoming",
+      status: assignment.dueDate.startsWith("April") ? "Submitted" : "In Progress",
+      feedback: assignment.dueDate.startsWith("April") ? `Submitted ${assignment.dueDate}` : `Due ${assignment.dueDate}`,
+    })),
+  }),
+}));
 
 const GRADE_LOGS = [
   {
-    timestamp: "2026-02-18 14:32:15",
-    id: "AL-20260218-001",
+    timestamp: "2026-04-30 14:32:15",
+    id: "AL-20260430-001",
     modifiedBy: "Klyne Smith",
     assignment: "Software Architecture Assignment",
     course: "CS 3354.012: Software Engineering",
@@ -70,8 +88,8 @@ const GRADE_LOGS = [
     ip: "192.168.1.45",
   },
   {
-    timestamp: "2026-02-18 11:15:03",
-    id: "AL-20260218-002",
+    timestamp: "2026-04-29 11:15:03",
+    id: "AL-20260429-002",
     modifiedBy: "Wei Wu",
     assignment: "SQL Project Phase 2",
     course: "CS 4347.002: Database Systems",
@@ -80,8 +98,8 @@ const GRADE_LOGS = [
     ip: "192.168.1.23",
   },
   {
-    timestamp: "2026-02-16 09:12:31",
-    id: "AL-20260216-005",
+    timestamp: "2026-04-27 09:12:31",
+    id: "AL-20260427-005",
     modifiedBy: "Ravi Prakash",
     assignment: "Network Protocol Analysis",
     course: "CS 4390.0W1: Computer Networks",

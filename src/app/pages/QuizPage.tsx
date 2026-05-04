@@ -24,12 +24,17 @@ function cn(...inputs: ClassValue[]) {
 }
 
 type AssessmentType = "Quiz" | "Exam";
+type QuestionType = "multiple-choice" | "true-false" | "fill-blank" | "short-answer" | "matching" | "ordering";
+type AnswerValue = number | string | string[] | null;
 
 interface Question {
   id: number;
   text: string;
-  options: string[];
-  correct: number;
+  questionType?: QuestionType;
+  options?: string[];
+  choices?: string[];
+  correct?: number | string | string[];
+  reviewNote?: string;
 }
 
 interface Assessment {
@@ -60,7 +65,7 @@ const ASSESSMENTS: Assessment[] = [
     courseName: "Computer Networks",
     classSection: "CS 4390.0W1: Computer Networks",
     moduleTitle: "Module 2: TCP/IP Protocol Suite",
-    dueDate: "February 17, 2026 at 11:59 PM",
+    dueDate: "May 9, 2026 at 11:59 PM",
     timeLimitMinutes: 30,
     attemptsAllowed: 2,
     attemptsUsed: 0,
@@ -79,12 +84,14 @@ const ASSESSMENTS: Assessment[] = [
     questions: [
       {
         id: 1,
+        questionType: "multiple-choice",
         text: "Which layer of the OSI model is responsible for end-to-end communication and error recovery?",
         options: ["Network Layer", "Transport Layer", "Session Layer", "Application Layer"],
         correct: 1,
       },
       {
         id: 2,
+        questionType: "multiple-choice",
         text: "What is the primary difference between TCP and UDP?",
         options: ["TCP is faster", "UDP is connection-oriented", "TCP provides reliable delivery", "UDP uses checksums"],
         correct: 2,
@@ -97,9 +104,31 @@ const ASSESSMENTS: Assessment[] = [
       },
       {
         id: 4,
+        questionType: "multiple-choice",
         text: "What is the default subnet mask for a Class C network?",
         options: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.255"],
         correct: 2,
+      },
+      {
+        id: 5,
+        questionType: "true-false",
+        text: "True or false: UDP guarantees delivery order for application messages.",
+        options: ["True", "False"],
+        correct: 1,
+      },
+      {
+        id: 6,
+        questionType: "fill-blank",
+        text: "Fill in the blank: The protocol commonly used to automatically assign IP addresses is ____.",
+        correct: "DHCP",
+      },
+      {
+        id: 7,
+        questionType: "matching",
+        text: "Match each network term to its role.",
+        options: ["DNS", "Router", "TCP"],
+        choices: ["Reliable transport", "Forwards packets between networks", "Maps hostnames to IP addresses"],
+        correct: ["Maps hostnames to IP addresses", "Forwards packets between networks", "Reliable transport"],
       },
     ],
   },
@@ -111,7 +140,7 @@ const ASSESSMENTS: Assessment[] = [
     courseName: "Software Engineering",
     classSection: "CS 3354.012: Software Engineering",
     moduleTitle: "Module 4: Requirements, Design, and Delivery",
-    dueDate: "February 19, 2026 at 2:00 PM",
+    dueDate: "May 13, 2026 at 2:00 PM",
     timeLimitMinutes: 35,
     attemptsAllowed: 2,
     attemptsUsed: 0,
@@ -130,6 +159,7 @@ const ASSESSMENTS: Assessment[] = [
     questions: [
       {
         id: 1,
+        questionType: "multiple-choice",
         text: "Which statement best describes a strong user story?",
         options: [
           "It describes a database table and every column type.",
@@ -141,6 +171,7 @@ const ASSESSMENTS: Assessment[] = [
       },
       {
         id: 2,
+        questionType: "multiple-choice",
         text: "What is the main purpose of requirements traceability?",
         options: [
           "To connect requirements to design, code, tests, and delivered features.",
@@ -152,21 +183,37 @@ const ASSESSMENTS: Assessment[] = [
       },
       {
         id: 3,
+        questionType: "multiple-choice",
         text: "Which UML diagram is most appropriate for showing object interactions over time?",
         options: ["Class diagram", "Sequence diagram", "Deployment diagram", "Package diagram"],
         correct: 1,
       },
       {
         id: 4,
+        questionType: "multiple-choice",
         text: "In Scrum, who is primarily responsible for ordering the product backlog?",
         options: ["Scrum Master", "Product Owner", "Development Team", "Project Sponsor"],
         correct: 1,
       },
       {
         id: 5,
+        questionType: "multiple-choice",
         text: "Which testing level verifies that multiple components work together correctly?",
         options: ["Unit testing", "Integration testing", "Smoke testing", "Acceptance testing"],
         correct: 1,
+      },
+      {
+        id: 6,
+        questionType: "ordering",
+        text: "Put these agile workflow steps in a practical order.",
+        options: ["Implement and test", "Refine backlog item", "Review acceptance criteria", "Demo completed increment"],
+        correct: ["Refine backlog item", "Review acceptance criteria", "Implement and test", "Demo completed increment"],
+      },
+      {
+        id: 7,
+        questionType: "short-answer",
+        text: "In two or three sentences, explain why requirements traceability matters during testing.",
+        reviewNote: "Manual review: look for a connection between requirements, tests, implementation, and stakeholder validation.",
       },
     ],
   },
@@ -178,7 +225,7 @@ const ASSESSMENTS: Assessment[] = [
     courseName: "Database Systems",
     classSection: "CS 4347.002: Database Systems",
     moduleTitle: "Unit 5: Relational Modeling and Transactions",
-    dueDate: "February 21, 2026 at 9:00 AM",
+    dueDate: "May 11, 2026 at 9:00 AM",
     timeLimitMinutes: 60,
     attemptsAllowed: 1,
     attemptsUsed: 0,
@@ -197,18 +244,21 @@ const ASSESSMENTS: Assessment[] = [
     questions: [
       {
         id: 1,
+        questionType: "multiple-choice",
         text: "Which normal form removes partial dependency on part of a composite key?",
         options: ["First normal form", "Second normal form", "Third normal form", "Boyce-Codd normal form"],
         correct: 1,
       },
       {
         id: 2,
+        questionType: "multiple-choice",
         text: "Which SQL join returns matching rows plus unmatched rows from the left table?",
         options: ["INNER JOIN", "LEFT JOIN", "CROSS JOIN", "SELF JOIN"],
         correct: 1,
       },
       {
         id: 3,
+        questionType: "multiple-choice",
         text: "In ER modeling, what does a foreign key usually represent in the relational schema?",
         options: [
           "A relationship between tables",
@@ -220,12 +270,14 @@ const ASSESSMENTS: Assessment[] = [
       },
       {
         id: 4,
+        questionType: "multiple-choice",
         text: "Which ACID property ensures committed data survives a system crash?",
         options: ["Atomicity", "Consistency", "Isolation", "Durability"],
         correct: 3,
       },
       {
         id: 5,
+        questionType: "multiple-choice",
         text: "What is a common benefit of adding an index to a frequently searched column?",
         options: [
           "It can reduce lookup time for matching rows.",
@@ -234,6 +286,20 @@ const ASSESSMENTS: Assessment[] = [
           "It prevents all transaction conflicts.",
         ],
         correct: 0,
+      },
+      {
+        id: 6,
+        questionType: "fill-blank",
+        text: "Fill in the blank: The ACID property that prevents partial transaction completion is ____.",
+        correct: "Atomicity",
+      },
+      {
+        id: 7,
+        questionType: "matching",
+        text: "Match each database concept to its description.",
+        options: ["Primary key", "Foreign key", "Index"],
+        choices: ["Speeds lookup on selected columns", "Uniquely identifies a row", "References a row in another table"],
+        correct: ["Uniquely identifies a row", "References a row in another table", "Speeds lookup on selected columns"],
       },
     ],
   },
@@ -254,7 +320,7 @@ export function QuizPage() {
   const [focusMode, setFocusMode] = useState(true);
   const [started, setStarted] = useState(false);
   const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(new Array(assessment.questions.length).fill(null));
+  const [answers, setAnswers] = useState<AnswerValue[]>(new Array(assessment.questions.length).fill(null));
   const [submitted, setSubmitted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(assessment.timeLimitMinutes * 60);
   const [lockMessage, setLockMessage] = useState("");
@@ -313,11 +379,12 @@ export function QuizPage() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
+  const autoScoredQuestions = assessment.questions.filter((question) => getQuestionType(question) !== "short-answer");
   const score = answers.reduce(
-    (acc, answer, index) => acc + (answer === assessment.questions[index].correct ? 1 : 0),
+    (acc, answer, index) => acc + (isAnswerCorrect(assessment.questions[index], answer) ? 1 : 0),
     0,
   );
-  const percent = Math.round((score / assessment.questions.length) * 100);
+  const percent = Math.round((score / Math.max(1, autoScoredQuestions.length)) * 100);
 
   const startAssessment = () => {
     if (assessment.type === "Exam") {
@@ -379,13 +446,14 @@ export function QuizPage() {
             {percent >= 70 ? "Great job!" : "Keep practicing!"}
           </h1>
           <p className={cn("mb-8 text-sm", highContrast ? "text-white" : "text-slate-500 dark:text-slate-400")} aria-live="polite">
-            You scored <strong>{score} out of {assessment.questions.length}</strong> on {assessment.title}.
+            You scored <strong>{score} out of {autoScoredQuestions.length}</strong> auto-scored points on {assessment.title}.
           </p>
 
           <div className="mb-8 space-y-3 text-left">
             {assessment.questions.map((question, index) => {
               const userAnswer = answers[index];
-              const isCorrect = userAnswer === question.correct;
+              const isManualReview = getQuestionType(question) === "short-answer";
+              const isCorrect = isAnswerCorrect(question, userAnswer);
               return (
                 <div
                   key={question.id}
@@ -399,16 +467,22 @@ export function QuizPage() {
                   )}
                 >
                   <div className="flex items-start gap-3">
-                    {isCorrect ? (
+                    {isManualReview ? (
+                      <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+                    ) : isCorrect ? (
                       <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
                     ) : (
                       <X className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" />
                     )}
                     <div>
                       <p className={cn("mb-1 text-sm font-bold", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{question.text}</p>
-                      {!isCorrect && (
+                      {isManualReview ? (
+                        <p className={cn("text-xs", highContrast ? "text-white" : "text-amber-700 dark:text-amber-400")}>
+                          {question.reviewNote ?? "This response is marked for manual review."}
+                        </p>
+                      ) : !isCorrect && (
                         <p className={cn("text-xs", highContrast ? "text-white" : "text-green-700 dark:text-green-400")}>
-                          Correct: {question.options[question.correct]}
+                          Correct: {formatCorrectAnswer(question)}
                         </p>
                       )}
                     </div>
@@ -597,40 +671,17 @@ export function QuizPage() {
               <p className={cn("text-lg font-bold", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>{currentQuestion.text}</p>
             </div>
 
-            <div className="space-y-3" role="radiogroup" aria-label={`Question ${currentQ + 1} answer choices`}>
-              {currentQuestion.options.map((option, index) => {
-                const selected = answers[currentQ] === index;
-                return (
-                  <button
-                    key={option}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => {
-                      const newAnswers = [...answers];
-                      newAnswers[currentQ] = index;
-                      setAnswers(newAnswers);
-                    }}
-                    className={cn(
-                      "w-full rounded border-2 p-4 text-left text-sm font-medium transition-all",
-                      FOCUS_RING,
-                      selected
-                        ? highContrast
-                          ? "border-yellow-300 bg-white text-black"
-                          : "border-blue-600 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-200"
-                        : highContrast
-                          ? "border-white bg-black text-white hover:bg-white hover:text-black"
-                          : "border-slate-200 text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-600",
-                    )}
-                  >
-                    <span className="flex items-center gap-3">
-                      {selected ? <CheckCircle className="h-4 w-4 flex-shrink-0 text-blue-600" /> : <Circle className="h-4 w-4 flex-shrink-0 text-slate-300 dark:text-slate-600" />}
-                      {option}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            <QuestionAnswerControl
+              question={currentQuestion}
+              questionNumber={currentQ + 1}
+              answer={answers[currentQ]}
+              setAnswer={(value) => {
+                const newAnswers = [...answers];
+                newAnswers[currentQ] = value;
+                setAnswers(newAnswers);
+              }}
+              highContrast={highContrast}
+            />
           </div>
 
           <div className="flex flex-col gap-4 px-6 pb-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
@@ -684,7 +735,146 @@ export function QuizPage() {
 }
 
 function getExamLockKey(assessmentId: string) {
-  return `assessment-lock:${assessmentId}:ZXT220067`;
+  return `assessment-lock:${assessmentId}:CXS224467`;
+}
+
+function getQuestionType(question: Question): QuestionType {
+  return question.questionType ?? "multiple-choice";
+}
+
+function normalizeAnswer(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function isAnswerCorrect(question: Question, answer: AnswerValue) {
+  const type = getQuestionType(question);
+  if (type === "short-answer" || answer === null || answer === undefined) return false;
+
+  if (type === "multiple-choice" || type === "true-false") {
+    return typeof answer === "number" && answer === question.correct;
+  }
+
+  if (type === "fill-blank") {
+    return typeof answer === "string" && typeof question.correct === "string" && normalizeAnswer(answer) === normalizeAnswer(question.correct);
+  }
+
+  if ((type === "matching" || type === "ordering") && Array.isArray(answer) && Array.isArray(question.correct)) {
+    return question.correct.length === answer.length && question.correct.every((item, index) => item === answer[index]);
+  }
+
+  return false;
+}
+
+function formatCorrectAnswer(question: Question) {
+  const type = getQuestionType(question);
+  if ((type === "multiple-choice" || type === "true-false") && typeof question.correct === "number") {
+    return question.options?.[question.correct] ?? "Review the course materials";
+  }
+  if (typeof question.correct === "string") return question.correct;
+  if (Array.isArray(question.correct)) return question.correct.join(" -> ");
+  return "Manual review";
+}
+
+function QuestionAnswerControl({
+  question,
+  questionNumber,
+  answer,
+  setAnswer,
+  highContrast,
+}: {
+  question: Question;
+  questionNumber: number;
+  answer: AnswerValue;
+  setAnswer: (value: AnswerValue) => void;
+  highContrast: boolean;
+}) {
+  const type = getQuestionType(question);
+  const options = question.options ?? [];
+
+  if (type === "fill-blank") {
+    return (
+      <input
+        type="text"
+        value={typeof answer === "string" ? answer : ""}
+        onChange={(event) => setAnswer(event.target.value)}
+        className={cn("w-full rounded border-2 p-4 text-sm font-medium", FOCUS_RING, highContrast ? "border-white bg-black text-white" : "border-slate-200 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}
+        aria-label={`Question ${questionNumber} fill in the blank answer`}
+      />
+    );
+  }
+
+  if (type === "short-answer") {
+    return (
+      <textarea
+        value={typeof answer === "string" ? answer : ""}
+        onChange={(event) => setAnswer(event.target.value)}
+        rows={5}
+        className={cn("w-full resize-y rounded border-2 p-4 text-sm font-medium", FOCUS_RING, highContrast ? "border-white bg-black text-white" : "border-slate-200 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}
+        aria-label={`Question ${questionNumber} short answer response`}
+      />
+    );
+  }
+
+  if (type === "matching" || type === "ordering") {
+    const current = Array.isArray(answer) ? answer : new Array(options.length).fill("");
+    const choices = type === "matching" ? (question.choices ?? []) : options;
+    return (
+      <div className="space-y-3" aria-label={`Question ${questionNumber} ${type} responses`}>
+        {options.map((option, index) => (
+          <label key={`${option}-${index}`} className={cn("block rounded border p-3 text-sm font-bold", highContrast ? "border-white bg-black text-white" : "border-slate-200 bg-slate-50 text-slate-800 dark:border-slate-700 dark:bg-slate-900 dark:text-white")}>
+            <span className="mb-2 block">{type === "ordering" ? `Position ${index + 1}` : option}</span>
+            <select
+              value={current[index] ?? ""}
+              onChange={(event) => {
+                const next = [...current];
+                next[index] = event.target.value;
+                setAnswer(next);
+              }}
+              className={cn("w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900", FOCUS_RING)}
+            >
+              <option value="">Select...</option>
+              {choices.map((choice) => (
+                <option key={choice} value={choice}>{choice}</option>
+              ))}
+            </select>
+          </label>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3" role="radiogroup" aria-label={`Question ${questionNumber} answer choices`}>
+      {options.map((option, index) => {
+        const selected = answer === index;
+        return (
+          <button
+            key={option}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => setAnswer(index)}
+            className={cn(
+              "w-full rounded border-2 p-4 text-left text-sm font-medium transition-all",
+              FOCUS_RING,
+              selected
+                ? highContrast
+                  ? "border-yellow-300 bg-white text-black"
+                  : "border-blue-600 bg-blue-50 text-blue-900 dark:bg-blue-900/20 dark:text-blue-200"
+                : highContrast
+                  ? "border-white bg-black text-white hover:bg-white hover:text-black"
+                  : "border-slate-200 text-slate-700 hover:border-blue-300 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-600",
+            )}
+          >
+            <span className="flex items-center gap-3">
+              {selected ? <CheckCircle className="h-4 w-4 flex-shrink-0 text-blue-600" /> : <Circle className="h-4 w-4 flex-shrink-0 text-slate-300 dark:text-slate-600" />}
+              {option}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 function AccessibilityPanel({

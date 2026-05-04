@@ -104,8 +104,8 @@ export function Sidebar() {
   }> = [
     { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
     { name: "Courses", icon: BookOpen, path: "/courses" },
-    { name: "Quiz", icon: Bell, path: "/quiz" },
-    { name: "Assignment", icon: ClipboardList, path: "/assignment" },
+    { name: "Quizzes", icon: Bell, path: "/quiz" },
+    { name: "Assignments", icon: ClipboardList, path: "/assignment" },
     { name: "Grades", icon: GraduationCap, path: "/grades" },
     { name: "Calendar", icon: CalendarIcon, path: "/calendar" },
     { name: "Grade Calculator", icon: Calculator, path: "/grade-calculator" },
@@ -277,8 +277,8 @@ export function Header({ title }: { title: string }) {
 
           <div className="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-700">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">Zabisaq Tasharmapandyasan</p>
-              <p className="text-xs text-slate-500">Student ID: ZXT220067</p>
+              <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">Carson Smith</p>
+              <p className="text-xs text-slate-500">Student ID: CXS224467</p>
             </div>
             <div className="w-8 h-8 rounded bg-slate-200 border border-slate-300 flex items-center justify-center overflow-hidden flex-shrink-0">
                <User className="w-4 h-4 text-slate-500" />

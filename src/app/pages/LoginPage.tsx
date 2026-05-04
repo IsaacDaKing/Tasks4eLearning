@@ -34,6 +34,8 @@ type LoginErrors = {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const demoEmail = "student@university.edu";
 const demoPassword = "LearnReady2026!";
+const instructorDemoEmail = "instructor@university.edu";
+const instructorDemoPassword = "TeachReady2026!";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -50,6 +52,7 @@ export function LoginPage() {
   const [loginNotice, setLoginNotice] = useState<string | null>(null);
   const [forgotError, setForgotError] = useState<string | null>(null);
   const [showAccessNote, setShowAccessNote] = useState(false);
+  const [filledAccountType, setFilledAccountType] = useState<"student" | "instructor" | null>(null);
 
   const focusClass =
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2";
@@ -70,7 +73,7 @@ export function LoginPage() {
   const finishPrototypeLogin = (nextEmail: string) => {
     persistRememberedEmail(nextEmail);
     localStorage.setItem("lms-prototype-session", "true");
-    navigate("/dashboard");
+    navigate(nextEmail.trim().toLowerCase() === instructorDemoEmail ? "/instructor-dashboard" : "/dashboard");
   };
 
   const validateLogin = () => {
@@ -110,7 +113,16 @@ export function LoginPage() {
     setEmail(demoEmail);
     setPassword(demoPassword);
     setLoginErrors({});
-    setLoginNotice("Demo account filled. Submit the form to continue.");
+    setFilledAccountType("student");
+    setLoginNotice("Student account filled. Submit the form to continue.");
+  };
+
+  const handleInstructorDemoAccount = () => {
+    setEmail(instructorDemoEmail);
+    setPassword(instructorDemoPassword);
+    setLoginErrors({});
+    setFilledAccountType("instructor");
+    setLoginNotice("Instructor account filled. Submit the form to continue.");
   };
 
   const handleForgot = (e: FormEvent<HTMLFormElement>) => {
@@ -193,7 +205,10 @@ export function LoginPage() {
                           type="email"
                           autoComplete="email"
                           value={email}
-                          onChange={(e) => setEmail(e.target.value)}
+                          onChange={(e) => {
+                            setEmail(e.target.value);
+                            setFilledAccountType(null);
+                          }}
                           placeholder="student@university.edu"
                           aria-invalid={Boolean(loginErrors.email)}
                           aria-describedby={loginErrors.email ? "email-error" : undefined}
@@ -219,7 +234,10 @@ export function LoginPage() {
                           type={showPassword ? "text" : "password"}
                           autoComplete="current-password"
                           value={password}
-                          onChange={(e) => setPassword(e.target.value)}
+                          onChange={(e) => {
+                            setPassword(e.target.value);
+                            setFilledAccountType(null);
+                          }}
                           placeholder="Enter your password"
                           aria-invalid={Boolean(loginErrors.password)}
                           aria-describedby={loginErrors.password ? "password-error" : undefined}
@@ -299,8 +317,21 @@ export function LoginPage() {
                       className={cn("flex w-full items-center justify-center gap-2 rounded border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100", focusClass)}
                     >
                       <Sparkles className="h-4 w-4" aria-hidden="true" />
-                      Use demo account
+                      Fill Student Account
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleInstructorDemoAccount}
+                      className={cn("flex w-full items-center justify-center gap-2 rounded border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-bold text-amber-900 transition-colors hover:bg-amber-100", focusClass)}
+                    >
+                      <GraduationCap className="h-4 w-4" aria-hidden="true" />
+                      Fill Instructor Account
+                    </button>
+                    {filledAccountType === "instructor" && (
+                      <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900" role="status">
+                        Instructor demo selected. Signing in with this account opens the instructor dashboard.
+                      </p>
+                    )}
                   </div>
 
                   <div className="mt-5 rounded border border-slate-200 bg-slate-50 p-4">

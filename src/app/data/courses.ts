@@ -45,7 +45,7 @@ export const COURSES: Course[] = [
         id: "1",
         title: "Software Design Patterns Lab",
         moduleTitle: "Module 5: Design Patterns",
-        dueDate: "February 19, 2026 at 11:59 PM",
+        dueDate: "May 8, 2026 at 11:59 PM",
         classSection: "CS 3354.012",
         type: "Assignment",
         description:
@@ -57,7 +57,7 @@ export const COURSES: Course[] = [
         id: "8",
         title: "Final Project Pitch",
         moduleTitle: "Capstone Review",
-        dueDate: "February 26, 2026 at 11:00 AM",
+        dueDate: "May 15, 2026 at 11:00 AM",
         classSection: "CS 3354.012",
         type: "Quiz",
         description:
@@ -85,7 +85,7 @@ export const COURSES: Course[] = [
         id: "7",
         title: "Functional Programming Quiz",
         moduleTitle: "Module 7: Functional Languages",
-        dueDate: "February 18, 2026 at 10:00 AM",
+        dueDate: "May 12, 2026 at 10:00 AM",
         classSection: "CS 4337.005",
         type: "Quiz",
         description:
@@ -113,7 +113,7 @@ export const COURSES: Course[] = [
         id: "6",
         title: "Logic Circuit Design Test",
         moduleTitle: "Unit 4: Sequential Circuits",
-        dueDate: "February 24, 2026 at 3:00 PM",
+        dueDate: "May 14, 2026 at 3:00 PM",
         classSection: "CS 4341.003",
         type: "Exam",
         description:
@@ -141,7 +141,7 @@ export const COURSES: Course[] = [
         id: "4",
         title: "SQL Query Optimization",
         moduleTitle: "Module 8: Performance Tuning",
-        dueDate: "February 16, 2026 at 11:59 PM",
+        dueDate: "April 28, 2026 at 11:59 PM",
         classSection: "CS 4347.002",
         type: "Assignment",
         description:
@@ -153,7 +153,7 @@ export const COURSES: Course[] = [
         id: "3",
         title: "Midterm: Database Normalization",
         moduleTitle: "Unit 5: Normal Forms",
-        dueDate: "February 21, 2026 at 9:00 AM",
+        dueDate: "May 11, 2026 at 9:00 AM",
         classSection: "CS 4347.002",
         type: "Exam",
         description:
@@ -181,7 +181,7 @@ export const COURSES: Course[] = [
         id: "5",
         title: "Network Protocol Analysis",
         moduleTitle: "Module 9: Protocol Design",
-        dueDate: "February 17, 2026 at 11:59 PM",
+        dueDate: "May 6, 2026 at 11:59 PM",
         classSection: "CS 4390.0W1",
         type: "Assignment",
         description:
@@ -209,7 +209,7 @@ export const COURSES: Course[] = [
         id: "9",
         title: "Volcanic Hazard Assessment",
         moduleTitle: "Module 3: Volcanic Activity",
-        dueDate: "February 20, 2026 at 11:59 PM",
+        dueDate: "May 13, 2026 at 11:59 PM",
         classSection: "ISNS 2359.0W1",
         type: "Assignment",
         description:

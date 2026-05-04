@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   Bell,
   FileText,
@@ -93,6 +93,32 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
         body: "Start with joins and keys, then use the normalization packet to check whether you can explain each dependency out loud.",
         time: "9:26 AM",
       },
+      {
+        id: "wu-5",
+        sender: "You",
+        body: "I tried the LEFT JOIN examples and got confused when unmatched rows still showed null values.",
+        time: "9:42 AM",
+        isMe: true,
+      },
+      {
+        id: "wu-6",
+        sender: "Prof. Wei Wu",
+        body: "That is the right observation. In a LEFT JOIN, the left table keeps its unmatched rows, and the right-table columns become null.",
+        time: "9:48 AM",
+      },
+      {
+        id: "wu-7",
+        sender: "Prof. Wei Wu",
+        body: "For the May 11 midterm, practice predicting row counts before writing the query. That habit prevents most join mistakes.",
+        time: "9:55 AM",
+      },
+      {
+        id: "wu-8",
+        sender: "You",
+        body: "Got it. I will do row counts first and then check 2NF/3NF examples from the packet.",
+        time: "10:03 AM",
+        isMe: true,
+      },
     ],
   },
   {
@@ -104,7 +130,7 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
     timestamp: "42m ago",
     unread: 1,
     icon: Users,
-    members: ["Zabisaq", "Maya Chen", "Carlos Rivera", "Priya Shah"],
+    members: ["Carson Smith", "Maya Chen", "Carlos Rivera", "Priya Shah"],
     sharedFiles: [
       { id: "file-1", name: "Sprint-2-UML-Draft.pdf", detail: "Shared today by Maya" },
       { id: "file-2", name: "Traceability-Matrix.docx", detail: "Updated yesterday" },
@@ -266,6 +292,24 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
         body: "Bring one question about requirements, one about UML or architecture, and one about testing. That will make the feedback session much more productive.",
         time: "Today 9:36 AM",
       },
+      {
+        id: "smith-10",
+        sender: "Prof. Klyne Smith",
+        body: "For Software Engineering project feedback, show how each sprint story maps to a test or demo scenario. That is the fastest way to verify traceability without debating notation.",
+        time: "Today 9:38 AM",
+      },
+      {
+        id: "smith-11",
+        sender: "Prof. Klyne Smith",
+        body: "When we discuss UML, I care whether lifelines match real boundaries: UI vs services vs data. Architecture should explain failure modes, not only happy paths.",
+        time: "Today 9:40 AM",
+      },
+      {
+        id: "smith-12",
+        sender: "Prof. Klyne Smith",
+        body: "Large-event operations systems (including Olympics-scale logistics platforms I have worked around) fail when interfaces drift from documented requirements. Treat your academic project with the same discipline: explicit assumptions, measurable acceptance criteria, and a diagram that matches the story.",
+        time: "Today 9:42 AM",
+      },
     ],
   },
   {
@@ -302,7 +346,7 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
     timestamp: "Thu",
     unread: 0,
     icon: Users,
-    members: ["Zabisaq", "Nora Patel", "Ethan Brooks"],
+    members: ["Carson Smith", "Nora Patel", "Ethan Brooks"],
     sharedFiles: [
       { id: "db-file-1", name: "Join-Practice-Set.docx", detail: "Shared Thursday by Ethan" },
       { id: "db-file-2", name: "Normal-Forms-Cheat-Sheet.pdf", detail: "Shared Wednesday by Nora" },
@@ -337,6 +381,7 @@ export function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<ConversationType>("All");
   const [draft, setDraft] = useState("");
+  const messageHistoryRef = useRef<HTMLDivElement | null>(null);
 
   const filteredConversations = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -353,6 +398,12 @@ export function MessagesPage() {
 
   const selectedConversation =
     conversations.find((conversation) => conversation.id === selectedId) ?? filteredConversations[0] ?? conversations[0];
+
+  useEffect(() => {
+    const history = messageHistoryRef.current;
+    if (!history) return;
+    history.scrollTo({ top: history.scrollHeight, behavior: "smooth" });
+  }, [selectedConversation.id, selectedConversation.messages.length]);
 
   const selectConversation = (conversationId: string) => {
     setSelectedId(conversationId);
@@ -387,8 +438,8 @@ export function MessagesPage() {
   };
 
   return (
-    <div className="h-full p-4 animate-in fade-in duration-500 sm:p-6">
-      <div className="mx-auto flex h-full max-w-[1500px] flex-col gap-4">
+    <div className="flex h-full min-h-0 flex-1 flex-col p-4 animate-in fade-in duration-500 sm:p-6">
+      <div className="mx-auto flex min-h-0 w-full max-w-[1500px] flex-1 flex-col gap-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Messages</h2>
@@ -402,7 +453,7 @@ export function MessagesPage() {
           </div>
         </div>
 
-        <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[340px_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)_290px]">
+        <div className="grid min-h-0 flex-1 gap-4 overflow-hidden xl:grid-cols-[340px_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)_290px]">
           <aside className="flex min-h-[360px] flex-col overflow-hidden rounded border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
             <div className="border-b border-slate-200 p-4 dark:border-slate-700">
               <label className="sr-only" htmlFor="conversation-search">
@@ -494,8 +545,8 @@ export function MessagesPage() {
             </div>
           </aside>
 
-          <section className="flex min-h-[560px] flex-col overflow-hidden rounded border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-            <header className="border-b border-slate-200 p-4 dark:border-slate-700">
+          <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <header className="flex-shrink-0 border-b border-slate-200 p-4 dark:border-slate-700">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -540,9 +591,9 @@ export function MessagesPage() {
               )}
             </header>
 
-            <div className="min-h-0 flex-1">
-              <div className="flex min-h-0 flex-col">
-                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-slate-950" aria-live="polite" aria-label="Message history">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div ref={messageHistoryRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-4" aria-live="polite" aria-label="Message history">
                   {selectedConversation.messages.map((message) => (
                     <article
                       key={message.id}
@@ -567,7 +618,7 @@ export function MessagesPage() {
                   ))}
                 </div>
 
-                <form onSubmit={sendMessage} className="border-t border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+                <form onSubmit={sendMessage} className="flex-shrink-0 border-t border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
                   <label className="sr-only" htmlFor="message-composer">
                     Type a message
                   </label>

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import {
   AlertCircle,
-  BarChart3,
   Bot,
   CalendarClock,
   Clock,
@@ -79,7 +78,7 @@ const COURSES: CoursePlan[] = [
     highRange: 94,
     weakArea: "TCP/IP, subnetting, DNS, and routing",
     deadline: "Network Protocol Analysis",
-    dueSignal: "Due tonight",
+    dueSignal: "Due May 6",
     scoreLabel: "Protocol analysis score",
     projectedScore: 86,
     weight: 0.22,
@@ -94,7 +93,7 @@ const COURSES: CoursePlan[] = [
     highRange: 96,
     weakArea: "UML, traceability, testing, and sprint planning",
     deadline: "Design Patterns Lab",
-    dueSignal: "Due tomorrow",
+    dueSignal: "Due May 8",
     scoreLabel: "Design lab score",
     projectedScore: 90,
     weight: 0.25,
@@ -109,7 +108,7 @@ const COURSES: CoursePlan[] = [
     highRange: 93,
     weakArea: "Normalization, joins, keys, ACID, and indexing",
     deadline: "Database Normalization Midterm",
-    dueSignal: "In 3 days",
+    dueSignal: "Due May 11",
     scoreLabel: "Midterm score",
     projectedScore: 82,
     weight: 0.3,
@@ -133,6 +132,7 @@ const QUICK_ACTIONS = [
   "Explain Weak Topics",
   "Review Deadlines",
   "Accessibility Help",
+  "Explain the Whoosh",
 ];
 
 const PROMPT_STARTERS = [
@@ -155,6 +155,7 @@ const PROMPT_STARTERS = [
   "Can you make a study group plan for SQL joins and normalization?",
   "Help me with TCP/IP, subnetting, and DNS.",
   "What should I ask my professor?",
+  "What is the Whoosh?",
   "I feel overwhelmed. Help me prioritize.",
 ];
 
@@ -197,7 +198,7 @@ const SMART_ACTIONS = [
 ];
 
 export function AIAssistantPage() {
-  const [courses, setCourses] = useState(COURSES);
+  const [courses] = useState(COURSES);
   const [chatInput, setChatInput] = useState("");
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [suggestions, setSuggestions] = useState(DEFAULT_SUGGESTIONS);
@@ -212,7 +213,7 @@ export function AIAssistantPage() {
       sender: "Comet AI",
       time: getCurrentTime(),
       body:
-        "Ask Comet AI about grades, deadlines, quizzes, exams, messages, or course topics.\n\nQuick read\nYour most urgent item is Computer Networks, your biggest grade opportunity is Database Systems, and Software Engineering needs a clean milestone push.\n\nRecommended next steps\n1. Generate a weekly plan.\n2. Ask for practice questions.\n3. Draft a message to Professor Klyne Smith about project feedback.",
+        "Whoosh, Comet. Let's plan your next move.\n\nQuick read\nYour most urgent item is Computer Networks, your biggest grade opportunity is Database Systems, and Software Engineering needs a clean milestone push.\n\nRecommended next steps\n1. Ask what to study tonight.\n2. Build a weekly study plan.\n3. Check what score you need to raise your projected GPA.",
     },
   ]);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -245,14 +246,6 @@ export function AIAssistantPage() {
 
   const courseNeedingAttention = projectedCourses.slice().sort((a, b) => a.projectedGrade - b.projectedGrade)[0];
   const alerts = useMemo(() => generateAlerts(projectedCourses), [projectedCourses]);
-
-  const updateProjectedScore = (courseId: CourseId, score: number) => {
-    setCourses((current) =>
-      current.map((course) =>
-        course.id === courseId ? { ...course, projectedScore: score } : course,
-      ),
-    );
-  };
 
   const submitPrompt = (prompt: string, quickAction?: string) => {
     const trimmedPrompt = prompt.trim();
@@ -378,46 +371,33 @@ export function AIAssistantPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6 p-4 animate-in fade-in duration-500 sm:p-6">
-      <section className="relative overflow-hidden rounded border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-        <div className="absolute left-6 top-6 h-20 w-48 comet-drift pointer-events-none" aria-hidden="true">
-          <span className="absolute h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_18px_rgba(34,211,238,0.95)]" />
-          <span className="absolute left-3 top-0.5 h-px w-24 bg-gradient-to-r from-cyan-300/80 to-transparent" />
-        </div>
-        <div className="relative mx-auto max-w-4xl px-5 py-6 text-center sm:px-8">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded bg-slate-950 text-cyan-300 dark:bg-cyan-400 dark:text-slate-950">
-            <Star className="h-6 w-6 fill-current" />
+    <div className="mx-auto max-w-[1600px] space-y-6 p-4 animate-in fade-in duration-500 sm:p-6">
+      <section className="overflow-hidden rounded border border-slate-200 bg-slate-950 text-white shadow-sm">
+        <div className="grid gap-5 px-5 pb-0 pt-5 sm:px-6 sm:pt-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center lg:gap-8 lg:px-8 lg:pt-8">
+          <div>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-white/10 px-3 py-1 text-xs font-bold text-cyan-100">
+              <Sparkles className="h-3.5 w-3.5" />
+              Comet AI uses local course context in this prototype.
+            </div>
+            <h2 className="flex items-center gap-3 text-3xl font-black tracking-tight sm:text-4xl">
+              <span className="flex h-11 w-11 items-center justify-center rounded bg-cyan-400 text-slate-950">
+                <Star className="h-6 w-6 fill-slate-950" />
+              </span>
+              Comet AI
+            </h2>
+            <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-200">
+              Whoosh, Comet. Your course planning and study strategy assistant.
+            </p>
           </div>
-          <p className="text-xs font-black uppercase tracking-wide text-cyan-700 dark:text-cyan-300">Comet uses local course context</p>
-          <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-950 dark:text-white sm:text-4xl">Comet AI</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Ask Comet AI about grades, deadlines, quizzes, exams, messages, or course topics.
-          </p>
-          <div className="mt-5 grid gap-3 text-left sm:grid-cols-2">
-            <label className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Course context
-              <select
-                value={selectedCourse}
-                onChange={(event) => setSelectedCourse(event.target.value as CourseSelection)}
-                className={cn("mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-white", FOCUS_RING)}
-              >
-                {COURSE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
-            <label className="text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Response mode
-              <select
-                value={responseMode}
-                onChange={(event) => setResponseMode(event.target.value as ResponseMode)}
-                className={cn("mt-2 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-white", FOCUS_RING)}
-              >
-                {RESPONSE_MODES.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
+        </div>
+        <CometSky />
+        <div className="px-5 pb-5 pt-4 sm:px-6 sm:pb-6 sm:pt-5 lg:px-8 lg:pb-8">
+          <div className="flex flex-wrap gap-2" aria-label="Comet AI capabilities">
+            {HELP_TOPICS.map((topic) => (
+              <span key={topic} className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-slate-100">
+                {topic}
+              </span>
+            ))}
           </div>
         </div>
       </section>
@@ -483,54 +463,7 @@ export function AIAssistantPage() {
           </pre>
         </Panel>
 
-        <Panel icon={BarChart3} title="Course Grade Planner" description="Adjust mock scores to see local projected course grades.">
-          <div className="grid gap-4 lg:grid-cols-3">
-            {projectedCourses.map((course) => (
-              <article key={course.id} className="rounded border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
-                <div className="mb-4">
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">{course.code}</p>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{course.name}</h3>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Potential range: {course.lowRange}% - {course.highRange}%</p>
-                </div>
-
-                <div className="mb-4 grid grid-cols-2 gap-3">
-                  <div className="rounded bg-white p-3 dark:bg-slate-900">
-                    <p className="text-xs font-bold text-slate-500">Current</p>
-                    <p className="text-2xl font-black text-slate-900 dark:text-white">{course.currentGrade}%</p>
-                  </div>
-                  <div className="rounded bg-white p-3 dark:bg-slate-900">
-                    <p className="text-xs font-bold text-slate-500">Projected</p>
-                    <p className="text-2xl font-black text-cyan-700 dark:text-cyan-300">{course.projectedGrade}%</p>
-                  </div>
-                </div>
-
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-200" htmlFor={`${course.id}-score`}>
-                  {course.scoreLabel}: {course.projectedScore}%
-                </label>
-                <input
-                  id={`${course.id}-score`}
-                  type="range"
-                  min="50"
-                  max="100"
-                  value={course.projectedScore}
-                  onChange={(event) => updateProjectedScore(course.id, Number(event.target.value))}
-                  className={cn("mt-2 w-full accent-cyan-600", FOCUS_RING)}
-                />
-                <input
-                  aria-label={`${course.name} projected score`}
-                  type="number"
-                  min="50"
-                  max="100"
-                  value={course.projectedScore}
-                  onChange={(event) => updateProjectedScore(course.id, clampScore(Number(event.target.value)))}
-                  className={cn("mt-3 w-full rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white", FOCUS_RING)}
-                />
-              </article>
-            ))}
-          </div>
-        </Panel>
-
-        <div className="space-y-6">
+        <div className="grid gap-6 lg:grid-cols-2">
           <Panel icon={AlertCircle} title="Planning Alerts" description="Supportive signals from local mock conditions.">
             <div className="space-y-3">
               {alerts.map((alert) => (
@@ -966,6 +899,15 @@ function getRuleBasedResponse(
     };
   }
 
+  if (/(whoosh|temoc|utd|ut dallas|comet sign|signature sign)/.test(normalized)) {
+    return {
+      body:
+        "Quick read\nThe Whoosh is the UT Dallas signature sign. It is an understood language between Comets, named for the sound a comet would make if there was sound in space.\n\nUTD context\nThe gesture honors Temoc, whose name is comet spelled backward. It was invented in the early 1990s, UT Dallas began teaching it at new student orientation in 2005, and it is now embraced as a symbolic gesture for students and alumni.\n\nSuggested follow-up\nI can also turn that into a short orientation-style explanation.",
+      suggestions: ["Build Study Plan", "What should I study tonight?", "Explain Weak Topics", "Make it shorter"],
+      topic: "Whoosh",
+    };
+  }
+
   if (/(overwhelmed|confused|stuck|panic|anxious|too much|motivation|unmotivated|burned out)/.test(normalized)) {
     return {
       body:
@@ -998,7 +940,7 @@ function getRuleBasedResponse(
   if (/(deadline|due|overdue|today|tomorrow|upcoming assignments|calendar|review deadlines)/.test(normalized)) {
     return {
       body:
-        "Quick read\nThe highest priority deadline is Network Protocol Analysis due tonight. Tomorrow belongs to Software Engineering, and Database Systems needs steady exam prep over the next three days.\n\nRecommended next steps\n1. Finish Computer Networks submission work first.\n2. Put a 30-minute Software Engineering block on tomorrow's calendar.\n3. Reserve two Database Systems practice sessions before the midterm.\n\nWhy this matters\nDeadline planning works best when due work and exam prep are both visible.\n\nSuggested follow-up\nAsk me to time block your day.",
+        "Quick read\nThe highest priority deadline is Network Protocol Analysis due May 6. Software Engineering is due May 8, and Database Systems needs steady exam prep before May 11.\n\nRecommended next steps\n1. Finish Computer Networks submission work first.\n2. Put a 30-minute Software Engineering block on your calendar.\n3. Reserve two Database Systems practice sessions before the midterm.\n\nWhy this matters\nDeadline planning works best when due work and exam prep are both visible.\n\nSuggested follow-up\nAsk me to time block your day.",
       suggestions: ["Time Block My Day", "Build Study Plan", "Prep for Exam", "Message My Professor"],
       topic: "deadlines",
     };
@@ -1176,9 +1118,64 @@ function calculateProjectedGrade(course: CoursePlan) {
   return Math.round(course.currentGrade * (1 - course.weight) + course.projectedScore * course.weight);
 }
 
-function clampScore(score: number) {
-  if (Number.isNaN(score)) return 50;
-  return Math.min(100, Math.max(50, score));
+function CometSky() {
+  const stars = [
+    ["8%", "22%", "0.4s"],
+    ["19%", "58%", "0s"],
+    ["31%", "38%", "1.1s"],
+    ["46%", "72%", "0.7s"],
+    ["58%", "18%", "1.5s"],
+    ["72%", "48%", "0.2s"],
+    ["84%", "62%", "0.9s"],
+    ["93%", "28%", "1.3s"],
+  ] as const;
+
+  return (
+    <div
+      className="pointer-events-none relative mt-5 w-full overflow-hidden border-y border-white/[0.07] bg-gradient-to-b from-slate-950/90 via-[#0c1222] to-slate-950"
+      aria-hidden="true"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,rgba(56,189,248,0.07),transparent_55%),radial-gradient(80%_50%_at_80%_100%,rgba(99,102,241,0.06),transparent_50%)]" />
+      <div className="relative mx-auto h-[5.25rem] w-full max-w-none">
+        {stars.map(([left, top, delay], i) => (
+          <span
+            key={i}
+            className="absolute h-px w-px rounded-full bg-white/70 shadow-[0_0_5px_rgba(255,255,255,0.55)] motion-safe:animate-pulse"
+            style={{ left, top, animationDelay: delay }}
+          />
+        ))}
+        {/* Full-width comet sweeps: motion uses % of container via left + width */}
+        <span
+          className="comet-sweep absolute top-[32%] h-px w-[32%] max-w-[min(280px,42vw)] -rotate-[11deg] rounded-full bg-gradient-to-r from-transparent via-cyan-200/75 to-transparent opacity-0 shadow-[0_0_14px_rgba(103,232,249,0.35)]"
+          style={{ animationDelay: "0s", animationDuration: "11s" }}
+        />
+        <span
+          className="comet-sweep absolute top-[58%] h-px w-[26%] max-w-[min(220px,38vw)] -rotate-[9deg] rounded-full bg-gradient-to-r from-transparent via-indigo-200/55 to-transparent opacity-0 shadow-[0_0_12px_rgba(165,180,252,0.3)]"
+          style={{ animationDelay: "3.5s", animationDuration: "13s" }}
+        />
+        <span
+          className="comet-sweep absolute top-[44%] h-px w-[22%] max-w-[min(180px,34vw)] -rotate-[13deg] rounded-full bg-gradient-to-r from-transparent via-amber-100/45 to-transparent opacity-0 shadow-[0_0_10px_rgba(253,230,138,0.22)]"
+          style={{ animationDelay: "7s", animationDuration: "14.5s" }}
+        />
+        <style>{`
+          @keyframes comet-sweep-x {
+            0% { left: -35%; opacity: 0; }
+            8% { opacity: 0.85; }
+            78% { opacity: 0.45; }
+            100% { left: 108%; opacity: 0; }
+          }
+          .comet-sweep {
+            animation-name: comet-sweep-x;
+            animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+            animation-iteration-count: infinite;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .comet-sweep { animation: none; left: 38%; opacity: 0.28; }
+          }
+        `}</style>
+      </div>
+    </div>
+  );
 }
 
 function generateAlerts(courses: Array<CoursePlan & { projectedGrade: number }>) {

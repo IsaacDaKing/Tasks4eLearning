@@ -3,3 +3,5 @@ dist
 .DS_Store
 .env
 .env.local
+vite-dev.log
+vite-dev.err.log

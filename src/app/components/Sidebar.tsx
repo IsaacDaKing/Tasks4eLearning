@@ -20,12 +20,14 @@ import {
   ClipboardList,
   MessageSquare,
   Sparkles,
+  Shield,
   type LucideIcon
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useTheme } from "../contexts/ThemeContext";
 import { COURSES } from "../data/courses";
+import { clearSessionProfile, setSessionProfile, type SessionRole } from "../sessionProfile";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -101,6 +103,7 @@ function normalizePinnedItems(items: unknown[]) {
     "/messages",
     "/ai-assistant",
     "/settings",
+    "/admin-dashboard",
   ]);
   const normalized = items
     .map((item) => (item === "/" ? "/dashboard" : item))
@@ -113,29 +116,53 @@ export function Sidebar() {
   const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  const role = typeof window === "undefined" ? "student" : window.localStorage.getItem("lms-role");
+  const [role, setRole] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : window.localStorage.getItem("lms-role"),
+  );
+
+  useEffect(() => {
+    const sync = () => {
+      const next = window.localStorage.getItem("lms-role");
+      setRole(next);
+      const r = next as SessionRole | null;
+      if (r === "student" || r === "instructor" || r === "admin") {
+        if (!window.localStorage.getItem("lms-profile-name")) {
+          setSessionProfile(r);
+        }
+      }
+    };
+    sync();
+    window.addEventListener("storage", sync);
+    window.addEventListener("lms-role-changed", sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("lms-role-changed", sync);
+    };
+  }, []);
+
   const isInstructor = role === "instructor";
+  const isAdmin = role === "admin";
 
   const handleLogout = () => {
     window.localStorage.removeItem("lms-prototype-session");
     window.localStorage.removeItem("lms-role");
+    clearSessionProfile();
+    setRole(null);
+    window.dispatchEvent(new Event("lms-role-changed"));
     navigate("/");
   };
 
-  const allNavItems: Array<{
+  type NavItemConfig = {
     name: string;
     icon: LucideIcon;
     path: string;
     disabled?: boolean;
     previewLabel?: string;
-  }> = [
-    { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    ...(isInstructor
-      ? [{ name: "Instructor Dashboard", icon: Presentation, path: "/instructor-dashboard" }]
-      : []),
-    { name: "Courses", icon: BookOpen, path: "/courses" },
-    { name: "Quiz", icon: Bell, path: "/quiz" },
-    { name: "Assignment", icon: ClipboardList, path: "/assignment" },
+  };
+
+  const tailTools: NavItemConfig[] = [
+    { name: "Quizzes", icon: Bell, path: "/quiz" },
+    { name: "Assignments", icon: ClipboardList, path: "/assignment" },
     { name: "Grades", icon: GraduationCap, path: "/grades" },
     { name: "Calendar", icon: CalendarIcon, path: "/calendar" },
     { name: "Grade Calculator", icon: Calculator, path: "/grade-calculator" },
@@ -143,6 +170,49 @@ export function Sidebar() {
     { name: "Comet AI", icon: Sparkles, path: "/ai-assistant" },
     { name: "Settings", icon: Settings, path: "/settings" },
   ];
+
+  let allNavItems: NavItemConfig[];
+  if (isAdmin) {
+    allNavItems = [
+      { name: "Admin home", icon: Shield, path: "/admin-dashboard" },
+      { name: "Learner preview", icon: LayoutDashboard, path: "/dashboard", previewLabel: "Demo" },
+      { name: "Courses", icon: BookOpen, path: "/courses", previewLabel: "Catalog" },
+      ...tailTools.map((item) =>
+        item.path === "/messages"
+          ? { ...item, name: "Messages & tickets", previewLabel: "Ops" as const }
+          : item.path === "/grades"
+            ? { ...item, name: "Grades & audits", previewLabel: "View" as const }
+            : item,
+      ),
+    ];
+  } else if (isInstructor) {
+    allNavItems = [
+      { name: "Teaching home", icon: Presentation, path: "/instructor-dashboard" },
+      { name: "Learner preview", icon: LayoutDashboard, path: "/dashboard", previewLabel: "Demo" },
+      { name: "Courses", icon: BookOpen, path: "/courses", previewLabel: "Catalog" },
+      ...tailTools.map((item) =>
+        item.path === "/assignment"
+          ? { ...item, name: "Assignments", previewLabel: "Instructor" as const }
+          : item.path === "/grades"
+            ? { ...item, name: "Grade center", previewLabel: "Roster" as const }
+            : item.path === "/messages"
+              ? { ...item, name: "Messages", previewLabel: "Class" as const }
+              : item,
+      ),
+    ];
+  } else {
+    allNavItems = [
+      { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+      { name: "Courses", icon: BookOpen, path: "/courses" },
+      ...tailTools,
+    ];
+  }
+
+  const navPathIsActive = (path: string) => {
+    if (location.pathname === path) return true;
+    if (path === "/instructor-dashboard" && location.pathname.startsWith("/instructor-course")) return true;
+    return false;
+  };
 
   const pinnedNavItems = allNavItems.filter((item) => pinnedItems.includes(item.path));
   const unpinnedNavItems = allNavItems.filter((item) => !pinnedItems.includes(item.path));
@@ -182,10 +252,10 @@ export function Sidebar() {
             <div className="space-y-1">
               {group.items.map((item) => (
                 <SidebarNavItem
-                  key={item.path}
+                  key={`${item.path}-${item.name}`}
                   item={item}
                   isCollapsed={isCollapsed}
-                  isActive={location.pathname === item.path}
+                  isActive={navPathIsActive(item.path)}
                   isPinned={pinnedItems.includes(item.path)}
                   onTogglePin={togglePin}
                 />
@@ -296,8 +366,46 @@ function SidebarNavItem({
 
 export function Header({ title }: { title: string }) {
   const navigate = useNavigate();
-  const role = typeof window === "undefined" ? "student" : window.localStorage.getItem("lms-role");
+  const [role, setRole] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : window.localStorage.getItem("lms-role"),
+  );
+  const [profile, setProfile] = useState(() =>
+    typeof window === "undefined"
+      ? { name: "Guest", line: "", initials: "?" }
+      : {
+          name: localStorage.getItem("lms-profile-name") ?? "Guest",
+          line: localStorage.getItem("lms-profile-line") ?? "",
+          initials: localStorage.getItem("lms-profile-initials") ?? "?",
+        },
+  );
+
+  useEffect(() => {
+    const sync = () => {
+      setRole(localStorage.getItem("lms-role"));
+      setProfile({
+        name: localStorage.getItem("lms-profile-name") ?? "Guest",
+        line: localStorage.getItem("lms-profile-line") ?? "",
+        initials: localStorage.getItem("lms-profile-initials") ?? "?",
+      });
+    };
+    window.addEventListener("storage", sync);
+    window.addEventListener("lms-role-changed", sync);
+    window.addEventListener("lms-profile-changed", sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("lms-role-changed", sync);
+      window.removeEventListener("lms-profile-changed", sync);
+    };
+  }, []);
+
   const isInstructor = role === "instructor";
+  const isAdmin = role === "admin";
+  const searchPlaceholder = isAdmin
+    ? "Search users, courses, admin reports…"
+    : isInstructor
+      ? "Search classes, rosters, modules, grades…"
+      : "Search courses, assignments, quizzes…";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [highlightedResult, setHighlightedResult] = useState(0);
@@ -363,7 +471,7 @@ export function Header({ title }: { title: string }) {
             aria-label="Global search"
             aria-expanded={showSearchResults && Boolean(searchQuery)}
             aria-controls="global-search-results"
-            placeholder="Search courses, assignments, quizzes..."
+            placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -476,15 +584,42 @@ export function Header({ title }: { title: string }) {
 
           <div className="flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-700">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">
-                {isInstructor ? "Dr. Priya Raman" : "Zabisaq Tasharmapandyasan"}
-              </p>
-              <p className="text-xs text-slate-500">
-                {isInstructor ? "Instructor Demo" : "Student ID: ZXT220067"}
-              </p>
+              <div className="flex items-center justify-end gap-2">
+                <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 leading-tight">{profile.name}</p>
+                {isAdmin && (
+                  <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-800 dark:bg-violet-950/60 dark:text-violet-200">
+                    Admin
+                  </span>
+                )}
+                {isInstructor && (
+                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-900 dark:bg-amber-950/50 dark:text-amber-200">
+                    Instructor
+                  </span>
+                )}
+                {!isAdmin && !isInstructor && role !== null && (
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    Student
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{profile.line}</p>
             </div>
-            <div className="w-8 h-8 rounded bg-slate-200 border border-slate-300 flex items-center justify-center overflow-hidden flex-shrink-0">
-               <User className="w-4 h-4 text-slate-500" />
+            <div
+              className={cn(
+                "flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border text-[10px] font-black",
+                isAdmin
+                  ? "border-violet-300 bg-violet-100 text-violet-900 dark:border-violet-700 dark:bg-violet-950 dark:text-violet-100"
+                  : isInstructor
+                    ? "border-amber-300 bg-amber-100 text-amber-950 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100"
+                    : "border-slate-300 bg-slate-200 text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100",
+              )}
+              aria-hidden
+            >
+              {profile.name === "Guest" ? (
+                <User className="h-4 w-4 opacity-80 dark:text-slate-300" />
+              ) : (
+                profile.initials.slice(0, 2)
+              )}
             </div>
           </div>
         </div>

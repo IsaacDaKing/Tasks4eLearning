@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router";
 import {
   Settings,
   Accessibility,
@@ -13,6 +14,7 @@ import {
   Mail,
   Lock,
   ChevronRight,
+  Smartphone,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -93,6 +95,13 @@ export function SettingsPage() {
             Customize your learning experience and accessibility options
           </p>
         </div>
+        <Link
+          to="/phone"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-black text-white shadow-lg shadow-blue-100 transition-all hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:shadow-none dark:focus-visible:ring-offset-slate-900"
+        >
+          <Smartphone className="h-4 w-4" />
+          Phone View
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

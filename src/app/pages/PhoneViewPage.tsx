@@ -287,8 +287,8 @@ export function PhoneViewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-200 text-slate-950 dark:bg-slate-950 dark:text-slate-100 sm:px-6 sm:py-8">
-      <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col overflow-hidden border-0 border-slate-300 bg-slate-50 shadow-none dark:border-slate-700 dark:bg-slate-900 sm:min-h-[840px] sm:max-h-[900px] sm:rounded-[30px] sm:border sm:shadow-2xl sm:shadow-slate-900/20 sm:dark:shadow-black/40">
+    <div className="min-h-screen overflow-auto bg-slate-200 p-4 text-slate-950 dark:bg-slate-950 dark:text-slate-100 sm:p-8">
+      <div className="mx-auto flex h-[956px] w-[440px] flex-none flex-col overflow-hidden rounded-[54px] border-[10px] border-slate-950 bg-slate-50 shadow-2xl shadow-slate-900/25 dark:border-black dark:bg-slate-900 dark:shadow-black/40">
         <header className="flex-shrink-0 border-b border-slate-200 bg-white px-4 pb-3 pt-4 dark:border-slate-800 dark:bg-slate-950">
           <div className="mx-auto mb-3 hidden h-1.5 w-20 rounded-full bg-slate-300 dark:bg-slate-700 sm:block" />
           <div className="flex items-start justify-between gap-3">

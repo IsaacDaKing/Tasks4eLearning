@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   Bell,
   FileText,
@@ -93,6 +93,32 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
         body: "Start with joins and keys, then use the normalization packet to check whether you can explain each dependency out loud.",
         time: "9:26 AM",
       },
+      {
+        id: "wu-5",
+        sender: "You",
+        body: "I tried the LEFT JOIN examples and got confused when unmatched rows still showed null values.",
+        time: "9:42 AM",
+        isMe: true,
+      },
+      {
+        id: "wu-6",
+        sender: "Prof. Wei Wu",
+        body: "That is the right observation. In a LEFT JOIN, the left table keeps its unmatched rows, and the right-table columns become null.",
+        time: "9:48 AM",
+      },
+      {
+        id: "wu-7",
+        sender: "Prof. Wei Wu",
+        body: "For the May 11 midterm, practice predicting row counts before writing the query. That habit prevents most join mistakes.",
+        time: "9:55 AM",
+      },
+      {
+        id: "wu-8",
+        sender: "You",
+        body: "Got it. I will do row counts first and then check 2NF/3NF examples from the packet.",
+        time: "10:03 AM",
+        isMe: true,
+      },
     ],
   },
   {
@@ -104,7 +130,7 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
     timestamp: "42m ago",
     unread: 1,
     icon: Users,
-    members: ["Zabisaq", "Maya Chen", "Carlos Rivera", "Priya Shah"],
+    members: ["Carson Smith", "Maya Chen", "Carlos Rivera", "Priya Shah"],
     sharedFiles: [
       { id: "file-1", name: "Sprint-2-UML-Draft.pdf", detail: "Shared today by Maya" },
       { id: "file-2", name: "Traceability-Matrix.docx", detail: "Updated yesterday" },
@@ -302,7 +328,7 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
     timestamp: "Thu",
     unread: 0,
     icon: Users,
-    members: ["Zabisaq", "Nora Patel", "Ethan Brooks"],
+    members: ["Carson Smith", "Nora Patel", "Ethan Brooks"],
     sharedFiles: [
       { id: "db-file-1", name: "Join-Practice-Set.docx", detail: "Shared Thursday by Ethan" },
       { id: "db-file-2", name: "Normal-Forms-Cheat-Sheet.pdf", detail: "Shared Wednesday by Nora" },
@@ -337,6 +363,7 @@ export function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<ConversationType>("All");
   const [draft, setDraft] = useState("");
+  const messageHistoryRef = useRef<HTMLDivElement | null>(null);
 
   const filteredConversations = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -353,6 +380,12 @@ export function MessagesPage() {
 
   const selectedConversation =
     conversations.find((conversation) => conversation.id === selectedId) ?? filteredConversations[0] ?? conversations[0];
+
+  useEffect(() => {
+    const history = messageHistoryRef.current;
+    if (!history) return;
+    history.scrollTo({ top: history.scrollHeight, behavior: "smooth" });
+  }, [selectedConversation.id, selectedConversation.messages.length]);
 
   const selectConversation = (conversationId: string) => {
     setSelectedId(conversationId);
@@ -494,8 +527,8 @@ export function MessagesPage() {
             </div>
           </aside>
 
-          <section className="flex min-h-[560px] flex-col overflow-hidden rounded border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-            <header className="border-b border-slate-200 p-4 dark:border-slate-700">
+          <section className="flex h-[min(760px,calc(100vh-160px))] min-h-[520px] flex-col rounded border border-slate-200 bg-white shadow-sm">
+            <header className="border-b border-slate-200 p-4">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -542,7 +575,7 @@ export function MessagesPage() {
 
             <div className="min-h-0 flex-1">
               <div className="flex min-h-0 flex-col">
-                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-slate-950" aria-live="polite" aria-label="Message history">
+                <div ref={messageHistoryRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite" aria-label="Message history">
                   {selectedConversation.messages.map((message) => (
                     <article
                       key={message.id}

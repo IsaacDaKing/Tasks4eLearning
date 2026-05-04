@@ -67,7 +67,7 @@ export const router = createBrowserRouter([
     Component: Layout,
     children: [
       { path: "dashboard", Component: Dashboard },
-      { path: "instructor-dashboard", Component: InstructorDashboardPage },
+      { path: "instructor-dashboard", Component: Dashboard },
       { path: "calendar", Component: CalendarPage },
       { path: "grades", Component: GradesPage },
       { path: "courses", Component: CoursesPage },

@@ -99,7 +99,7 @@ const UNIQUE_COURSES = COURSES.map((course) => ({
 }));
 
 export function LMSCalendar() {
-  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 1, 1));
+  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 4, 1));
   const [selectedTypes, setSelectedTypes] = useState<EventType[]>(["assignment", "quiz", "test"]);
   const [selectedCourses, setSelectedCourses] = useState<string[]>(UNIQUE_COURSES.map(c => c.id));
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);

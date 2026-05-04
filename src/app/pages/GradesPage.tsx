@@ -15,7 +15,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2";
+const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950";
 
 const COURSE_GRADE_DETAILS: Record<string, {
   grade: string;
@@ -169,18 +169,25 @@ const CLASS_COMPARISONS = [
 ];
 
 const STATUS_CLASS: Record<string, string> = {
-  Graded: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  Submitted: "bg-blue-50 text-blue-700 border-blue-200",
-  "In Progress": "bg-amber-50 text-amber-700 border-amber-200",
+  Graded: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
+  Submitted: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+  "In Progress": "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
 };
+
+const BUCKET_COLORS = [
+  "bg-emerald-500 dark:bg-emerald-400",
+  "bg-blue-500 dark:bg-blue-400",
+  "bg-amber-500 dark:bg-amber-400",
+  "bg-rose-500 dark:bg-rose-400",
+];
 
 export function GradesPage() {
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-[1500px] mx-auto animate-in fade-in duration-500">
+    <div className="p-4 sm:p-6 space-y-6 max-w-[1500px] mx-auto animate-in fade-in duration-500 text-slate-900 dark:text-slate-100">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Grades</h2>
-          <p className="text-sm text-slate-600 mt-1">Course grades first, with audit history kept below for transparency.</p>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight dark:text-white">Grades</h2>
+          <p className="text-sm text-slate-600 mt-1 dark:text-slate-400">Course grades first, with audit history kept below for transparency.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <div className="relative">
@@ -188,13 +195,13 @@ export function GradesPage() {
             <input
               type="text"
               placeholder="Search grades..."
-              className={cn("w-64 pl-9 pr-3 py-2 bg-white border border-slate-200 rounded text-sm text-slate-900 placeholder-slate-500", FOCUS_RING)}
+              className={cn("w-64 pl-9 pr-3 py-2 bg-white border border-slate-200 rounded text-sm text-slate-900 placeholder-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder-slate-500", FOCUS_RING)}
             />
           </div>
-          <button type="button" className={cn("inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded text-sm font-medium text-slate-700 hover:bg-slate-50", FOCUS_RING)}>
+          <button type="button" className={cn("inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800", FOCUS_RING)}>
             <CalendarIcon className="w-4 h-4" /> Term
           </button>
-          <button type="button" className={cn("inline-flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded text-sm font-medium hover:bg-slate-900", FOCUS_RING)}>
+          <button type="button" className={cn("inline-flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded text-sm font-medium hover:bg-slate-900 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400", FOCUS_RING)}>
             <Download className="w-4 h-4" /> Export
           </button>
         </div>
@@ -207,40 +214,40 @@ export function GradesPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+            className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-wide text-slate-500">{course.code}</p>
-                <h3 className="text-lg font-bold text-slate-900">{course.name}</h3>
-                <p className="mt-1 text-xs text-slate-500">{course.feedback}</p>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{course.name}</h3>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{course.feedback}</p>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-black text-slate-900">{course.grade}</p>
-                <p className="text-sm font-bold text-slate-500">{course.percent}%</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white">{course.grade}</p>
+                <p className="text-sm font-bold text-slate-500 dark:text-slate-400">{course.percent}%</p>
               </div>
             </div>
 
             <div className="mt-4">
-              <div className="mb-2 flex items-center justify-between text-xs font-bold text-slate-600">
+              <div className="mb-2 flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
                 <span>Course progress</span>
-                <span className="inline-flex items-center gap-1 text-emerald-700"><TrendingUp className="w-3 h-3" /> {course.trend}</span>
+                <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300"><TrendingUp className="w-3 h-3" /> {course.trend}</span>
               </div>
-              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                <div className="h-full rounded-full bg-slate-800" style={{ width: `${course.percent}%` }} />
+              <div className="h-2 rounded-full bg-slate-100 overflow-hidden dark:bg-slate-800">
+                <div className="h-full rounded-full bg-slate-800 dark:bg-cyan-400" style={{ width: `${course.percent}%` }} />
               </div>
             </div>
 
             <div className="mt-4 space-y-2">
               {course.assignments.map((assignment) => (
-                <div key={assignment.title} className="rounded border border-slate-100 bg-slate-50 p-3">
+                <div key={assignment.title} className="rounded border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-bold text-slate-900">{assignment.title}</p>
-                      <p className="mt-1 text-xs text-slate-500">{assignment.feedback}</p>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{assignment.title}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{assignment.feedback}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-sm font-black text-slate-900">{assignment.score}</p>
+                      <p className="text-sm font-black text-slate-900 dark:text-white">{assignment.score}</p>
                       <span className={cn("mt-1 inline-flex rounded border px-2 py-0.5 text-[10px] font-black uppercase tracking-wide", STATUS_CLASS[assignment.status])}>
                         {assignment.status}
                       </span>
@@ -253,25 +260,25 @@ export function GradesPage() {
         ))}
       </div>
 
-      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Anonymous Class Grade Distribution</h3>
-            <p className="text-sm text-slate-600">Compare your grade with aggregate class averages. No other student names or individual scores are shown.</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Anonymous Class Grade Distribution</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Compare your grade with aggregate class averages. No other student names or individual scores are shown.</p>
           </div>
-          <span className="w-fit rounded border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-600">Mock aggregate data</span>
+          <span className="w-fit rounded border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">Mock aggregate data</span>
         </div>
         <div className="grid gap-4 xl:grid-cols-2">
           {CLASS_COMPARISONS.map((course) => {
             const total = course.buckets.reduce((sum, bucket) => sum + bucket.count, 0);
             const difference = course.studentGrade - course.classAverage;
             return (
-              <article key={course.code} className="rounded border border-slate-200 bg-slate-50 p-4">
+              <article key={course.code} className="rounded border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="text-xs font-black uppercase tracking-wide text-slate-500">{course.code}</p>
-                    <h4 className="text-base font-black text-slate-900">{course.name}</h4>
-                    <p className="mt-1 text-sm font-semibold text-slate-700">
+                    <h4 className="text-base font-black text-slate-900 dark:text-white">{course.name}</h4>
+                    <p className="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
                       You are {Math.abs(difference)} points {difference >= 0 ? "above" : "below"} the class average.
                     </p>
                   </div>
@@ -283,30 +290,46 @@ export function GradesPage() {
                   </div>
                 </div>
                 <div className="mt-4" aria-label={`${course.name} anonymous grade distribution`}>
-                  <div className="mb-2 flex items-center justify-between text-xs font-bold text-slate-600">
+                  <div className="mb-2 flex items-center justify-between gap-3 text-xs font-bold text-slate-600 dark:text-slate-300">
                     <span>Grade buckets</span>
                     <span>{total} students represented anonymously</span>
                   </div>
-                  <div className="grid grid-cols-4 overflow-hidden rounded border border-slate-200 bg-white" role="img" aria-label={`${course.name} distribution: ${course.buckets.map((bucket) => `${bucket.label} ${bucket.count}`).join(", ")}`}>
-                    {course.buckets.map((bucket, bucketIndex) => (
+                  <div className="overflow-hidden rounded border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900" role="img" aria-label={`${course.name} distribution: ${course.buckets.map((bucket) => `${bucket.label} ${bucket.count}`).join(", ")}`}>
+                    <div className="flex h-9 w-full">
+                      {course.buckets.map((bucket, bucketIndex) => {
+                        const percent = (bucket.count / total) * 100;
+                        return (
+                          <div
+                            key={bucket.label}
+                            className={cn("flex items-center justify-center border-r border-white text-[11px] font-black text-white last:border-r-0 dark:border-slate-900", BUCKET_COLORS[bucketIndex])}
+                            style={{ width: `${percent}%` }}
+                            title={`${bucket.label}: ${bucket.count} students (${Math.round(percent)}%)`}
+                          >
+                            {percent >= 14 ? `${Math.round(percent)}%` : ""}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="space-y-2 p-3">
+                    {course.buckets.map((bucket, bucketIndex) => {
+                      const percent = (bucket.count / total) * 100;
+                      return (
                       <div
                         key={bucket.label}
-                        className={cn(
-                          "min-h-16 border-r border-white px-2 py-2 text-center last:border-r-0",
-                          bucketIndex === 0 && "bg-emerald-100",
-                          bucketIndex === 1 && "bg-blue-100",
-                          bucketIndex === 2 && "bg-amber-100",
-                          bucketIndex === 3 && "bg-rose-100",
-                        )}
-                        style={{ flexBasis: `${(bucket.count / total) * 100}%` }}
+                        className="grid grid-cols-[84px_minmax(0,1fr)_72px] items-center gap-2 text-xs sm:grid-cols-[92px_minmax(0,1fr)_88px]"
                       >
-                        <div className="mx-auto flex h-10 items-end justify-center">
-                          <div className="w-6 rounded-t bg-slate-800" style={{ height: `${Math.max(18, (bucket.count / total) * 64)}px` }} />
+                        <div>
+                          <p className="font-black text-slate-900 dark:text-white">{bucket.label}</p>
+                          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{bucket.range}</p>
                         </div>
-                        <p className="mt-2 text-xs font-black text-slate-900">{bucket.label}</p>
-                        <p className="text-[11px] font-semibold text-slate-600">{bucket.range} - {bucket.count}</p>
+                        <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                          <div className={cn("h-full rounded-full", BUCKET_COLORS[bucketIndex])} style={{ width: `${percent}%` }} />
+                        </div>
+                        <p className="text-right font-black text-slate-700 dark:text-slate-200">{bucket.count} ({Math.round(percent)}%)</p>
                       </div>
-                    ))}
+                    );
+                    })}
+                    </div>
                   </div>
                 </div>
               </article>
@@ -315,36 +338,36 @@ export function GradesPage() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3">
+      <section className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
           <div>
-            <h3 className="flex items-center gap-2 text-base font-bold text-slate-900">
+            <h3 className="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-white">
               <History className="w-4 h-4" /> Compact Grade Audit Log
             </h3>
-            <p className="text-xs text-slate-600 mt-0.5">Timestamp, previous value, new value, modifier, and IP address are preserved here.</p>
+            <p className="text-xs text-slate-600 mt-0.5 dark:text-slate-400">Timestamp, previous value, new value, modifier, and IP address are preserved here.</p>
           </div>
-          <span className="rounded bg-white px-2 py-1 text-xs font-bold text-slate-600">3 recent entries</span>
+          <span className="rounded bg-white px-2 py-1 text-xs font-bold text-slate-600 dark:bg-slate-900 dark:text-slate-300">3 recent entries</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-white border-b border-slate-100">
+            <thead className="bg-white border-b border-slate-100 dark:border-slate-800 dark:bg-slate-900">
               <tr>
                 {["Timestamp", "Course / Assignment", "Previous", "New", "Modifier", "IP Address", "View"].map((heading) => (
                   <th key={heading} className="px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500">{heading}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {GRADE_LOGS.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 text-xs font-medium text-slate-700">{log.timestamp}<br /><span className="text-slate-400">{log.id}</span></td>
-                  <td className="px-4 py-3"><p className="font-bold text-slate-900">{log.assignment}</p><p className="text-xs text-slate-500">{log.course}</p></td>
-                  <td className="px-4 py-3 font-bold text-slate-700">{log.previous}</td>
-                  <td className="px-4 py-3 font-bold text-slate-900">{log.new}</td>
-                  <td className="px-4 py-3 text-slate-700">{log.modifiedBy}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-500">{log.ip}</td>
+                <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                  <td className="px-4 py-3 text-xs font-medium text-slate-700 dark:text-slate-300">{log.timestamp}<br /><span className="text-slate-400 dark:text-slate-500">{log.id}</span></td>
+                  <td className="px-4 py-3"><p className="font-bold text-slate-900 dark:text-white">{log.assignment}</p><p className="text-xs text-slate-500 dark:text-slate-400">{log.course}</p></td>
+                  <td className="px-4 py-3 font-bold text-slate-700 dark:text-slate-300">{log.previous}</td>
+                  <td className="px-4 py-3 font-bold text-slate-900 dark:text-white">{log.new}</td>
+                  <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{log.modifiedBy}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-500 dark:text-slate-400">{log.ip}</td>
                   <td className="px-4 py-3">
-                    <button type="button" className={cn("rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700", FOCUS_RING)} aria-label={`View audit log ${log.id}`}>
+                    <button type="button" className={cn("rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200", FOCUS_RING)} aria-label={`View audit log ${log.id}`}>
                       <Eye className="w-4 h-4" />
                     </button>
                   </td>
@@ -360,9 +383,9 @@ export function GradesPage() {
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded border border-slate-200 bg-white p-2">
+    <div className="rounded border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900">
       <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="text-lg font-black text-slate-900">{value}</p>
+      <p className="text-lg font-black text-slate-900 dark:text-white">{value}</p>
     </div>
   );
 }

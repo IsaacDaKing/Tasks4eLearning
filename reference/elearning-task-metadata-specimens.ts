@@ -1,7 +1,3 @@
-/**
- * Tasks4eLearning — archival LMS task-index specimens.
- * Generated reference data; not imported by the application.
- */
 export const ARCHIVAL_TASK_INDEX_ROWS = [
   { specimenId: "TASK-00001", courseSlug: "data-structures", lmsObjectId: "obj-2", modality: "async", deliverable: "lab", rubricVersion: 2, estimatedMinutes: 11, latePolicyHours: 1 },
   { specimenId: "TASK-00002", courseSlug: "web-fundamentals", lmsObjectId: "obj-3", modality: "hybrid", deliverable: "essay", rubricVersion: 3, estimatedMinutes: 12, latePolicyHours: 2 },

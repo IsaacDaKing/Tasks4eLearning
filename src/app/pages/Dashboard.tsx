@@ -98,8 +98,8 @@ const DEADLINES = [
     title: "Midterm: Database Normalization",
     courseCode: "CS 4347.002",
     courseName: "Database Systems",
-    dueDate: "February 21, 2026 at 9:00 AM",
-    timeRemaining: "3 days left",
+    dueDate: "May 11, 2026 at 9:00 AM",
+    timeRemaining: "1 week left",
     status: "In Progress",
     type: "Exam",
     to: "/courses/cs4347/assignments/3",
@@ -109,8 +109,8 @@ const DEADLINES = [
     title: "Software Design Patterns Lab",
     courseCode: "CS 3354.012",
     courseName: "Software Engineering",
-    dueDate: "February 19, 2026 at 11:59 PM",
-    timeRemaining: "28 hours left",
+    dueDate: "May 8, 2026 at 11:59 PM",
+    timeRemaining: "4 days left",
     status: "In Progress",
     type: "Assignment",
     to: "/courses/cs3354/assignments/1",
@@ -120,8 +120,8 @@ const DEADLINES = [
     title: "Network Protocol Analysis",
     courseCode: "CS 4390.0W1",
     courseName: "Computer Networks",
-    dueDate: "February 17, 2026 at 11:59 PM",
-    timeRemaining: "Due tonight",
+    dueDate: "May 6, 2026 at 11:59 PM",
+    timeRemaining: "2 days left",
     status: "Not Started",
     type: "Assignment",
     to: "/courses/cs4390/assignments/5",
@@ -131,7 +131,7 @@ const DEADLINES = [
     title: "SQL Query Optimization",
     courseCode: "CS 4347.002",
     courseName: "Database Systems",
-    dueDate: "February 16, 2026 at 11:59 PM",
+    dueDate: "Submitted April 28, 2026 at 11:59 PM",
     timeRemaining: "Submitted",
     status: "Submitted",
     type: "Project",
@@ -142,8 +142,8 @@ const DEADLINES = [
     title: "Final Project Pitch",
     courseCode: "CS 3354.012",
     courseName: "Software Engineering",
-    dueDate: "February 26, 2026 at 11:00 AM",
-    timeRemaining: "8 days left",
+    dueDate: "May 15, 2026 at 11:00 AM",
+    timeRemaining: "11 days left",
     status: "Not Started",
     type: "Quiz",
     to: "/quiz",
@@ -171,7 +171,7 @@ const STUDY_RECOMMENDATIONS = [
     id: "net-tcp",
     title: "Refresh TCP/IP and subnetting for Computer Networks",
     detail:
-      "Review transport-layer reliability and solve three subnet-mask examples before the protocol analysis deadline.",
+      "Review transport-layer reliability and solve three subnet-mask examples before the May 6 protocol analysis deadline.",
     courseCode: "CS 4390.0W1",
     estimate: "25 min",
   },
@@ -188,7 +188,7 @@ const ALERTS = [
   {
     id: "db-load",
     title: "Database Systems has two upcoming deadlines this week.",
-    detail: "Block one short review session today and one practice session tomorrow.",
+    detail: "Block one short review session today and one practice session later this week.",
     tone: "amber",
   },
   {
@@ -200,7 +200,7 @@ const ALERTS = [
   {
     id: "success",
     title: "Computer Networks progress is on track.",
-    detail: "Submitting tonight's analysis keeps the course pacing steady.",
+    detail: "Submitting the May 6 analysis keeps the course pacing steady.",
     tone: "green",
   },
 ];
@@ -235,9 +235,9 @@ const MESSAGES = [
 const PINNED_COURSE_IDS = ["cs4390", "cs3354", "cs4347"];
 
 const NEXT_DUE_BY_COURSE: Record<string, string> = {
-  cs4390: "Network Protocol Analysis tonight",
-  cs3354: "Software Design Patterns Lab tomorrow",
-  cs4347: "Database Normalization Midterm in 3 days",
+  cs4390: "Network Protocol Analysis due May 6",
+  cs3354: "Software Design Patterns Lab due May 8",
+  cs4347: "Database Normalization Midterm due May 11",
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -512,7 +512,7 @@ export function Dashboard() {
                   </div>
                 </div>
                 <p className="mt-4 text-sm leading-relaxed text-slate-600">
-                  Submitting the Network Protocol Analysis tonight and scoring 85% or higher on the Database Systems midterm could lift the projection.
+                  Submitting the Network Protocol Analysis by May 6 and scoring 85% or higher on the Database Systems midterm could lift the projection.
                 </p>
               </Panel>
 

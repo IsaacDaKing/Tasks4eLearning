@@ -8,12 +8,14 @@ import {
   HelpCircle,
   Lock,
   Mail,
+  ShieldCheck,
   Sparkles,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { AnimatePresence, motion } from "motion/react";
 import { useNavigate } from "react-router";
+import { setSessionProfile, type SessionRole } from "../sessionProfile";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -26,11 +28,15 @@ type LoginErrors = {
   password?: string;
 };
 
+type DemoRole = "student" | "instructor" | "admin";
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const demoEmail = "student@university.edu";
 const demoPassword = "LearnReady2026!";
 const instructorDemoEmail = "instructor@university.edu";
 const instructorDemoPassword = "TeachReady2026!";
+const adminDemoEmail = "admin@utd.edu";
+const adminDemoPassword = "admin123";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -47,12 +53,12 @@ export function LoginPage() {
   const [loginNotice, setLoginNotice] = useState<string | null>(null);
   const [forgotError, setForgotError] = useState<string | null>(null);
   const [showAccessNote, setShowAccessNote] = useState(false);
-  const [filledAccountType, setFilledAccountType] = useState<"student" | "instructor" | null>(null);
+  const [filledAccountType, setFilledAccountType] = useState<"student" | "instructor" | "admin" | null>(null);
 
   const focusClass =
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2";
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900";
   const inputClass =
-    "w-full rounded border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20";
+    "w-full rounded border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500";
 
   const persistRememberedEmail = (nextEmail: string) => {
     if (rememberMe) {
@@ -66,13 +72,13 @@ export function LoginPage() {
   };
 
   const detectDemoRole = (nextEmail: string, nextPassword: string): DemoRole => {
-    if (
-      nextEmail.toLowerCase() === instructorDemoEmail &&
-      nextPassword === instructorDemoPassword
-    ) {
+    const e = nextEmail.trim().toLowerCase();
+    if (e === adminDemoEmail && nextPassword === adminDemoPassword) {
+      return "admin";
+    }
+    if (e === instructorDemoEmail && nextPassword === instructorDemoPassword) {
       return "instructor";
     }
-
     return "student";
   };
 
@@ -80,7 +86,18 @@ export function LoginPage() {
     const role = forcedRole ?? detectDemoRole(nextEmail, nextPassword);
     persistRememberedEmail(nextEmail);
     localStorage.setItem("lms-prototype-session", "true");
-    navigate(nextEmail.trim().toLowerCase() === instructorDemoEmail ? "/instructor-dashboard" : "/dashboard");
+    localStorage.setItem("lms-role", role);
+    setSessionProfile(role as SessionRole);
+    window.dispatchEvent(new Event("lms-role-changed"));
+    if (role === "admin") {
+      navigate("/admin-dashboard");
+      return;
+    }
+    if (role === "instructor") {
+      navigate("/instructor-dashboard");
+      return;
+    }
+    navigate("/dashboard");
   };
 
   const validateLogin = () => {
@@ -132,6 +149,14 @@ export function LoginPage() {
     setLoginNotice("Instructor account filled. Submit the form to continue.");
   };
 
+  const handleAdminDemoAccount = () => {
+    setEmail(adminDemoEmail);
+    setPassword(adminDemoPassword);
+    setLoginErrors({});
+    setFilledAccountType("admin");
+    setLoginNotice("Admin account filled. Submit the form to continue.");
+  };
+
   const handleForgot = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const trimmedEmail = forgotEmail.trim();
@@ -157,7 +182,7 @@ export function LoginPage() {
   };
 
   return (
-    <main className="login-page min-h-screen bg-slate-100 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+    <main className="login-page min-h-screen bg-slate-100 px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col justify-center gap-6">
         <header className="flex items-center justify-center gap-3">
           <img
@@ -172,7 +197,7 @@ export function LoginPage() {
         </header>
 
         <div>
-          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-7">
             <AnimatePresence mode="wait">
               {view === "login" && (
                 <motion.div
@@ -182,8 +207,8 @@ export function LoginPage() {
                   exit={{ opacity: 0, y: -10 }}
                 >
                   <div className="mb-6">
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Sign in</h1>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Sign in</h1>
+                    <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
                       Use your university email or institutional SSO.
                     </p>
                   </div>
@@ -323,14 +348,27 @@ export function LoginPage() {
                     <button
                       type="button"
                       onClick={handleInstructorDemoAccount}
-                      className={cn("flex w-full items-center justify-center gap-2 rounded border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-bold text-amber-900 transition-colors hover:bg-amber-100", focusClass)}
+                      className={cn("flex w-full items-center justify-center gap-2 rounded border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-bold text-amber-900 transition-colors hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-900/50", focusClass)}
                     >
                       <GraduationCap className="h-4 w-4" aria-hidden="true" />
                       Fill Instructor Account
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleAdminDemoAccount}
+                      className={cn("flex w-full items-center justify-center gap-2 rounded border border-violet-200 bg-violet-50 px-4 py-2.5 text-sm font-bold text-violet-900 transition-colors hover:bg-violet-100 dark:border-violet-700 dark:bg-violet-950/40 dark:text-violet-100 dark:hover:bg-violet-900/50", focusClass)}
+                    >
+                      <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                      Fill Admin Account
+                    </button>
                     {filledAccountType === "instructor" && (
-                      <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900" role="status">
+                      <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100" role="status">
                         Instructor demo selected. Signing in with this account opens the instructor dashboard.
+                      </p>
+                    )}
+                    {filledAccountType === "admin" && (
+                      <p className="rounded border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-bold text-violet-900 dark:border-violet-700 dark:bg-violet-950/40 dark:text-violet-100" role="status">
+                        Admin demo selected. Signing in opens the administrator dashboard.
                       </p>
                     )}
                   </div>

@@ -366,7 +366,7 @@ export function AIAssistantPage() {
   return (
     <div className="mx-auto max-w-[1600px] space-y-6 p-4 animate-in fade-in duration-500 sm:p-6">
       <section className="overflow-hidden rounded border border-slate-200 bg-slate-950 text-white shadow-sm">
-        <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+        <div className="grid gap-5 px-5 pb-0 pt-5 sm:px-6 sm:pt-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center lg:gap-8 lg:px-8 lg:pt-8">
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-white/10 px-3 py-1 text-xs font-bold text-cyan-100">
               <Sparkles className="h-3.5 w-3.5" />
@@ -381,14 +381,16 @@ export function AIAssistantPage() {
             <p className="mt-3 max-w-2xl text-base leading-relaxed text-slate-200">
               Whoosh, Comet. Your course planning and study strategy assistant.
             </p>
-            <CometSky />
-            <div className="mt-5 flex flex-wrap gap-2" aria-label="Comet AI capabilities">
-              {HELP_TOPICS.map((topic) => (
-                <span key={topic} className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-slate-100">
-                  {topic}
-                </span>
-              ))}
-            </div>
+          </div>
+        </div>
+        <CometSky />
+        <div className="px-5 pb-5 pt-4 sm:px-6 sm:pb-6 sm:pt-5 lg:px-8 lg:pb-8">
+          <div className="flex flex-wrap gap-2" aria-label="Comet AI capabilities">
+            {HELP_TOPICS.map((topic) => (
+              <span key={topic} className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-bold text-slate-100">
+                {topic}
+              </span>
+            ))}
           </div>
         </div>
       </section>
@@ -1059,21 +1061,58 @@ function calculateProjectedGrade(course: CoursePlan) {
 }
 
 function CometSky() {
+  const stars = [
+    ["8%", "22%", "0.4s"],
+    ["19%", "58%", "0s"],
+    ["31%", "38%", "1.1s"],
+    ["46%", "72%", "0.7s"],
+    ["58%", "18%", "1.5s"],
+    ["72%", "48%", "0.2s"],
+    ["84%", "62%", "0.9s"],
+    ["93%", "28%", "1.3s"],
+  ] as const;
+
   return (
-    <div className="pointer-events-none mt-5 h-16 overflow-hidden rounded border border-white/10 bg-slate-900/40" aria-hidden="true">
-      <div className="relative h-full">
-        <span className="absolute left-[10%] top-4 h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-200 shadow-[0_0_12px_rgba(125,211,252,0.9)]" />
-        <span className="absolute left-[30%] top-9 h-1 w-1 rounded-full bg-orange-200 shadow-[0_0_10px_rgba(253,186,116,0.8)]" />
-        <span className="absolute left-[64%] top-3 h-1.5 w-1.5 animate-pulse rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.85)] [animation-delay:400ms]" />
-        <span className="absolute left-[84%] top-10 h-1 w-1 rounded-full bg-cyan-100 shadow-[0_0_10px_rgba(207,250,254,0.8)]" />
-        <span className="absolute left-[-22%] top-7 h-0.5 w-28 -rotate-12 animate-[comet-drift_5.5s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-transparent via-cyan-200 to-white shadow-[0_0_14px_rgba(125,211,252,0.7)]" />
-        <span className="absolute left-[22%] top-2 h-0.5 w-20 -rotate-12 animate-[comet-drift_7s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-transparent via-orange-200 to-white shadow-[0_0_12px_rgba(251,146,60,0.65)] [animation-delay:1.4s]" />
+    <div
+      className="pointer-events-none relative mt-5 w-full overflow-hidden border-y border-white/[0.07] bg-gradient-to-b from-slate-950/90 via-[#0c1222] to-slate-950"
+      aria-hidden="true"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_0%,rgba(56,189,248,0.07),transparent_55%),radial-gradient(80%_50%_at_80%_100%,rgba(99,102,241,0.06),transparent_50%)]" />
+      <div className="relative mx-auto h-[5.25rem] w-full max-w-none">
+        {stars.map(([left, top, delay], i) => (
+          <span
+            key={i}
+            className="absolute h-px w-px rounded-full bg-white/70 shadow-[0_0_5px_rgba(255,255,255,0.55)] motion-safe:animate-pulse"
+            style={{ left, top, animationDelay: delay }}
+          />
+        ))}
+        {/* Full-width comet sweeps: motion uses % of container via left + width */}
+        <span
+          className="comet-sweep absolute top-[32%] h-px w-[32%] max-w-[min(280px,42vw)] -rotate-[11deg] rounded-full bg-gradient-to-r from-transparent via-cyan-200/75 to-transparent opacity-0 shadow-[0_0_14px_rgba(103,232,249,0.35)]"
+          style={{ animationDelay: "0s", animationDuration: "11s" }}
+        />
+        <span
+          className="comet-sweep absolute top-[58%] h-px w-[26%] max-w-[min(220px,38vw)] -rotate-[9deg] rounded-full bg-gradient-to-r from-transparent via-indigo-200/55 to-transparent opacity-0 shadow-[0_0_12px_rgba(165,180,252,0.3)]"
+          style={{ animationDelay: "3.5s", animationDuration: "13s" }}
+        />
+        <span
+          className="comet-sweep absolute top-[44%] h-px w-[22%] max-w-[min(180px,34vw)] -rotate-[13deg] rounded-full bg-gradient-to-r from-transparent via-amber-100/45 to-transparent opacity-0 shadow-[0_0_10px_rgba(253,230,138,0.22)]"
+          style={{ animationDelay: "7s", animationDuration: "14.5s" }}
+        />
         <style>{`
-          @keyframes comet-drift {
-            0% { transform: translateX(0) translateY(0) rotate(-12deg); opacity: 0; }
-            15% { opacity: 0.9; }
-            65% { opacity: 0.75; }
-            100% { transform: translateX(1350%) translateY(22px) rotate(-12deg); opacity: 0; }
+          @keyframes comet-sweep-x {
+            0% { left: -35%; opacity: 0; }
+            8% { opacity: 0.85; }
+            78% { opacity: 0.45; }
+            100% { left: 108%; opacity: 0; }
+          }
+          .comet-sweep {
+            animation-name: comet-sweep-x;
+            animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+            animation-iteration-count: infinite;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .comet-sweep { animation: none; left: 38%; opacity: 0.28; }
           }
         `}</style>
       </div>

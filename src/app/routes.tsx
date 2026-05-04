@@ -14,6 +14,7 @@ import { MessagesPage } from "./pages/MessagesPage";
 import { AIAssistantPage } from "./pages/AIAssistantPage";
 import { InstructorClassesPage } from "./pages/InstructorClassesPage";
 import { InstructorCourseDetailPage } from "./pages/InstructorCourseDetailPage";
+import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { useLocation } from "react-router";
 
 function Layout() {
@@ -21,6 +22,7 @@ function Layout() {
   const getTitle = () => {
     if (location.pathname === "/dashboard") return "Dashboard Overview";
     if (location.pathname === "/instructor-dashboard") return "My Classes";
+    if (location.pathname === "/admin-dashboard") return "Admin Dashboard";
     if (location.pathname.startsWith("/instructor-course/")) return "Course Management";
     if (location.pathname === "/calendar") return "Academic Calendar";
     if (location.pathname === "/grades") return "Grade Audit Logs";
@@ -70,6 +72,7 @@ export const router = createBrowserRouter([
     children: [
       { path: "dashboard", Component: Dashboard },
       { path: "instructor-dashboard", Component: InstructorClassesPage },
+      { path: "admin-dashboard", Component: AdminDashboardPage },
       { path: "instructor-course/:courseId", Component: InstructorCourseDetailPage },
       { path: "calendar", Component: CalendarPage },
       { path: "grades", Component: GradesPage },

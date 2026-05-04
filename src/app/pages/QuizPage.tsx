@@ -304,6 +304,152 @@ const ASSESSMENTS: Assessment[] = [
       },
     ],
   },
+  {
+    id: "cs4390-routing-deep-dive",
+    type: "Quiz",
+    title: "Routing & Addressing Check",
+    courseCode: "CS 4390.0W1",
+    courseName: "Computer Networks",
+    classSection: "CS 4390.0W1: Computer Networks",
+    moduleTitle: "Module 3: IP Forwarding & Subnets",
+    dueDate: "May 14, 2026 at 11:59 PM",
+    timeLimitMinutes: 25,
+    attemptsAllowed: 3,
+    attemptsUsed: 0,
+    coveredTopics: ["CIDR", "longest prefix match", "NAT overview", "ICMP"],
+    technicalRequirements: ["Stable browser session", "Calculator optional for subnet practice"],
+    permittedResources: ["Course slides", "Personal notes"],
+    academicIntegrityRules: ["Individual work only during the timed window."],
+    questions: [
+      {
+        id: 1,
+        questionType: "multiple-choice",
+        text: "Which field does a router use first when choosing the best matching route?",
+        options: ["Lowest administrative distance only", "Shortest AS path only", "Longest prefix match", "Lowest MAC address"],
+        correct: 2,
+      },
+      {
+        id: 2,
+        questionType: "true-false",
+        text: "True or false: NAT can rewrite source or destination IP addresses as packets traverse a boundary.",
+        options: ["True", "False"],
+        correct: 0,
+      },
+      {
+        id: 3,
+        questionType: "fill-blank",
+        text: "Fill in the blank: The ICMP message type often used by ping is ____ echo request.",
+        correct: "ICMP",
+      },
+      {
+        id: 4,
+        questionType: "short-answer",
+        text: "Explain when you would choose a /26 instead of a /24 for a new subnet.",
+        reviewNote: "Look for discussion of host counts, growth, and waste.",
+      },
+      {
+        id: 5,
+        questionType: "matching",
+        text: "Match each concept to its description.",
+        options: ["CIDR", "Default gateway", "Broadcast address"],
+        choices: ["Ends host bits with all 1s for the subnet", "Combines network prefix and mask length notation", "Local router interface for non-local destinations"],
+        correct: ["Combines network prefix and mask length notation", "Local router interface for non-local destinations", "Ends host bits with all 1s for the subnet"],
+      },
+    ],
+  },
+  {
+    id: "cs3354-architecture-readiness",
+    type: "Quiz",
+    title: "Architecture & Traceability Quiz",
+    courseCode: "CS 3354.012",
+    courseName: "Software Engineering",
+    classSection: "CS 3354.012: Software Engineering",
+    moduleTitle: "Module 5: Architecture & Quality Attributes",
+    dueDate: "May 16, 2026 at 5:00 PM",
+    timeLimitMinutes: 28,
+    attemptsAllowed: 2,
+    attemptsUsed: 0,
+    coveredTopics: ["layered architecture", "deployment vs sequence views", "risk assumptions", "traceability checks"],
+    technicalRequirements: ["Keyboard navigation supported"],
+    permittedResources: ["Sprint notes", "UML reference PDF"],
+    academicIntegrityRules: ["No collaboration on timed responses."],
+    questions: [
+      {
+        id: 1,
+        questionType: "multiple-choice",
+        text: "Which artifact best connects user stories to validation tests?",
+        options: ["Traceability matrix", "Hex color palette", "DNS zone file", "Subnet mask"],
+        correct: 0,
+      },
+      {
+        id: 2,
+        questionType: "ordering",
+        text: "Order these architecture activities from early to late iteration.",
+        options: ["Document assumptions", "Sketch deployment view", "Stress-test critical sequence", "Refactor module boundaries"],
+        correct: ["Document assumptions", "Sketch deployment view", "Stress-test critical sequence", "Refactor module boundaries"],
+      },
+      {
+        id: 3,
+        questionType: "true-false",
+        text: "True or false: A deployment diagram alone proves every requirement is implemented.",
+        options: ["True", "False"],
+        correct: 1,
+      },
+      {
+        id: 4,
+        questionType: "fill-blank",
+        text: "Fill in the blank: Non-functional requirements often map to ____ attributes such as latency or availability.",
+        correct: "quality",
+      },
+    ],
+  },
+  {
+    id: "cs4347-sql-transactions-drill",
+    type: "Quiz",
+    title: "SQL & Transactions Drill",
+    courseCode: "CS 4347.002",
+    courseName: "Database Systems",
+    classSection: "CS 4347.002: Database Systems",
+    moduleTitle: "Unit 4: Transactions & Recovery",
+    dueDate: "May 18, 2026 at 9:00 AM",
+    timeLimitMinutes: 30,
+    attemptsAllowed: 2,
+    attemptsUsed: 0,
+    coveredTopics: ["isolation levels", "deadlock", "write-ahead logging", "two-phase commit intro"],
+    technicalRequirements: ["Accessible timer and focus-friendly controls"],
+    permittedResources: ["Provided SQL cheat sheet"],
+    academicIntegrityRules: ["Individual attempt only."],
+    questions: [
+      {
+        id: 1,
+        questionType: "multiple-choice",
+        text: "Which isolation anomaly involves reading data modified by an uncommitted transaction?",
+        options: ["Phantom read", "Dirty read", "Lost update", "Deadlock"],
+        correct: 1,
+      },
+      {
+        id: 2,
+        questionType: "true-false",
+        text: "True or false: Two-phase locking can prevent some anomalies but may increase deadlock risk.",
+        options: ["True", "False"],
+        correct: 0,
+      },
+      {
+        id: 3,
+        questionType: "matching",
+        text: "Match ACID property to meaning.",
+        options: ["Atomicity", "Isolation", "Durability"],
+        choices: ["Concurrent transactions do not corrupt each other's reads/writes", "Committed writes survive crashes", "All-or-nothing transaction outcomes"],
+        correct: ["All-or-nothing transaction outcomes", "Concurrent transactions do not corrupt each other's reads/writes", "Committed writes survive crashes"],
+      },
+      {
+        id: 4,
+        questionType: "short-answer",
+        text: "Describe how WAL supports durability after a crash.",
+        reviewNote: "Expect mention of log flush before commit acknowledgment.",
+      },
+    ],
+  },
 ];
 
 const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900";
@@ -760,7 +906,8 @@ function getExamLockKey(assessmentId: string) {
   return `assessment-lock:${assessmentId}:CXS224467`;
 }
 
-function getQuestionType(question: Question): QuestionType {
+function getQuestionType(question: Question | undefined): QuestionType {
+  if (!question) return "multiple-choice";
   return question.questionType ?? "multiple-choice";
 }
 

@@ -312,7 +312,7 @@ export function Dashboard() {
       </div>
 
       <section aria-labelledby="important-announcements" className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+        <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
           <Megaphone className="h-4 w-4" />
           <h3 id="important-announcements">Important Announcements</h3>
         </div>
@@ -322,40 +322,40 @@ export function Dashboard() {
               key={announcement.id}
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded border border-blue-200 bg-blue-50 p-4 shadow-sm"
+              className="rounded border border-blue-200 bg-blue-50 p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
             >
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-blue-600 text-white">
+                <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-blue-600 text-white dark:bg-blue-500">
                   <Megaphone className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h4 className="font-bold text-slate-900">{announcement.title}</h4>
-                    <span className="rounded bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700">
+                    <h4 className="font-bold text-slate-900 dark:text-slate-50">{announcement.title}</h4>
+                    <span className="rounded bg-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 dark:bg-slate-700 dark:text-blue-200">
                       {announcement.course}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm leading-relaxed text-slate-700">{announcement.message}</p>
-                  <p className="mt-2 text-xs font-medium text-slate-500">{announcement.date}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-700 dark:text-slate-200">{announcement.message}</p>
+                  <p className="mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">{announcement.date}</p>
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-1">
                   <button
                     type="button"
                     onClick={() => toggleAnnouncementPin(announcement.id)}
                     className={cn(
-                      "rounded p-1.5 text-slate-500 transition-colors hover:bg-white hover:text-slate-900",
+                      "rounded p-1.5 text-slate-500 transition-colors hover:bg-white hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white",
                       FOCUS_RING,
                     )}
                     aria-label={announcement.isPinned ? "Unpin announcement" : "Pin announcement"}
                     title={announcement.isPinned ? "Unpin announcement" : "Pin announcement"}
                   >
-                    <Pin className={cn("h-4 w-4", announcement.isPinned && "fill-blue-600 text-blue-600")} />
+                    <Pin className={cn("h-4 w-4", announcement.isPinned && "fill-blue-600 text-blue-600 dark:fill-blue-300 dark:text-blue-300")} />
                   </button>
                   <button
                     type="button"
                     onClick={() => removeAnnouncement(announcement.id)}
                     className={cn(
-                      "rounded p-1.5 text-slate-500 transition-colors hover:bg-white hover:text-slate-900",
+                      "rounded p-1.5 text-slate-500 transition-colors hover:bg-white hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white",
                       FOCUS_RING,
                     )}
                     aria-label="Dismiss announcement"

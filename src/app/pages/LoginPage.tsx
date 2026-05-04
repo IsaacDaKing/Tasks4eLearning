@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import {
   ArrowLeft,
-  Bot,
   CheckCircle,
   Eye,
   EyeOff,
@@ -9,9 +8,6 @@ import {
   HelpCircle,
   Lock,
   Mail,
-  MessageSquare,
-  NotebookTabs,
-  ShieldCheck,
   Sparkles,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -33,6 +29,9 @@ type LoginErrors = {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const demoEmail = "student@university.edu";
 const demoPassword = "LearnReady2026!";
+const instructorDemoEmail = "instructor@utd.edu";
+const instructorDemoPassword = "instructor123";
+type DemoRole = "student" | "instructor";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -66,10 +65,23 @@ export function LoginPage() {
     localStorage.removeItem("lms-saved-email");
   };
 
-  const finishPrototypeLogin = (nextEmail: string) => {
+  const detectDemoRole = (nextEmail: string, nextPassword: string): DemoRole => {
+    if (
+      nextEmail.toLowerCase() === instructorDemoEmail &&
+      nextPassword === instructorDemoPassword
+    ) {
+      return "instructor";
+    }
+
+    return "student";
+  };
+
+  const finishPrototypeLogin = (nextEmail: string, nextPassword: string, forcedRole?: DemoRole) => {
+    const role = forcedRole ?? detectDemoRole(nextEmail, nextPassword);
     persistRememberedEmail(nextEmail);
     localStorage.setItem("lms-prototype-session", "true");
-    navigate("/dashboard");
+    localStorage.setItem("lms-role", role);
+    navigate(role === "instructor" ? "/instructor-dashboard" : "/dashboard");
   };
 
   const validateLogin = () => {
@@ -96,20 +108,27 @@ export function LoginPage() {
 
     if (!validateLogin()) return;
 
-    finishPrototypeLogin(email.trim());
+    finishPrototypeLogin(email.trim(), password);
   };
 
   const handleSsoLogin = () => {
     setLoginErrors({});
-    setLoginNotice("University SSO accepted for this prototype.");
-    finishPrototypeLogin(email.trim() || demoEmail);
+    setLoginNotice("University SSO accepted for this session.");
+    finishPrototypeLogin(email.trim() || demoEmail, password, "student");
   };
 
   const handleDemoAccount = () => {
     setEmail(demoEmail);
     setPassword(demoPassword);
     setLoginErrors({});
-    setLoginNotice("Demo account filled. Submit the form to continue.");
+    setLoginNotice("Sample account filled. Submit the form to continue.");
+  };
+
+  const handleDemoInstructorAccount = () => {
+    setEmail(instructorDemoEmail);
+    setPassword(instructorDemoPassword);
+    setLoginErrors({});
+    setLoginNotice("Instructor account filled. Submit the form to continue.");
   };
 
   const handleForgot = (e: FormEvent<HTMLFormElement>) => {
@@ -137,13 +156,13 @@ export function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col justify-center gap-6">
+    <main className="login-page min-h-screen bg-slate-100 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col justify-center gap-6">
         <header className="flex items-center justify-center gap-3">
           <img
             src="/Tasks4eLearning.png"
             alt="Tasks4eLearning logo"
-            className="h-12 w-12 rounded object-contain shadow-sm"
+            className="h-12 w-12 object-contain"
           />
           <div>
             <p className="text-lg font-bold leading-tight text-slate-900">Tasks4eLearning</p>
@@ -151,8 +170,8 @@ export function LoginPage() {
           </div>
         </header>
 
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] lg:items-stretch">
-          <section className="rounded border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div>
+          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
             <AnimatePresence mode="wait">
               {view === "login" && (
                 <motion.div
@@ -162,13 +181,9 @@ export function LoginPage() {
                   exit={{ opacity: 0, y: -10 }}
                 >
                   <div className="mb-6">
-                    <p className="mb-2 inline-flex items-center gap-2 rounded bg-blue-50 px-2 py-1 text-xs font-bold uppercase tracking-wide text-blue-700">
-                      <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                      Secure LMS access
-                    </p>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Login</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Sign in</h1>
                     <p className="mt-1 text-sm leading-6 text-slate-600">
-                      Sign in with your university email, demo account, or institutional SSO.
+                      Use your university email or institutional SSO.
                     </p>
                   </div>
 
@@ -290,17 +305,21 @@ export function LoginPage() {
                       <GraduationCap className="h-4 w-4" aria-hidden="true" />
                       Continue with University SSO
                     </button>
-                    <p className="text-center text-xs font-medium text-slate-500">
-                      SSO is mocked for this frontend prototype.
-                    </p>
-
                     <button
                       type="button"
                       onClick={handleDemoAccount}
                       className={cn("flex w-full items-center justify-center gap-2 rounded border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100", focusClass)}
                     >
                       <Sparkles className="h-4 w-4" aria-hidden="true" />
-                      Use demo account
+                      Fill sample account
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDemoInstructorAccount}
+                      className={cn("flex w-full items-center justify-center gap-2 rounded border border-orange-200 bg-orange-50 px-4 py-2.5 text-sm font-bold text-orange-800 transition-colors hover:bg-orange-100", focusClass)}
+                    >
+                      <GraduationCap className="h-4 w-4" aria-hidden="true" />
+                      Fill instructor account
                     </button>
                   </div>
 
@@ -329,7 +348,7 @@ export function LoginPage() {
                   </div>
 
                   <p className="mt-5 text-center text-xs font-medium text-slate-500">
-                    Authentication is simulated locally. Remember Me stores only your email preference.
+                    Remember me stores only your email preference on this device.
                   </p>
                 </motion.div>
               )}
@@ -353,7 +372,7 @@ export function LoginPage() {
                   <div className="mb-6">
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">Reset password</h1>
                     <p className="mt-1 text-sm leading-6 text-slate-600">
-                      Enter your institutional email. This prototype shows a confirmation but does not send real email.
+                      Enter your institutional email to continue.
                     </p>
                   </div>
 
@@ -408,7 +427,7 @@ export function LoginPage() {
                   <h1 className="text-2xl font-bold tracking-tight text-slate-900">Reset link ready</h1>
                   <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-slate-600" role="status">
                     A password reset confirmation was generated for{" "}
-                    <strong className="font-bold text-slate-900">{forgotEmail}</strong>. No real email was sent in this prototype.
+                    <strong className="font-bold text-slate-900">{forgotEmail}</strong>.
                   </p>
                   <button
                     type="button"
@@ -422,40 +441,6 @@ export function LoginPage() {
             </AnimatePresence>
           </section>
 
-          <aside className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
-            <section className="rounded border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-4 flex items-center gap-2">
-                <NotebookTabs className="h-4 w-4 text-slate-700" aria-hidden="true" />
-                <h2 className="text-lg font-bold text-slate-900">Your LMS workspace</h2>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[
-                  { icon: NotebookTabs, title: "Courses", detail: "Open coursework and modules." },
-                  { icon: GraduationCap, title: "Quizzes", detail: "Track assessments and grades." },
-                  { icon: MessageSquare, title: "Messages", detail: "Stay connected with instructors." },
-                  { icon: Bot, title: "AI study support", detail: "Plan focused study sessions." },
-                ].map((item) => (
-                  <div key={item.title} className="rounded border border-slate-200 bg-slate-50 p-4">
-                    <div className="mb-3 flex h-8 w-8 items-center justify-center rounded bg-white text-slate-700 shadow-sm">
-                      <item.icon className="h-4 w-4" aria-hidden="true" />
-                    </div>
-                    <h3 className="text-sm font-bold text-slate-900">{item.title}</h3>
-                    <p className="mt-1 text-xs leading-5 text-slate-600">{item.detail}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="rounded border border-blue-200 bg-blue-50 p-5 shadow-sm">
-              <h2 className="flex items-center gap-2 text-lg font-bold text-blue-950">
-                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                Prototype access
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-blue-900">
-                Authentication is simulated locally for the frontend demo. Use any valid email and password, the demo helper, or mocked SSO to enter the Dashboard.
-              </p>
-            </section>
-          </aside>
         </div>
       </div>
     </main>

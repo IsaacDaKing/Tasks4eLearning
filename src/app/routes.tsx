@@ -12,12 +12,14 @@ import { LoginPage } from "./pages/LoginPage";
 import { QuizPage } from "./pages/QuizPage";
 import { MessagesPage } from "./pages/MessagesPage";
 import { AIAssistantPage } from "./pages/AIAssistantPage";
+import { InstructorDashboardPage } from "./pages/InstructorDashboardPage";
 import { useLocation } from "react-router";
 
 function Layout() {
   const location = useLocation();
   const getTitle = () => {
     if (location.pathname === "/dashboard") return "Dashboard Overview";
+    if (location.pathname === "/instructor-dashboard") return "Instructor Dashboard";
     if (location.pathname === "/calendar") return "Academic Calendar";
     if (location.pathname === "/grades") return "Grade Audit Logs";
     if (location.pathname === "/courses") return "Your Enrolled Courses";
@@ -36,9 +38,9 @@ function Layout() {
     <SidebarProvider>
       <div className="flex h-screen bg-slate-100 dark:bg-slate-950 overflow-hidden font-sans selection:bg-slate-200 selection:text-slate-900">
         <Sidebar />
-        <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <div className="flex-1 flex min-w-0 flex-col h-full overflow-hidden">
           <Header title={getTitle()} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-100 dark:bg-slate-950">
+          <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain bg-slate-100 dark:bg-slate-950">
             <Outlet />
           </main>
         </div>
@@ -65,6 +67,7 @@ export const router = createBrowserRouter([
     Component: Layout,
     children: [
       { path: "dashboard", Component: Dashboard },
+      { path: "instructor-dashboard", Component: InstructorDashboardPage },
       { path: "calendar", Component: CalendarPage },
       { path: "grades", Component: GradesPage },
       { path: "courses", Component: CoursesPage },

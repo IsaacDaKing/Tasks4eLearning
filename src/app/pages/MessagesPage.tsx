@@ -204,8 +204,8 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
     title: "Prof. Klyne Smith",
     subtitle: "Software Engineering",
     course: "CS 3354.012",
-    timestamp: "Tue",
-    unread: 0,
+    timestamp: "12m ago",
+    unread: 3,
     icon: GraduationCap,
     messages: [
       {
@@ -234,6 +234,37 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
         sender: "Prof. Klyne Smith",
         body: "Yes. Send the draft with one or two specific questions, especially where you want feedback on whether the design supports the requirements.",
         time: "Wednesday",
+      },
+      {
+        id: "smith-5",
+        sender: "Prof. Klyne Smith",
+        body: "For the project feedback pass, focus first on requirements traceability. Every design choice should point back to a user need, constraint, or acceptance criterion.",
+        time: "Today 9:18 AM",
+      },
+      {
+        id: "smith-6",
+        sender: "You",
+        body: "That helps. We also mentioned SOD in our notes. I am treating that as software design and checking whether the sequence diagram supports the requirements.",
+        time: "Today 9:26 AM",
+        isMe: true,
+      },
+      {
+        id: "smith-7",
+        sender: "Prof. Klyne Smith",
+        body: "That is a conservative and useful interpretation. For software design, use UML and architecture to show how the system behaves, not just what components exist.",
+        time: "Today 9:31 AM",
+      },
+      {
+        id: "smith-8",
+        sender: "Prof. Klyne Smith",
+        body: "My work around large real-world systems, including IBM, the Olympics, and Macy's, shapes how I review projects: clarity, traceability, operational constraints, and maintainable architecture matter as much as a clever diagram.",
+        time: "Today 9:34 AM",
+      },
+      {
+        id: "smith-9",
+        sender: "Prof. Klyne Smith",
+        body: "Bring one question about requirements, one about UML or architecture, and one about testing. That will make the feedback session much more productive.",
+        time: "Today 9:36 AM",
       },
     ],
   },
@@ -302,7 +333,7 @@ const INITIAL_CONVERSATIONS: Conversation[] = [
 
 export function MessagesPage() {
   const [conversations, setConversations] = useState(INITIAL_CONVERSATIONS);
-  const [selectedId, setSelectedId] = useState(INITIAL_CONVERSATIONS[0].id);
+  const [selectedId, setSelectedId] = useState("prof-smith");
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<ConversationType>("All");
   const [draft, setDraft] = useState("");
@@ -317,7 +348,7 @@ export function MessagesPage() {
           .filter(Boolean)
           .some((value) => value!.toLowerCase().includes(query));
       return matchesFilter && matchesSearch;
-    });
+    }).sort((a, b) => Number(b.id === "prof-smith") - Number(a.id === "prof-smith") || b.unread - a.unread);
   }, [conversations, filter, searchQuery]);
 
   const selectedConversation =
@@ -356,24 +387,24 @@ export function MessagesPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 h-full animate-in fade-in duration-500">
+    <div className="h-full p-4 animate-in fade-in duration-500 sm:p-6">
       <div className="mx-auto flex h-full max-w-[1500px] flex-col gap-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Messages</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Messaging System for instructors, study groups, classmates, and support.
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Messages</h2>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              Instructor threads, study groups, classmates, and support in one chat workspace.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-800">
+          <div className="inline-flex items-center gap-2 rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300">
             <Bell className="h-4 w-4" />
-            Push notifications enabled
+            4 active conversations
           </div>
         </div>
 
-        <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <aside className="flex min-h-[360px] flex-col rounded border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-200 p-4">
+        <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[340px_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)_290px]">
+          <aside className="flex min-h-[360px] flex-col overflow-hidden rounded border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <div className="border-b border-slate-200 p-4 dark:border-slate-700">
               <label className="sr-only" htmlFor="conversation-search">
                 Search conversations
               </label>
@@ -385,7 +416,7 @@ export function MessagesPage() {
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Search messages..."
                   className={cn(
-                    "w-full rounded border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-500",
+                    "w-full rounded border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white",
                     FOCUS_RING,
                   )}
                 />
@@ -400,8 +431,8 @@ export function MessagesPage() {
                       "rounded px-2.5 py-1 text-xs font-bold transition-colors",
                       FOCUS_RING,
                       filter === filterName
-                        ? "bg-slate-800 text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+                        ? "bg-slate-900 text-white dark:bg-blue-600"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700",
                     )}
                   >
                     {filterName}
@@ -419,23 +450,24 @@ export function MessagesPage() {
                     type="button"
                     onClick={() => selectConversation(conversation.id)}
                     className={cn(
-                      "mb-2 w-full rounded border p-3 text-left transition-colors",
+                      "mb-2 w-full rounded border p-3 text-left transition-all hover:-translate-y-0.5",
                       FOCUS_RING,
                       isSelected
-                        ? "border-slate-800 bg-slate-100"
-                        : "border-slate-200 bg-white hover:bg-slate-50",
+                        ? "border-blue-300 bg-blue-50 shadow-sm dark:border-blue-700 dark:bg-blue-900/20"
+                        : "border-transparent bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800",
                     )}
                     aria-current={isSelected ? "true" : undefined}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="rounded bg-slate-100 p-2 text-slate-700">
-                        <conversation.icon className="h-4 w-4" />
+                      <div className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-black text-white dark:bg-slate-700">
+                        {getInitials(conversation.title)}
+                        <span className={cn("absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white dark:border-slate-900", conversation.type === "Support" ? "bg-blue-500" : "bg-emerald-500")} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <h3 className="truncate text-sm font-bold text-slate-900">{conversation.title}</h3>
-                            <p className="truncate text-xs text-slate-500">{conversation.subtitle}</p>
+                            <h3 className="truncate text-sm font-bold text-slate-900 dark:text-white">{conversation.title}</h3>
+                            <p className="truncate text-xs text-slate-500 dark:text-slate-400">{conversation.subtitle}</p>
                           </div>
                           <span className="flex-shrink-0 text-[10px] font-bold uppercase tracking-wide text-slate-400">
                             {conversation.timestamp}
@@ -457,32 +489,35 @@ export function MessagesPage() {
                 );
               })}
               {filteredConversations.length === 0 && (
-                <div className="p-6 text-center text-sm text-slate-500">No conversations match your search.</div>
+                <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">No conversations match your search.</div>
               )}
             </div>
           </aside>
 
-          <section className="flex min-h-[520px] flex-col rounded border border-slate-200 bg-white shadow-sm">
-            <header className="border-b border-slate-200 p-4">
+          <section className="flex min-h-[560px] flex-col overflow-hidden rounded border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <header className="border-b border-slate-200 p-4 dark:border-slate-700">
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-xl font-bold text-slate-900">{selectedConversation.title}</h3>
-                    <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-slate-600">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xs font-black text-white dark:bg-slate-700">
+                      {getInitials(selectedConversation.title)}
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">{selectedConversation.title}</h3>
+                    <span className="rounded bg-slate-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                       {selectedConversation.type}
                     </span>
                     {selectedConversation.course && (
-                      <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-blue-700">
+                      <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                         {selectedConversation.course}
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-sm text-slate-600">{selectedConversation.subtitle}</p>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{selectedConversation.subtitle}</p>
                 </div>
                 <button
                   type="button"
                   className={cn(
-                    "inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50",
+                    "inline-flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800",
                     FOCUS_RING,
                   )}
                 >
@@ -492,11 +527,11 @@ export function MessagesPage() {
               </div>
 
               {selectedConversation.members && (
-                <div className="mt-4 rounded bg-slate-50 p-3">
-                  <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Study group members</p>
+                <div className="mt-4 rounded bg-slate-50 p-3 dark:bg-slate-800">
+                  <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">Study group members</p>
                   <div className="flex flex-wrap gap-2">
                     {selectedConversation.members.map((member) => (
-                      <span key={member} className="rounded bg-white px-2 py-1 text-xs font-bold text-slate-700">
+                      <span key={member} className="rounded bg-white px-2 py-1 text-xs font-bold text-slate-700 dark:bg-slate-900 dark:text-slate-200">
                         {member}
                       </span>
                     ))}
@@ -505,25 +540,25 @@ export function MessagesPage() {
               )}
             </header>
 
-            <div className="grid min-h-0 flex-1 gap-0 xl:grid-cols-[minmax(0,1fr)_280px]">
+            <div className="min-h-0 flex-1">
               <div className="flex min-h-0 flex-col">
-                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite" aria-label="Message history">
+                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-slate-50 p-4 dark:bg-slate-950" aria-live="polite" aria-label="Message history">
                   {selectedConversation.messages.map((message) => (
                     <article
                       key={message.id}
                       className={cn(
-                        "max-w-[82%] rounded border p-3",
+                        "max-w-[82%] animate-in fade-in slide-in-from-bottom-2 rounded-2xl border px-4 py-3 duration-200",
                         message.isMe
-                          ? "ml-auto border-blue-200 bg-blue-600 text-white"
+                          ? "ml-auto rounded-br-md border-blue-500 bg-blue-600 text-white"
                           : message.tone === "notification"
-                            ? "border-amber-200 bg-amber-50 text-amber-900"
-                            : "border-slate-200 bg-slate-50 text-slate-800",
+                            ? "rounded-bl-md border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200"
+                            : "rounded-bl-md border-slate-200 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200",
                       )}
                     >
                       <div className="mb-1 flex items-center gap-2 text-xs font-black">
                         {message.tone === "notification" && <Bell className="h-3.5 w-3.5" />}
                         <span>{message.sender}</span>
-                        <span className={cn("font-medium", message.isMe ? "text-blue-100" : "text-slate-500")}>
+                        <span className={cn("font-medium", message.isMe ? "text-blue-100" : "text-slate-500 dark:text-slate-400")}>
                           {message.time}
                         </span>
                       </div>
@@ -532,7 +567,7 @@ export function MessagesPage() {
                   ))}
                 </div>
 
-                <form onSubmit={sendMessage} className="border-t border-slate-200 p-4">
+                <form onSubmit={sendMessage} className="border-t border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
                   <label className="sr-only" htmlFor="message-composer">
                     Type a message
                   </label>
@@ -544,7 +579,7 @@ export function MessagesPage() {
                       placeholder={`Message ${selectedConversation.title}...`}
                       rows={2}
                       className={cn(
-                        "min-h-[48px] flex-1 resize-none rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder-slate-500",
+                        "min-h-[48px] flex-1 resize-none rounded border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white",
                         FOCUS_RING,
                       )}
                     />
@@ -565,9 +600,18 @@ export function MessagesPage() {
                   </div>
                 </form>
               </div>
+            </div>
 
-              <aside className="border-t border-slate-200 p-4 xl:border-l xl:border-t-0">
-                <h4 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-900">
+          </section>
+
+          <aside className="hidden overflow-hidden rounded border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 2xl:block">
+            <div className="border-b border-slate-200 p-4 dark:border-slate-700">
+              <h4 className="text-sm font-black text-slate-900 dark:text-white">Conversation Details</h4>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{selectedConversation.subtitle}</p>
+            </div>
+            <div className="space-y-4 p-4">
+              <div>
+                <h4 className="mb-3 flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white">
                   <FileText className="h-4 w-4" />
                   Shared Files
                 </h4>
@@ -578,32 +622,43 @@ export function MessagesPage() {
                         key={file.id}
                         type="button"
                         className={cn(
-                          "w-full rounded border border-slate-200 p-3 text-left transition-colors hover:bg-slate-50",
+                          "w-full rounded border border-slate-200 p-3 text-left transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800",
                           FOCUS_RING,
                         )}
                       >
-                        <p className="text-sm font-bold text-slate-900">{file.name}</p>
-                        <p className="mt-1 text-xs text-slate-500">{file.detail}</p>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">{file.name}</p>
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{file.detail}</p>
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <p className="rounded bg-slate-50 p-3 text-sm text-slate-500">
+                  <p className="rounded bg-slate-50 p-3 text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                     No private files are shared in this conversation yet.
                   </p>
                 )}
+              </div>
 
-                <div className="mt-4 rounded border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+                <div className="rounded border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
                   <p className="font-black">Notification center</p>
                   <p className="mt-1 text-xs leading-relaxed">
                     Assignment postings and grading feedback appear here and in relevant course conversations.
                   </p>
                 </div>
-              </aside>
             </div>
-          </section>
+          </aside>
         </div>
       </div>
     </div>
   );
+}
+
+function getInitials(name: string) {
+  return name
+    .replace(/^Prof\.\s*/i, "")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 }

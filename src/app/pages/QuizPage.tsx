@@ -25,7 +25,7 @@ function cn(...inputs: ClassValue[]) {
 
 type AssessmentType = "Quiz" | "Exam";
 type QuestionType = "multipleChoice" | "trueFalse" | "fillBlank" | "shortAnswer" | "matching" | "ordering";
-type AnswerValue = number | boolean | string | Record<string, string> | string[] | null;
+type AnswerValue = number | boolean | string | Record<string, string> | string[] | null | undefined;
 
 interface BaseQuestion {
   id: number;
@@ -395,6 +395,8 @@ export function QuizPage() {
   const sessionIdRef = useRef(`quiz-session-${Date.now()}-${Math.random().toString(16).slice(2)}`);
 
   useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    releaseExamLock();
     setStarted(false);
     setSubmitted(false);
     setCurrentQ(0);
@@ -402,7 +404,11 @@ export function QuizPage() {
     setTimeLeft(assessment.timeLimitMinutes * 60);
     setFocusMode(true);
     setLockMessage("");
-  }, [assessment]);
+  }, [selectedAssessmentId]);
+
+  useEffect(() => {
+    setCurrentQ((questionIndex) => clampQuestionIndex(questionIndex, assessment.questions.length));
+  }, [assessment.questions.length]);
 
   useEffect(() => {
     if (started && !submitted) {
@@ -447,8 +453,8 @@ export function QuizPage() {
   };
 
   const gradedQuestions = assessment.questions.filter((question) => !isManualReview(question));
-  const score = answers.reduce(
-    (acc, answer, index) => acc + (isAnswerCorrect(assessment.questions[index], answer) ? 1 : 0),
+  const score = assessment.questions.reduce(
+    (acc, question, index) => acc + (isAnswerCorrect(question, answers[index]) ? 1 : 0),
     0,
   );
   const manualReviewCount = assessment.questions.length - gradedQuestions.length;
@@ -690,7 +696,22 @@ export function QuizPage() {
     );
   }
 
-  const currentQuestion = assessment.questions[currentQ];
+  const safeCurrentQ = clampQuestionIndex(currentQ, assessment.questions.length);
+  const currentQuestion = assessment.questions[safeCurrentQ];
+
+  if (!currentQuestion) {
+    return (
+      <div className={shellClasses} style={pageStyle}>
+        <div className={cn("mx-auto max-w-3xl rounded border p-6 text-center shadow-sm", highContrast ? "border-white bg-black" : "border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800")}>
+          <h1 className={cn("mb-2 text-2xl font-black", highContrast ? "text-white" : "text-slate-900 dark:text-white")}>Assessment unavailable</h1>
+          <p className={cn("mb-6 text-sm", highContrast ? "text-white" : "text-slate-500 dark:text-slate-400")}>This assessment does not have any questions to display.</p>
+          <button type="button" onClick={resetAssessment} className={cn("rounded bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700", FOCUS_RING)}>
+            Back to assessment setup
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={shellClasses} style={pageStyle}>
@@ -734,17 +755,17 @@ export function QuizPage() {
           </div>
 
           <div className={cn("h-1.5", highContrast ? "bg-white" : "bg-slate-100 dark:bg-slate-700")}>
-            <div className={cn("h-full transition-all duration-300", highContrast ? "bg-yellow-300" : "bg-blue-600")} style={{ width: `${((currentQ + 1) / assessment.questions.length) * 100}%` }} />
+            <div className={cn("h-full transition-all duration-300", highContrast ? "bg-yellow-300" : "bg-blue-600")} style={{ width: `${((safeCurrentQ + 1) / assessment.questions.length) * 100}%` }} />
           </div>
 
           <div className="p-5 sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-start gap-3">
-                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">{currentQ + 1}</span>
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-black text-white">{safeCurrentQ + 1}</span>
                 <div>
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     <span className={cn("text-xs font-black uppercase tracking-wide", highContrast ? "text-white" : "text-slate-500 dark:text-slate-400")}>
-                      Question {currentQ + 1} of {assessment.questions.length}
+                      Question {safeCurrentQ + 1} of {assessment.questions.length}
                     </span>
                     <QuestionTypeBadge questionType={currentQuestion.questionType} highContrast={highContrast} />
                   </div>
@@ -760,10 +781,10 @@ export function QuizPage() {
 
             <QuestionResponse
               question={currentQuestion}
-              answer={answers[currentQ]}
+              answer={answers[safeCurrentQ]}
               setAnswer={(answer) => {
                 const newAnswers = [...answers];
-                newAnswers[currentQ] = answer;
+                newAnswers[safeCurrentQ] = answer;
                 setAnswers(newAnswers);
               }}
               highContrast={highContrast}
@@ -773,8 +794,8 @@ export function QuizPage() {
           <div className="flex flex-col gap-4 px-6 pb-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
             <button
               type="button"
-              onClick={() => setCurrentQ(Math.max(0, currentQ - 1))}
-              disabled={currentQ === 0}
+              onClick={() => setCurrentQ(Math.max(0, safeCurrentQ - 1))}
+              disabled={safeCurrentQ === 0}
               className={cn("flex items-center justify-center gap-2 rounded border px-4 py-2.5 text-sm font-bold transition-all disabled:opacity-40", FOCUS_RING, highContrast ? "border-white text-white hover:bg-white hover:text-black" : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700")}
             >
               <ChevronLeft className="h-4 w-4" /> Previous
@@ -789,7 +810,7 @@ export function QuizPage() {
                   className={cn(
                     "h-8 w-8 rounded text-xs font-black transition-all",
                     FOCUS_RING,
-                    index === currentQ
+                    index === safeCurrentQ
                       ? "bg-blue-600 text-white"
                     : hasAnswer(answers[index])
                         ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
@@ -804,8 +825,8 @@ export function QuizPage() {
               ))}
             </div>
 
-            {currentQ < assessment.questions.length - 1 ? (
-              <button type="button" onClick={() => setCurrentQ(currentQ + 1)} className={cn("flex items-center justify-center gap-2 rounded bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700", FOCUS_RING)}>
+            {safeCurrentQ < assessment.questions.length - 1 ? (
+              <button type="button" onClick={() => setCurrentQ(safeCurrentQ + 1)} className={cn("flex items-center justify-center gap-2 rounded bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700", FOCUS_RING)}>
                 Next <ChevronRight className="h-4 w-4" />
               </button>
             ) : (
@@ -836,15 +857,21 @@ function questionTypeLabel(questionType: QuestionType) {
   return labels[questionType];
 }
 
-function isManualReview(question: Question) {
-  return question.questionType === "shortAnswer" && question.manualReview;
+function clampQuestionIndex(index: number, questionCount: number) {
+  if (questionCount <= 0) return 0;
+  return Math.min(Math.max(index, 0), questionCount - 1);
+}
+
+function isManualReview(question?: Question | null) {
+  return Boolean(question && question.questionType === "shortAnswer" && question.manualReview);
 }
 
 function normalizeText(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-function isAnswerCorrect(question: Question, answer: AnswerValue) {
+function isAnswerCorrect(question?: Question | null, answer?: AnswerValue) {
+  if (!question || answer === null || answer === undefined) return false;
   if (isManualReview(question)) return false;
 
   switch (question.questionType) {

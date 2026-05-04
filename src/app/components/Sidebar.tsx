@@ -52,7 +52,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       const savedItems = window.localStorage.getItem(PINNED_ITEMS_KEY);
       const parsedItems = savedItems ? JSON.parse(savedItems) : null;
       return Array.isArray(parsedItems)
-        ? parsedItems.map((item) => (item === "/" ? "/dashboard" : item))
+        ? normalizePinnedItems(parsedItems)
         : DEFAULT_PINNED_ITEMS;
     } catch {
       return DEFAULT_PINNED_ITEMS;
@@ -87,6 +87,25 @@ export function useSidebar() {
   return context;
 }
 
+function normalizePinnedItems(items: unknown[]) {
+  const validPaths = new Set([
+    "/dashboard",
+    "/courses",
+    "/quiz",
+    "/assignment",
+    "/grades",
+    "/calendar",
+    "/grade-calculator",
+    "/messages",
+    "/ai-assistant",
+    "/settings",
+  ]);
+  const normalized = items
+    .map((item) => (item === "/" ? "/dashboard" : item))
+    .filter((item): item is string => typeof item === "string" && validPaths.has(item));
+  return Array.from(new Set(normalized));
+}
+
 export function Sidebar() {
   const { isCollapsed, toggleSidebar, pinnedItems, togglePin } = useSidebar();
   const { isDark, toggleTheme } = useTheme();
@@ -117,9 +136,14 @@ export function Sidebar() {
     { name: "Settings", icon: Settings, path: "/settings" },
   ];
 
-  const displayedItems = isCollapsed
-    ? allNavItems.filter(item => pinnedItems.includes(item.path))
-    : allNavItems;
+  const pinnedNavItems = allNavItems.filter((item) => pinnedItems.includes(item.path));
+  const unpinnedNavItems = allNavItems.filter((item) => !pinnedItems.includes(item.path));
+  const displayedGroups = isCollapsed
+    ? [{ label: "Pinned", items: pinnedNavItems }]
+    : [
+        { label: "Pinned", items: pinnedNavItems },
+        { label: "All Tools", items: unpinnedNavItems },
+      ].filter((group) => group.items.length > 0);
 
   return (
     <div className={cn(
@@ -127,9 +151,7 @@ export function Sidebar() {
       isCollapsed ? "w-20" : "w-60"
     )}>
       <div className="p-4 flex items-center gap-3 border-b border-white/20">
-        <div className="w-9 h-9 bg-white rounded flex items-center justify-center flex-shrink-0 overflow-hidden">
-          <img src="/Tasks4eLearning.png" alt="Tasks4eLearning logo" className="h-8 w-8 object-contain" />
-        </div>
+        <img src="/Tasks4eLearning.png" alt="Tasks4eLearning logo" className="h-10 w-10 flex-shrink-0 object-contain" />
         {!isCollapsed && <span className="font-semibold text-sm text-white truncate">Tasks4eLearning</span>}
       </div>
 
@@ -142,70 +164,28 @@ export function Sidebar() {
         {isCollapsed ? <ChevronRight className="w-3 h-3 text-white" /> : <ChevronLeft className="w-3 h-3 text-white" />}
       </button>
 
-      <nav className="flex-1 px-2 space-y-1 mt-2 overflow-y-auto">
-        {displayedItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          const isPinned = pinnedItems.includes(item.path);
-          const content = (
-            <>
-              <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-white" : "text-white/80")} />
-              {!isCollapsed && <span className="font-normal flex-1 text-sm">{item.name}</span>}
-              {!isCollapsed && item.previewLabel && (
-                  <span className="rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
-                  {item.previewLabel}
-                </span>
-              )}
-              {!isCollapsed && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    togglePin(item.path);
-                  }}
-                  className={cn(
-                    "rounded p-1 transition-colors hover:bg-white/15",
-                    FOCUS_RING,
-                  )}
-                  aria-label={isPinned ? `Unpin ${item.name}` : `Pin ${item.name}`}
-                  title={isPinned ? `Unpin ${item.name}` : `Pin ${item.name}`}
-                >
-                  <Pin className={cn("w-3 h-3 text-white/55", isPinned && "fill-white text-white")} />
-                </button>
-              )}
-            </>
-          );
-
-          return (
-            <div key={item.path} className="relative group/nav">
-              {item.disabled ? (
-                <div
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm text-white/70",
-                    isPinned && "bg-white/10",
-                  )}
-                  title={`${item.name} is available as a dashboard preview`}
-                  aria-disabled="true"
-                >
-                  {content}
-                </div>
-              ) : (
-                <Link
-                  to={item.path}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm",
-                    FOCUS_RING,
-                    isActive
-                      ? "bg-white/20 text-white border-l-2 border-white"
-                      : "text-white/90 hover:bg-white/15 hover:text-white"
-                  )}
-                >
-                  {content}
-                </Link>
-              )}
+      <nav className="flex-1 px-2 mt-2 overflow-y-auto overscroll-contain">
+        {displayedGroups.map((group, groupIndex) => (
+          <div key={group.label} className={cn(groupIndex > 0 && "mt-3 border-t border-white/15 pt-3")}>
+            {!isCollapsed && (
+              <p className="px-3 pb-1 text-[10px] font-black uppercase tracking-wider text-white/60">
+                {group.label}
+              </p>
+            )}
+            <div className="space-y-1">
+              {group.items.map((item) => (
+                <SidebarNavItem
+                  key={item.path}
+                  item={item}
+                  isCollapsed={isCollapsed}
+                  isActive={location.pathname === item.path}
+                  isPinned={pinnedItems.includes(item.path)}
+                  onTogglePin={togglePin}
+                />
+              ))}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </nav>
 
       <div className="p-2 border-t border-white/20 space-y-1">
@@ -226,6 +206,83 @@ export function Sidebar() {
           {!isCollapsed && <span className="font-normal text-sm">Logout</span>}
         </button>
       </div>
+    </div>
+  );
+}
+
+function SidebarNavItem({
+  item,
+  isCollapsed,
+  isActive,
+  isPinned,
+  onTogglePin,
+}: {
+  item: {
+    name: string;
+    icon: LucideIcon;
+    path: string;
+    disabled?: boolean;
+    previewLabel?: string;
+  };
+  isCollapsed: boolean;
+  isActive: boolean;
+  isPinned: boolean;
+  onTogglePin: (path: string) => void;
+}) {
+  const content = (
+    <>
+      <item.icon className={cn("w-4 h-4 flex-shrink-0", isActive ? "text-white" : "text-white/80")} />
+      {!isCollapsed && <span className="font-normal flex-1 text-sm">{item.name}</span>}
+      {!isCollapsed && item.previewLabel && (
+        <span className="rounded bg-white/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+          {item.previewLabel}
+        </span>
+      )}
+      {!isCollapsed && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onTogglePin(item.path);
+          }}
+          className={cn("rounded p-1 transition-colors hover:bg-white/15", FOCUS_RING)}
+          aria-label={isPinned ? `Unpin ${item.name}` : `Pin ${item.name}`}
+          title={isPinned ? `Unpin ${item.name}` : `Pin ${item.name}`}
+        >
+          <Pin className={cn("w-3 h-3 text-white/55", isPinned && "fill-white text-white")} />
+        </button>
+      )}
+    </>
+  );
+
+  return (
+    <div className="relative group/nav">
+      {item.disabled ? (
+        <div
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm text-white/70",
+            isPinned && "bg-white/10",
+          )}
+          title={`${item.name} is available as a dashboard preview`}
+          aria-disabled="true"
+        >
+          {content}
+        </div>
+      ) : (
+        <Link
+          to={item.path}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded transition-all duration-150 active:scale-[0.98] text-sm",
+            FOCUS_RING,
+            isActive
+              ? "bg-white/20 text-white border-l-2 border-white"
+              : "text-white/90 hover:bg-white/15 hover:text-white",
+          )}
+        >
+          {content}
+        </Link>
+      )}
     </div>
   );
 }

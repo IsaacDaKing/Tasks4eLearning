@@ -380,7 +380,7 @@ export function AIAssistantPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
         <CometChatPanel
           messages={messages}
           isAssistantTyping={isAssistantTyping}
@@ -598,8 +598,8 @@ function CometChatPanel({
   chatEndRef: RefObject<HTMLDivElement>;
 }) {
   return (
-    <section className="rounded border border-slate-200 bg-white shadow-sm" aria-labelledby="comet-chat-title">
-      <div className="border-b border-slate-200 p-4 sm:p-5">
+    <section className="rounded border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" aria-labelledby="comet-chat-title">
+      <div className="border-b border-slate-200 p-4 dark:border-slate-700 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded bg-slate-950 text-cyan-300">
@@ -641,7 +641,7 @@ function CometChatPanel({
       </div>
 
       <div
-        className="h-[560px] overflow-y-auto bg-gradient-to-b from-slate-50 to-white p-4 sm:p-5"
+        className="h-[560px] overflow-y-auto overscroll-contain bg-gradient-to-b from-slate-50 to-white p-4 dark:from-slate-950 dark:to-slate-900 sm:p-5"
         aria-live="polite"
         aria-label="Comet AI chat history"
       >
@@ -661,7 +661,7 @@ function CometChatPanel({
                       "rounded px-4 py-3 text-left text-sm leading-relaxed shadow-sm",
                       isUser
                         ? "bg-cyan-600 text-white"
-                        : "border border-slate-200 bg-white text-slate-700",
+                        : "border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200",
                     )}
                   >
                     <p className="mb-1 text-xs font-black opacity-80">{message.sender}</p>
@@ -677,7 +677,7 @@ function CometChatPanel({
               <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded bg-slate-950 text-cyan-300">
                 <Sparkles className="h-4 w-4" />
               </div>
-              <div className="rounded border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm">
+              <div className="rounded border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
                 <p className="mb-2 text-xs font-black">Comet AI</p>
                 <span className="inline-flex items-center gap-1" aria-label="Comet AI is typing">
                   <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-600" />
@@ -691,7 +691,7 @@ function CometChatPanel({
         </div>
       </div>
 
-      <div className="border-t border-slate-200 p-4 sm:p-5">
+      <div className="border-t border-slate-200 p-4 dark:border-slate-700 sm:p-5">
         {suggestions.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2" aria-label="Suggested follow-up prompts">
             {suggestions.map((suggestion) => (
@@ -718,7 +718,7 @@ function CometChatPanel({
               onKeyDown={handleChatKeyDown}
               placeholder="Ask about grades, deadlines, quizzes, course topics, or what to do next..."
               rows={3}
-              className={cn("min-w-0 flex-1 resize-none rounded border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400", FOCUS_RING)}
+              className={cn("min-w-0 flex-1 resize-none rounded border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-white", FOCUS_RING)}
             />
             <button
               type="submit"
@@ -1105,13 +1105,13 @@ function MetricCard({
   detail: string;
 }) {
   return (
-    <article className="rounded border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="rounded border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <div className="mb-3 flex h-9 w-9 items-center justify-center rounded bg-slate-900 text-cyan-300">
         <Icon className="h-4 w-4" />
       </div>
       <p className="text-xs font-black uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-black text-slate-900">{value}</p>
-      <p className="mt-1 text-xs text-slate-600">{detail}</p>
+      <p className="mt-2 text-3xl font-black text-slate-900 dark:text-white">{value}</p>
+      <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{detail}</p>
     </article>
   );
 }
@@ -1128,13 +1128,13 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="rounded border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <div className="mb-4">
-        <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
+        <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
           <Icon className="h-4 w-4" />
           {title}
         </h3>
-        {description && <p className="mt-0.5 text-xs text-slate-600">{description}</p>}
+        {description && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">{description}</p>}
       </div>
       {children}
     </section>

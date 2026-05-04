@@ -36,9 +36,9 @@ function Layout() {
     <SidebarProvider>
       <div className="flex h-screen bg-slate-100 dark:bg-slate-950 overflow-hidden font-sans selection:bg-slate-200 selection:text-slate-900">
         <Sidebar />
-        <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <div className="flex-1 flex min-w-0 flex-col h-full overflow-hidden">
           <Header title={getTitle()} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden bg-slate-100 dark:bg-slate-950">
+          <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain bg-slate-100 dark:bg-slate-950">
             <Outlet />
           </main>
         </div>

@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Bell,
+  Search,
   User,
   Moon,
   Sun,

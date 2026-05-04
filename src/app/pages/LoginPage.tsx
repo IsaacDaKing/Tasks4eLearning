@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import {
   ArrowLeft,
-  BookOpen,
   Bot,
   CheckCircle,
   Eye,
@@ -141,9 +140,11 @@ export function LoginPage() {
     <main className="min-h-screen bg-slate-100 px-4 py-6 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col justify-center gap-6">
         <header className="flex items-center justify-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded bg-blue-600 text-white shadow-sm">
-            <BookOpen className="h-5 w-5" aria-hidden="true" />
-          </div>
+          <img
+            src="/Tasks4eLearning.png"
+            alt="Tasks4eLearning logo"
+            className="h-12 w-12 rounded object-contain shadow-sm"
+          />
           <div>
             <p className="text-lg font-bold leading-tight text-slate-900">Tasks4eLearning</p>
             <p className="text-sm text-slate-600">University learning portal</p>
